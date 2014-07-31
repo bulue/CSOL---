@@ -37,15 +37,8 @@ namespace CSLogin
             }
         }
 
-        private void SendCallBack(IAsyncResult ar)
+        private void onSend(IAsyncResult ar)
         {
-            try
-            {
-            }
-            catch (System.Net.Sockets.SocketException ex)
-            {
-                OnError(ex);
-            }
         }
 
         private void OnConnect(IAsyncResult ar)
@@ -68,8 +61,11 @@ namespace CSLogin
                 if (nRecv > 0)
                 {
                     byte[] recv = new byte[nRecv];
-                    Array.Copy(m_recvBuffer, recv, nRecv);
-                    Parse(recv);
+                    lock (m_recvBuffer)
+                    {
+                        Array.Copy(m_recvBuffer, recv, nRecv);
+                        Parse(recv);
+                    }
                 }
                 m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
             }
@@ -114,10 +110,6 @@ namespace CSLogin
             {
                 m_msgHandle(s);
             }
-            else
-            {
-                CommonApi.TraceInfo("套接字没有找到处理函数!!!!");
-            }
         }
 
         public void SendMsg(string msg)
@@ -132,7 +124,7 @@ namespace CSLogin
                 s.Cmd = msg;
                 byte[] buffer = Bit.StructToBytes<stMsg>(s);
                 //byte[] buffer = System.Text.Encoding.Default.GetBytes(msg);
-                m_sock.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(SendCallBack), m_sock);
+                m_sock.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(onSend), m_sock);
                 CommonApi.TraceInfo("发送内容:" + msg);
             }
             catch (System.Net.Sockets.SocketException ex)

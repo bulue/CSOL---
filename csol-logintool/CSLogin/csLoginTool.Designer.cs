@@ -35,7 +35,7 @@
             this.gamePath = new System.Windows.Forms.TextBox();
             this.gamePathPickBtn = new System.Windows.Forms.Button();
             this.PauseBtn = new System.Windows.Forms.Button();
-            this.textbox1 = new System.Windows.Forms.TextBox();
+            this.textBox = new System.Windows.Forms.TextBox();
             this.dama2Btn = new System.Windows.Forms.Button();
             this.dama2Ckbox = new System.Windows.Forms.CheckBox();
             this.xiaoaiCkbox = new System.Windows.Forms.CheckBox();
@@ -52,6 +52,7 @@
             this.textBox_Code = new System.Windows.Forms.TextBox();
             this.SetCodeBtn = new System.Windows.Forms.Button();
             this.SetManageIpBtn = new System.Windows.Forms.Button();
+            this.timer_flush = new System.Windows.Forms.Timer(this.components);
             this.statusBar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -102,15 +103,15 @@
             this.PauseBtn.UseVisualStyleBackColor = true;
             this.PauseBtn.Click += new System.EventHandler(this.PauseBtn_Click);
             // 
-            // textbox1
+            // textBox
             // 
-            this.textbox1.Cursor = System.Windows.Forms.Cursors.Default;
-            this.textbox1.Location = new System.Drawing.Point(21, 97);
-            this.textbox1.Multiline = true;
-            this.textbox1.Name = "textbox1";
-            this.textbox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textbox1.Size = new System.Drawing.Size(774, 219);
-            this.textbox1.TabIndex = 10;
+            this.textBox.Cursor = System.Windows.Forms.Cursors.Default;
+            this.textBox.Location = new System.Drawing.Point(21, 97);
+            this.textBox.Multiline = true;
+            this.textBox.Name = "textBox";
+            this.textBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.textBox.Size = new System.Drawing.Size(774, 219);
+            this.textBox.TabIndex = 10;
             // 
             // dama2Btn
             // 
@@ -249,6 +250,10 @@
             this.SetManageIpBtn.UseVisualStyleBackColor = true;
             this.SetManageIpBtn.Click += new System.EventHandler(this.SetManageIpBtn_Click);
             // 
+            // timer_flush
+            // 
+            this.timer_flush.Tick += new System.EventHandler(this.timer_flush_Tick);
+            // 
             // csLoginTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -267,7 +272,7 @@
             this.Controls.Add(this.xiaoaiCkbox);
             this.Controls.Add(this.dama2Ckbox);
             this.Controls.Add(this.dama2Btn);
-            this.Controls.Add(this.textbox1);
+            this.Controls.Add(this.textBox);
             this.Controls.Add(this.PauseBtn);
             this.Controls.Add(this.startBtn);
             this.Controls.Add(this.gamePathPickBtn);
@@ -290,7 +295,7 @@
         private System.Windows.Forms.TextBox gamePath;
         private System.Windows.Forms.Button gamePathPickBtn;
         private System.Windows.Forms.Button PauseBtn;
-        private System.Windows.Forms.TextBox textbox1;
+        private System.Windows.Forms.TextBox textBox;
         private System.Windows.Forms.Button dama2Btn;
         private System.Windows.Forms.CheckBox dama2Ckbox;
         private System.Windows.Forms.CheckBox xiaoaiCkbox;
@@ -307,6 +312,7 @@
         private System.Windows.Forms.TextBox textBox_Code;
         private System.Windows.Forms.Button SetCodeBtn;
         private System.Windows.Forms.Button SetManageIpBtn;
+        private System.Windows.Forms.Timer timer_flush;
 
     }
 }

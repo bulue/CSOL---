@@ -265,32 +265,32 @@ namespace CSLogin
 
         static public void TraceDebug(string format, params object[] args)
         {
-            csLoginTool.Instance.Invoke(new DelegateV2<string, string>(csLoginTool.Instance.consoleLog), string.Format(format, args), "debug");
+            csLoginTool.Instance.consoleLog(string.Format(format, args), "debug");
         }
 
         static public void TraceDebug(string format, object arg0)
         {
-            csLoginTool.Instance.Invoke(new DelegateV2<string, string>(csLoginTool.Instance.consoleLog), string.Format(format, arg0), "debug");
+            csLoginTool.Instance.consoleLog(string.Format(format, arg0), "debug");
         }
 
         static public void TraceDebug(string format, object arg0, object arg1)
         {
-            csLoginTool.Instance.Invoke(new DelegateV2<string, string>(csLoginTool.Instance.consoleLog), string.Format(format, arg0, arg1), "debug");
+            csLoginTool.Instance.consoleLog(string.Format(format, arg0, arg1), "debug");
         }
 
         static public void TraceInfo(string format, params object[] args)
         {
-            csLoginTool.Instance.Invoke(new DelegateV2<string, string>(csLoginTool.Instance.consoleLog), string.Format(format, args), "info");
+            csLoginTool.Instance.consoleLog(string.Format(format, args), "info");
         }
 
         static public void TraceInfo(string format, object arg0)
         {
-            csLoginTool.Instance.Invoke(new DelegateV2<string, string>(csLoginTool.Instance.consoleLog), string.Format(format, arg0), "info");
+            csLoginTool.Instance.consoleLog(string.Format(format, arg0), "info");
         }
 
         static public void TraceInfo(string format, object arg0, object arg1)
         {
-            csLoginTool.Instance.Invoke(new DelegateV2<string, string>(csLoginTool.Instance.consoleLog), string.Format(format, arg0, arg1), "info");
+            csLoginTool.Instance.consoleLog(string.Format(format, arg0, arg1), "info");
         }
 
         static private void FindBestMatchPointAndValue(Image<Gray, Single> image, TM_TYPE tmType, out double bestValue, out Point bestPoint)

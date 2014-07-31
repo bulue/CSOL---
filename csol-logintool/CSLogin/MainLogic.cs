@@ -38,18 +38,19 @@ namespace CSLogin
         //public Semaphore m_Sem = new Semaphore(0,1);
         //public Mutex m_lock;
 
-        Session m_session = null;
-        string m_tokenId = null;
+        Session m_session;
+        string MacId;       //物理地址
 
         public MainLogic(csLoginTool loginTool)
         {
-            //_loginTool = loginTool;
+            MacId = GetMacAddressByNetworkInformation();
         }
 
-        void OnMsg(string s)
+        public void OnMsg(string s)
         {
             try
             {
+                CommonApi.TraceInfo("Thread:" + Thread.CurrentThread.ManagedThreadId + " Recv:" + s);
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (split.Length == 0)
@@ -64,14 +65,15 @@ namespace CSLogin
                             string accName = split[1];
                             string passWord = split[2];
 
-                            m_account = new accountInfo(accName, passWord, "");
-
-                            CommonApi.TraceInfo("收到账号:" + accName);
+                            lock (this)
+                            {
+                                m_account = new accountInfo(accName, passWord, "");
+                            }
                         }
                         break;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 CommonApi.TraceInfo(ex.ToString());
             }
@@ -107,52 +109,61 @@ namespace CSLogin
         {
             try
             {
-                do 
+                Random r = new Random();
+ 
+                long nLastQueryTime = 0;
+                do
                 {
                     Thread.Sleep(1000);
                     if (m_session == null)
                     {
                         Session.IP = m_ManageIp;
                         m_session = new Session();
-                        m_session.SetMsgHandle(OnMsg);
+                        m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
                     }
-                    if (m_account == null)
-                    {
-                        if (m_tokenId == null)
-                        {
 
-                            m_tokenId = GetMacAddressByNetworkInformation();
+                    lock (this)
+                    {
+                        if (m_account == null)
+                        {
+                            if (DateTime.Now.Ticks - nLastQueryTime > 30)
+                            {
+                                m_session.SendMsg("1$" + MacId + "$" + m_Code);
+                                nLastQueryTime = DateTime.Now.Ticks;
+                            }
                         }
-                        m_session.SendMsg("1$" + m_tokenId + "$" + m_Code);
-                    }
-                    else
-                    {
-                        m_session.SendMsg("4$" + GetMacAddressByNetworkInformation());
-                        //LoginState stateMachine = new LoginState();
-                        //stateMachine.Run(m_account,m_session);
-
-                        do 
+                        else
                         {
-                            Random r = new Random();
-                            int a = r.Next(1, 4);
-                            if (a == 1)
-                            {
-                                m_session.SendMsg("3$" + m_account.account + "$" + "OK");
-                            }
-                            else if (a == 2)
-                            {
-                                m_session.SendMsg("3$" + m_account.account + "$" + "Failed");
-                            }
-                            else
-                            {
-                                m_session.SendMsg("3$" + m_account.account + "$" + "PasswordError");
-                            }
-                        } while (false);
+                            m_session.SendMsg("4$" + MacId);
+                            nLastQueryTime = 0;
+                            LoginState stateMachine = new LoginState();
+                            stateMachine.Run(m_account, m_session);
 
-                        m_tokenId = null;
-                        m_account = null;
+                            //do
+                            //{
+                            //    int a = r.Next(1, 4);
+                            //    if (a == 1)
+                            //    {
+                            //        m_session.SendMsg("3$" + m_account.account + "$" + "OK");
+                            //    }
+                            //    else if (a == 2)
+                            //    {
+                            //        m_session.SendMsg("3$" + m_account.account + "$" + "Failed");
+                            //    }
+                            //    else
+                            //    {
+                            //        m_session.SendMsg("3$" + m_account.account + "$" + "PasswordError");
+                            //    }
+                            //} while (false);
+
+                             m_account = null;
+                        }
                     }
                 } while (true);
+
+            }
+            catch (ThreadAbortException)
+            {
 
             }
             catch (Exception ex)

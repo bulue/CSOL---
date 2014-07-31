@@ -183,6 +183,7 @@ namespace CSLogin
         private void startBtn_Click(object sender, EventArgs e)
         {
             StartLogin();
+            timer_flush.Start();
         }
 
         private void StartLogin()
@@ -230,23 +231,47 @@ namespace CSLogin
         public void consoleLog(string msg,string level)
         {
             string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} {1} {2}", DateTime.Now, level, msg);
-            if (level != "debug")
+
+            m_logBuffer += format_msg + "\r\n";
+            if (m_logBuffer.Length > 1024)
             {
-                textbox1.Text = textbox1.Text + format_msg + "\r\n";
-                textbox1.SelectionStart = textbox1.Text.Length;  //设定光标位置
-                textbox1.ScrollToCaret();
+                textBox.Invoke(new ConsoleLog(flushToTextBox));
             }
+        }
+
+        private void flushToTextBox()
+        {
+            if (textBox.Text.Length > 1024*8)
+            {
+                textBox.Text = "";
+            }
+            textBox.Text = textBox.Text + m_logBuffer;
+            textBox.SelectionStart = textBox.Text.Length;  //设定光标位置
+            textBox.ScrollToCaret();
 
             const string logDir = @".\log";
             if (!Directory.Exists(logDir))
             {
                 Directory.CreateDirectory(logDir);
             }
-            using (StreamWriter writer = new StreamWriter(logDir + @"\" + _logFileName,true))
+
+            try
             {
-                writer.WriteLine(format_msg);
+                using (StreamWriter writer = new StreamWriter(logDir + @"\" + _logFileName, true))
+                {
+                    writer.WriteLine(m_logBuffer);
+                }
+
             }
+            catch
+            {
+
+            }
+
+            m_logBuffer = "";
         }
+
+        private string m_logBuffer = "";
 
         public string getGamePath()
         {
@@ -459,5 +484,20 @@ namespace CSLogin
 
             MessageBox.Show("修改成功");
         }
+
+        private void timer_flush_Tick(object sender, EventArgs e)
+        {
+            if (m_logBuffer.Length > 0)
+            {
+                flushToTextBox();
+            }
+        }
+
+        public void OnMsg(string s)
+        {
+            _mainLogic.OnMsg(s);
+        }
     }
+
+    delegate void ConsoleLog();
 }
