@@ -289,7 +289,7 @@ namespace 档案汇总
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void listenBtn_Click(object sender, EventArgs e)
         {
             try
             {
@@ -298,6 +298,9 @@ namespace 档案汇总
                 Session.m_msgHandle = OnMsg;
                 Session.m_logHandle = Print;
                 Print("开始监听...");
+
+                timer_StatusBarRefresh.Start();
+                timer_FlushTextbox.Start();
             }
             catch(Exception ex)
             {
@@ -512,38 +515,126 @@ namespace 档案汇总
 
         private void Print(string s)
         {
-            textBox.BeginInvoke(new Delegate<string>(Print1), s);
+            string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} Thread:{1} {2} {3}", DateTime.Now, Thread.CurrentThread.ManagedThreadId, "Debug", s);
+            lock (m_textBoxBuffer)
+            {
+                //textBox.BeginInvoke(new Delegate_Print(Print1), format_msg);
+                m_textBoxBuffer += format_msg;
+                m_textBoxBuffer += "\r\n";
+
+                if (m_textBoxBuffer.Length > 1024)
+                {
+                    textBox.Invoke(new Delegate_Flush(FlushToTextBox));
+                }
+            }
         }
 
         private void Print1(string s)
         {
-            string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} {1} {2}", DateTime.Now, "Debug", s);
+            //string format_msg = string.Format("{0} Thread:{1} {2} {3}", 00, 1, "Debug", s);
 
-            const string logDir = @".\Manage_Log";
-            if (!Directory.Exists(logDir))
+            //const string logDir = @".\Manage_Log";
+            //if (!Directory.Exists(logDir))
+            //{
+            //    Directory.CreateDirectory(logDir);
+            //}
+
+            try
             {
-                Directory.CreateDirectory(logDir);
+                //using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
+                //{
+                //    writer.WriteLine(format_msg);
+                //}
             }
-            using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
+            catch
             {
-                writer.WriteLine(format_msg);
+
             }
 
-            textBox.Text += format_msg;
-            textBox.Text += "\r\n";
-            textBox.SelectionStart = textBox.Text.Length;  //设定光标位置
-            textBox.ScrollToCaret();
+        }
+
+        private void FlushToTextBox()
+        {
+            lock (m_textBoxBuffer)
+            {
+                if (m_textBoxBuffer.Length < 1048 * 10)
+                {
+                    if (textBox.Text.Length > 1048 * 10)
+                    {
+                        textBox.Text = "";
+                    }
+                    textBox.Text += m_textBoxBuffer;
+                }
+                else
+                {
+                    string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} Thread:{1} {2} {3}", DateTime.Now, Thread.CurrentThread.ManagedThreadId, "Warming", "日志数量巨大...跳过打印");
+                    textBox.Text += format_msg;
+                    textBox.Text += "\r\n";
+                }
+
+                textBox.SelectionStart = textBox.Text.Length;  //设定光标位置
+                textBox.ScrollToCaret();
+
+
+                const string logDir = @".\Manage_Log";
+                if (!Directory.Exists(logDir))
+                {
+                    Directory.CreateDirectory(logDir);
+                }
+
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
+                    {
+                        writer.WriteLine(m_textBoxBuffer);
+                    }
+                }
+                catch
+                {
+
+                }
+
+                m_textBoxBuffer = "";
+            }
         }
 
         Dictionary<string, string> m_Token = new Dictionary<string, string>();
-        static string logFileName = String.Format("{0:yyyyMMdd_HHmmss}", DateTime.Now);
+        static string logFileName = String.Format("{0:yyyyMMdd_HHmmss}.txt", DateTime.Now);
+        string m_textBoxBuffer = "";
 
         private void button1_Click(object sender, EventArgs e)
         {
             textBox.Text = "";
         }
+
+        private void timer_StatusBarRefresh_Tick(object sender, EventArgs e)
+        {
+            lock(Sever.m_Clinets)
+            {
+                StatusLab_SessionNum.Text = "当前连接:" + Sever.m_Clinets.Count;
+            }
+        }
+
+        private void timer_FlushTextbox_Tick(object sender, EventArgs e)
+        {
+            if (m_textBoxBuffer.Length > 0)
+            {
+                FlushToTextBox();
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 10000; ++i)
+            {
+                Print(i.ToString());
+            }
+            Print("OK");
+        }
     }
 
+    delegate void Delegate_Flush();
+    delegate void Delegate_Print(string s);
     delegate void Delegate<T>(T t); 
     delegate void Delegate<T1,T2>(T1 t1,T2 t2);
 }

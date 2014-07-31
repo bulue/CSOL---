@@ -18,10 +18,13 @@ namespace 档案汇总
 
         logHandle m_logHandle;
 
+        static public List<Session> m_Clinets = new List<Session>();
+
         public void BeginListen()
         {
             //try
             //{
+                Session.m_errorHandle = OnClientError;
                 IPAddress ip = IPAddress.Parse(IP);
                 m_Acceptor = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 IP = GetLocalIp();
@@ -48,6 +51,11 @@ namespace 档案汇总
                 Session newClient = new Session(acceptor.EndAccept(ar));
 
                 newClient.Start();
+
+                lock (m_Clinets)
+                {
+                    m_Clinets.Add(newClient);
+                }
                 
                 acceptor.BeginAccept(new AsyncCallback(OnAcceptSocket), acceptor);
             }
@@ -74,6 +82,14 @@ namespace 档案汇总
             IPAddress localaddr = localhost.AddressList[0];
             return localaddr.ToString();
         }
+
+        private void OnClientError(System.Net.Sockets.SocketException ex,Session s)
+        {
+            lock (m_Clinets)
+            {
+                m_Clinets.Remove(s);
+            }
+        }
     }
 
 
@@ -85,6 +101,7 @@ namespace 档案汇总
 
         static public msgHandle m_msgHandle;
         static public logHandle m_logHandle;
+        static public errorHanle m_errorHandle;
 
         public Session(Socket s)
         {
@@ -176,7 +193,7 @@ namespace 档案汇总
             }
             catch (System.Net.Sockets.SocketException ex)
             {
-                OnError(ex);
+                //OnError(ex);
             }
         }
 
@@ -190,14 +207,15 @@ namespace 档案汇总
             {
                 m_logHandle(ex.ToString());
             }
+
+            if (ex.SocketErrorCode == SocketError.ConnectionReset)
+            {
+                m_errorHandle(ex, this);
+            }
         }
-    }
-
-    class SessionManage
-    {
-
     }
 
     delegate void msgHandle(string s,Session c);
     delegate void logHandle(string s);
+    delegate void errorHanle(System.Net.Sockets.SocketException ex,Session s);
 }
