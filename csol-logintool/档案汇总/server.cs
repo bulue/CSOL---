@@ -138,7 +138,7 @@ namespace 档案汇总
                 if (nRecv > 0)
                 {
                     byte[] recv = new byte[nRecv];
-                    Array.Copy(m_recvBuffer,recv,nRecv);
+                    Array.Copy(m_recvBuffer, recv, nRecv);
                     Parse(recv);
                 }
                 m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);

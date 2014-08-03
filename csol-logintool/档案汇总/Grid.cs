@@ -612,6 +612,12 @@ namespace 档案汇总
             lock(Sever.m_Clinets)
             {
                 StatusLab_SessionNum.Text = "当前连接:" + Sever.m_Clinets.Count;
+
+                for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                {
+                    Session s = Sever.m_Clinets[i];
+                    s.Send("00000000000000000000000000000000");
+                }
             }
         }
 
@@ -623,13 +629,50 @@ namespace 档案汇总
             }
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        //导出数据
+        private void button5_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < 10000; ++i)
+            try
             {
-                Print(i.ToString());
+                SaveFileDialog dlg = new SaveFileDialog();
+                dlg.Filter = "保存类型 |*.txt";
+                dlg.FilterIndex = 1;
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    string fileTxt = "";
+                    foreach (DataGridViewRow row in dataGridView.Rows)
+                    {
+                        if (row.IsNewRow) { continue; }
+
+                        for (int i = 0; i < row.Cells.Count; ++i)
+                        {
+                            if (i > 0)
+                            {
+                                fileTxt += "----";
+                            }
+                            if (row.Cells[i].Value != null)
+                            {
+                                string s = (string)row.Cells[i].Value;
+                                fileTxt += s;
+                            }
+                            else
+                            {
+                                fileTxt += "(NULL)";
+                            }
+                        }
+                        fileTxt += "\n";
+                    }
+
+                    Stream file = dlg.OpenFile();
+                    byte[] bytes = System.Text.Encoding.Default.GetBytes(fileTxt);
+                    file.Write(bytes, 0, bytes.Length);
+                }
             }
-            Print("OK");
+            catch (System.Exception ex)
+            {
+            	
+            }
         }
     }
 
