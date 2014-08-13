@@ -312,7 +312,9 @@ namespace 档案汇总
         {
             try
             {
+
                 Print("Thread:" + Thread.CurrentThread.ManagedThreadId + "Recv:" + s);
+
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
                 switch (split[0])
                 {
@@ -529,30 +531,6 @@ namespace 档案汇总
             }
         }
 
-        private void Print1(string s)
-        {
-            //string format_msg = string.Format("{0} Thread:{1} {2} {3}", 00, 1, "Debug", s);
-
-            //const string logDir = @".\Manage_Log";
-            //if (!Directory.Exists(logDir))
-            //{
-            //    Directory.CreateDirectory(logDir);
-            //}
-
-            try
-            {
-                //using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
-                //{
-                //    writer.WriteLine(format_msg);
-                //}
-            }
-            catch
-            {
-
-            }
-
-        }
-
         private void FlushToTextBox()
         {
             lock (m_textBoxBuffer)
@@ -586,7 +564,7 @@ namespace 档案汇总
                 {
                     using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
                     {
-                        writer.WriteLine(m_textBoxBuffer);
+                        writer.Write(m_textBoxBuffer);
                     }
                 }
                 catch
@@ -616,7 +594,7 @@ namespace 档案汇总
                 for (int i = 0; i < Sever.m_Clinets.Count; ++i)
                 {
                     Session s = Sever.m_Clinets[i];
-                    s.Send("00000000000000000000000000000000");
+                    s.Send("0");
                 }
             }
         }
@@ -661,12 +639,13 @@ namespace 档案汇总
                                 fileTxt += "(NULL)";
                             }
                         }
-                        fileTxt += "\n";
+                        fileTxt += "\r\n";
                     }
 
                     Stream file = dlg.OpenFile();
                     byte[] bytes = System.Text.Encoding.Default.GetBytes(fileTxt);
                     file.Write(bytes, 0, bytes.Length);
+                    file.Close();
                 }
             }
             catch (System.Exception ex)
