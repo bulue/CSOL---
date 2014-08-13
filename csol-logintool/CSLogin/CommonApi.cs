@@ -72,6 +72,9 @@ namespace CSLogin
 
         #endregion
 
+
+        static Dictionary<string, Bitmap> m_FileMap = new Dictionary<string, Bitmap>();
+
         static public bool FindPic(int x, int y, int w, int h, string picFileName, double approximation,out int nX,out int nY)
         {
             nX = 0;
@@ -84,12 +87,19 @@ namespace CSLogin
             try
             {
                 long ticks = System.Environment.TickCount;
-                Bitmap screen = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
+                Bitmap screen = new Bitmap(w, h);
 
                 Graphics g = Graphics.FromImage(screen);
                 g.CopyFromScreen(x, y, 0, 0, screen.Size);
 
-                Bitmap pic = (Bitmap)Bitmap.FromFile(picFileName);
+                Bitmap pic;
+                try {
+                    pic = m_FileMap[picFileName];
+                }catch (System.Collections.Generic.KeyNotFoundException)
+                {
+                    pic = (Bitmap)Bitmap.FromFile(picFileName);
+                    m_FileMap.Add(picFileName,pic);
+                }
 
                 Image<Bgr, Byte> img = new Image<Bgr, Byte>(screen);
                 Image<Bgr, Byte> templ = new Image<Bgr, Byte>(pic);
@@ -102,15 +112,16 @@ namespace CSLogin
                 FindBestMatchPointAndValue(imageResult, tmType,out bestValue,out bestPoint);
 
                 screen.Dispose();
-                pic.Dispose();
                 img.Dispose();
                 templ.Dispose();
                 imageResult.Dispose();
                 g.Dispose();
 
-                //TraceDebug("图片 [" + picFileName + "] 耗时:" + (System.Environment.TickCount - ticks) + "ms.");
+                TraceInfo("图片 [" + picFileName + "] 耗时:" + (System.Environment.TickCount - ticks) + "ms.");
+                //Thread.Sleep((int)System.Environment.TickCount - (int)ticks);
                 if (bestValue > approximation)
                 {
+                    //TraceInfo("找到图片[" + picFileName + "]");
                     nX = bestPoint.X + x;
                     nY = bestPoint.Y + y;
 
@@ -123,8 +134,6 @@ namespace CSLogin
             }
             catch (Emgu.CV.Util.CvException ex)
             {
-                //TraceDebug(String.Format("FindPic({0},{1},{2},{3},{4})  异常!!", x, y, w, h, picFileName));
-                //TraceDebug(ex.ToString());
             }
 
             return false;

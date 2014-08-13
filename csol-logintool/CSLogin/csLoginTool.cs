@@ -296,27 +296,38 @@ namespace CSLogin
                 return;
             }
 
-            if (_logicThread.ThreadState == System.Threading.ThreadState.Stopped)
+            if (MainLogic.isStop)
             {
-                MessageBox.Show("线程已经停止!!", "提示");
-                return;
-            }
-            if (_logicThread.ThreadState == System.Threading.ThreadState.WaitSleepJoin)
-            {
-                MessageBox.Show("线程睡眠状态!!", "提示",MessageBoxButtons.OK,MessageBoxIcon.Error);
-                return;
-            }
-
-            if (_logicThread.ThreadState == System.Threading.ThreadState.Suspended)
-            {
-                _logicThread.Resume();
+                MainLogic.isStop = false;
                 PauseBtn.Text = "暂停 Ctrl+f12";
             }
-            else if (_logicThread.ThreadState == System.Threading.ThreadState.Running)
+            else
             {
-                _logicThread.Suspend();
+                MainLogic.isStop = true;
                 PauseBtn.Text = "恢复 Ctrl+f12";
             }
+
+            //if (_logicThread.ThreadState == System.Threading.ThreadState.Stopped)
+            //{
+            //    MessageBox.Show("线程已经停止!!", "提示");
+            //    return;
+            //}
+            //if (_logicThread.ThreadState == System.Threading.ThreadState.WaitSleepJoin)
+            //{
+            //    MessageBox.Show("线程睡眠状态!!", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //    return;
+            //}
+
+            //if (_logicThread.ThreadState == System.Threading.ThreadState.Suspended)
+            //{
+            //    _logicThread.Resume();
+            //    PauseBtn.Text = "暂停 Ctrl+f12";
+            //}
+            //else if (_logicThread.ThreadState == System.Threading.ThreadState.Running)
+            //{
+            //    _logicThread.Suspend();
+            //    PauseBtn.Text = "恢复 Ctrl+f12";
+            //}
         }
 
         private void dama2Btn_Click(object sender, EventArgs e)

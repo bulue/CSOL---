@@ -35,22 +35,24 @@ namespace CSLogin
         public string m_Code = "";
         public string m_ManageIp = "";
 
-        //public Semaphore m_Sem = new Semaphore(0,1);
-        //public Mutex m_lock;
-
         Session m_session;
         string MacId;       //物理地址
 
+        static public bool isStop = false;
+
         public MainLogic(csLoginTool loginTool)
         {
-            MacId = GetMacAddressByNetworkInformation();
+            MacId = GetMacAddress();
         }
 
         public void OnMsg(string s)
         {
             try
             {
-                CommonApi.TraceInfo("Thread:" + Thread.CurrentThread.ManagedThreadId + " Recv:" + s);
+                if (s != "0")
+                {
+                    CommonApi.TraceInfo("Thread:" + Thread.CurrentThread.ManagedThreadId + " Recv:" + s);
+                }
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
 
                 if (split.Length == 0)
@@ -79,7 +81,7 @@ namespace CSLogin
             }
         }
 
-        public string GetMacAddressByNetworkInformation()
+        private string GetMacAddress()
         {
             string macAddress = "";
             try
@@ -115,6 +117,7 @@ namespace CSLogin
                 do
                 {
                     Thread.Sleep(1000);
+
                     if (m_session == null)
                     {
                         Session.IP = m_ManageIp;
@@ -230,7 +233,7 @@ namespace CSLogin
                     }
                 }
 
-                Sleep(300);
+                Sleep(1000);
             } while (System.Environment.TickCount - nowTick < 150000);
         }
 
@@ -295,7 +298,7 @@ namespace CSLogin
             {
                 case State.Kaishi:
                     {
-                        Sleep(100);
+                        Sleep(500);
                         IntPtr hwnd = CommonApi.FindWindow(null, "CSOLauncher");
                         if (hwnd != IntPtr.Zero)
                         {
@@ -322,6 +325,7 @@ namespace CSLogin
                                 _NextState = State.Launncher;
                                 break;
                             }
+                            Sleep(1000);
                         } while (System.Environment.TickCount - ticks < 10 * 1000);
 
                         RunNextStation();
@@ -340,6 +344,7 @@ namespace CSLogin
                                 bCheck = true;
                                 break;
                             }
+                            Sleep(1000);
                         } while (System.Environment.TickCount - ticks < 5 * 1000);
 
                         if (bCheck)
@@ -348,14 +353,14 @@ namespace CSLogin
                             int dx, dy;
 
                             CommonApi.ShowWindow(hwnd);
-                            Sleep(200);
+                            Sleep(500);
                             CommonApi.GetWindowXYWH(hwnd, out x, out y, out w, out h);
 
                             if (x > 0 && y > 0 && w > 0 && h > 0)
                             {
-                                if (CommonApi.FindPic(x, y, w, h, @".\BMP\界面登陆.bmp", 0.99, out dx, out dy))
+                                if (CommonApi.FindPic(x + 558, y + 70, 55, 34, @".\BMP\界面登陆.bmp", 0.99, out dx, out dy))
                                 {
-                                    Sleep(2000);
+                                    Sleep(3000);
                                     CommonApi.Left_Click(dx + 5, dy + 5);
                                     _NextState = State.Wait_Counter_Strike;
                                 }
@@ -381,6 +386,7 @@ namespace CSLogin
                                 _NextState = State.Counter_Strike;
                                 return;
                             }
+                            Sleep(1000);
                         } while (System.Environment.TickCount - ticks < 15 * 1000);
 
                         _NextState = State.Kaishi;
@@ -390,34 +396,66 @@ namespace CSLogin
                         IntPtr hwnd = CommonApi.FindWindow(null, "Counter-Strike Online");
                         if (hwnd != IntPtr.Zero)
                         {
-                            long ticks = System.Environment.TickCount;
+                            long beginCheckTime = System.Environment.TickCount;
+
+                            int yanzhengma_Lastime = System.Environment.TickCount;
+                            int xinbinbaodao_Lasttime = System.Environment.TickCount;
+                            int wujuese_Lasttime = System.Environment.TickCount;
+                            int queren_Lasttime = System.Environment.TickCount;
+                            int quxiao_Lasttime = System.Environment.TickCount;
+                            int mimacuowu_Lasttime = System.Environment.TickCount;
+
+                            int wujuese_Interval = 0;
+                            int queren_Interval = 2000;
+                            int quxiao_Interval = 2000;
+
+                            bool notFindPic = false;
                             do
                             {
                                 ClearOtherWnd();
                                 hwnd = CommonApi.FindWindow(null, "Counter-Strike Online");
                                 if (hwnd == IntPtr.Zero)
                                 {
-                                    _NextState = State.Kaishi;
+                                    if (bInputPwd)
+                                    {
+                                        _NextState = State.JieShu;
+                                        SendLogFailed(_curAccInfo);
+                                    }
+                                    else
+                                    {
+                                        _NextState = State.Kaishi;
+                                    }
                                     break;
                                 }
 
                                 CommonApi.Mouse_Move(0, 0);
 
+                                int sX, sY, sW, sH;
                                 int x, y, w, h;
                                 int dx, dy;
 
                                 CommonApi.ShowWindow(hwnd);
-                                Sleep(50);
-                                CommonApi.GetWindowXYWH(hwnd, out x, out y, out w, out h);
-                                x += 150;
-                                y += 150;
-                                w -= 150;
-                                h -= 150;
+                                if (notFindPic || !bInputPwd)
+                                {
+                                    Sleep(1500);
+                                    notFindPic = false;
+                                }
+                                else
+                                {
+                                    Sleep(500);
+                                }
+                                CommonApi.GetWindowXYWH(hwnd, out sX, out sY, out sW, out sH);
+                                x = sX + 150;
+                                y = sY + 150;
+                                w = sW - 150;
+                                h = sH - 150;
 
                                 if (x > 0 && y > 0 && w > 0 && h > 0)
                                 {
-                                    if (CommonApi.FindPic(x, y, w, h, @".\BMP\游戏登陆.bmp", 0.99, out dx, out dy))
+                                    if (CommonApi.FindPic(x + 300, y + 300, 100 , 50 , @".\BMP\游戏登陆.bmp", 0.99, out dx, out dy))
                                     {
+                                        bInputPwd = true;
+
                                         CommonApi.Left_Click(dx + 135, dy - 97);
                                         Sleep(200);
                                         CommonApi.Left_Click(dx + 135, dy - 97);
@@ -442,17 +480,22 @@ namespace CSLogin
                                         long nowTick = System.Environment.TickCount;
                                         do
                                         {
-                                            if (!CommonApi.FindPic(x, y, w, h, @".\BMP\游戏登陆.bmp", 0.99, out dx, out dy))
+                                            if (!CommonApi.FindPic(x + 300, y + 300, 100, 50, @".\BMP\游戏登陆.bmp", 0.99, out dx, out dy))
                                             {
                                                 break;
                                             }
-                                            Sleep(200);
+                                            Sleep(1000);
                                         } while (System.Environment.TickCount - nowTick < 7 * 1000);
 
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x, y, w, h, @".\BMP\新兵报到.bmp", 0.99, out dx, out dy))
+                                    if (!bInputPwd)
+                                    {
+                                        break;
+                                    }
+
+                                    if (bInputPwd && CheckInterLastTime(ref xinbinbaodao_Lasttime, 3000 + _Rand(1000)) && CommonApi.FindPic(x, y, w, h, @".\BMP\新兵报到.bmp", 0.99, out dx, out dy))
                                     {
                                         CommonApi.Left_Click(dx + 72, dy + 115);
                                         Sleep(200);
@@ -469,20 +512,21 @@ namespace CSLogin
                                         }
                                     }
 
-                                    if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\战场补给.bmp", 0.99, out dx, out dy))
+                                    if (CommonApi.FindPic(sX + 268, sY + 584, 133, 40, @".\BMP\战场补给.bmp", 0.99, out dx, out dy))
                                     {
                                         CommonApi.Left_Click(dx + 5, dy + 5);
                                         Sleep(50);
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x + 200, y + 450, w - 200, h - 450, @".\BMP\领取奖励按钮.bmp", 0.99, out dx, out dy))
+                                    if (CommonApi.FindPic(sX + 450, sY + 650, 120, 90, @".\BMP\领取奖励按钮.bmp", 0.99, out dx, out dy))
                                     {
                                         int nOldDay = 0;
                                         for (int i = 1; i <= 7; ++i)
                                         {
                                             int dx1, dy1;
-                                            if (!CommonApi.FindPic(x, y, w, h, @".\BMP\领取" + i + "天.bmp", 0.99, out dx1, out dy1))
+                                            int offset = (i - 1) * 92;
+                                            if (!CommonApi.FindPic(sX + 180 + offset, sY + 280, 108, 75, @".\BMP\领取" + i + "天.bmp", 0.99, out dx1, out dy1))
                                             {
                                                 nOldDay = i;
                                             }
@@ -501,7 +545,8 @@ namespace CSLogin
                                             for (int i = 1; i <= 7; ++i)
                                             {
                                                 int dx1, dy1;
-                                                if (!CommonApi.FindPic(x, y, w, h, @".\BMP\领取" + i + "天.bmp", 0.99, out dx1, out dy1))
+                                                int offset = (i - 1) * 92;
+                                                if (!CommonApi.FindPic(sX + 180 + offset, sY + 280, 108, 75, @".\BMP\领取" + i + "天.bmp", 0.99, out dx1, out dy1))
                                                 {
                                                     nDay = i;
                                                 }
@@ -522,11 +567,12 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x + 200, y + 450, w - 200, h - 450, @".\BMP\领过奖励.bmp", 0.999, out dx, out dy))
+                                    if (CommonApi.FindPic(sX + 450, sY + 650, 120, 90, @".\BMP\领过奖励.bmp", 0.999, out dx, out dy))
                                     {
                                         for (int i = 1; i <= 7; ++i)
                                         {
-                                            if (!CommonApi.FindPic(x, y, w, h, @".\BMP\领取"+ i +"天.bmp", 0.99, out dx, out dy))
+                                            int offset = (i - 1) * 92;
+                                            if (!CommonApi.FindPic(sX + 180 + offset, sY + 280, 108, 75, @".\BMP\领取" + i + "天.bmp", 0.99, out dx, out dy))
                                             {
                                                 CommonApi.TraceInfo("账号领取过"+ i +"天");
                                                 m_client.SendMsg("5$" + _AccInfo.account + "$" + i);
@@ -543,7 +589,7 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\密码错误.bmp", 0.99, out dx, out dy))
+                                    if (bInputPwd && CheckInterLastTime(ref mimacuowu_Lasttime, 2000 + _Rand(2000)) && CommonApi.FindPic(x, y, w, h - 30, @".\BMP\密码错误.bmp", 0.99, out dx, out dy))
                                     {
                                         CommonApi.CloseWindow(hwnd);
 
@@ -554,7 +600,7 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x, y, w, h, @".\BMP\验证码.bmp", 0.99, out dx, out dy))
+                                    if (bInputPwd && CheckInterLastTime(ref yanzhengma_Lastime, 2000 + _Rand(2000)) && CommonApi.FindPic(x, y, w, h, @".\BMP\验证码.bmp", 0.99, out dx, out dy))
                                     {
                                         bool boOpen = (bool)_loginTool.Invoke(new Delegate0<bool>(_loginTool.xiaoaiopenFunc));
                                         if (boOpen)
@@ -687,8 +733,12 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\无角色.bmp", 0.99, out dx, out dy))
+                                    if (bInputPwd && CheckInterLastTime(ref wujuese_Lasttime, wujuese_Interval) && CommonApi.FindPic(sX + 411, sY + 340, 200, 40, @".\BMP\无角色.bmp", 0.99, out dx, out dy))
                                     {
+                                        wujuese_Interval = 5000;
+                                        queren_Interval = 500;
+                                        quxiao_Lasttime = 500;
+
                                         Random rd = new Random();
                                         string s = "";
                                         for (int i = 0; i < 10; ++i)
@@ -707,7 +757,51 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x, y, w, h, @".\BMP\毫礼确认.bmp", 0.99, out dx, out dy))
+                                    if (CommonApi.FindPic(sX + 424, sY + 608 , 80, 30, @".\BMP\毫礼确认.bmp", 0.99, out dx, out dy))
+                                    {
+                                        queren_Lasttime = System.Environment.TickCount;
+                                        CommonApi.Mouse_Move(dx + 5, dy + 5);
+                                        Sleep(100);
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+                                        Sleep(200);
+
+                                        break;
+                                    }
+
+                                    if (CommonApi.FindPic(sX + 596, sY + 616, 80, 30, @".\BMP\毫礼确认.bmp", 0.99, out dx, out dy))
+                                    {
+                                        queren_Lasttime = System.Environment.TickCount;
+                                        CommonApi.Mouse_Move(dx + 5, dy + 5);
+                                        Sleep(100);
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+                                        Sleep(200);
+
+                                        break;
+                                    }
+
+                                    if (CommonApi.FindPic(sX + 458, sY + 426, 80, 30, @".\BMP\毫礼确认.bmp", 0.99, out dx, out dy))
+                                    {
+                                        queren_Lasttime = System.Environment.TickCount;
+                                        CommonApi.Mouse_Move(dx + 5, dy + 5);
+                                        Sleep(100);
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+                                        Sleep(200);
+
+                                        break;
+                                    }
+
+                                    if (CommonApi.FindPic(sX + 481, sY + 419, 80, 35, @".\BMP\毫礼确认.bmp", 0.99, out dx, out dy))
+                                    {
+                                        queren_Lasttime = System.Environment.TickCount;
+                                        CommonApi.Mouse_Move(dx + 5, dy + 5);
+                                        Sleep(100);
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+                                        Sleep(200);
+
+                                        break;
+                                    }
+
+                                    if (CheckInterLastTime(ref queren_Lasttime,queren_Interval + _Rand(1000)) && CommonApi.FindPic(x, y, w, h, @".\BMP\毫礼确认.bmp", 0.99, out dx, out dy))
                                     {
                                         CommonApi.Mouse_Move(dx + 5, dy + 5);
                                         Sleep(100);
@@ -717,21 +811,23 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CommonApi.FindPic(x, y, w, h, @".\BMP\关闭.bmp", 0.99, out dx, out dy))
+                                    if (CheckInterLastTime(ref quxiao_Lasttime,quxiao_Interval + _Rand(1000)) && CommonApi.FindPic(x, y, w, h, @".\BMP\关闭.bmp", 0.99, out dx, out dy))
                                     {
                                         CommonApi.Left_Click(dx + 5, dy + 5);
 
                                         break;
                                     }
+
+                                    notFindPic = true;
                                 }
 
-                                if (System.Environment.TickCount - ticks > 30 * 1000)
+                                if (System.Environment.TickCount - beginCheckTime > 50 * 1000)
                                 {
                                     SendLogFailed(_curAccInfo);
                                     CommonApi.CloseWindow(hwnd);
 
                                     _NextState = State.JieShu;
-                                    Sleep(1000,"游戏超时30秒,准备关闭");
+                                    Sleep(1000,"游戏超时50秒,准备关闭");
 
                                     break;
                                 }
@@ -746,8 +842,31 @@ namespace CSLogin
             }
         }
 
+        bool bInputPwd = false;
+
+        Random rd = new Random();
+        private int _Rand(int maxValue)
+        {
+            return rd.Next(maxValue);
+        }
+
+        private bool CheckInterLastTime(ref int lastTime,int interval)
+        {
+            if (System.Environment.TickCount > lastTime + interval)
+            {
+                lastTime = System.Environment.TickCount;
+                return true;
+            }
+            return false;
+        }
+
         private void Sleep(int ticks, string option = "")
         {
+            while (MainLogic.isStop)
+            {
+                Thread.Sleep(1);
+            }
+
             bool x = false;
             if (ticks > 10 * 10000 || option != "")
             {
