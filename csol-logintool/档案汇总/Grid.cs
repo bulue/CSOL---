@@ -22,10 +22,11 @@ namespace 档案汇总
         {
             InitializeComponent();
 
-            Text += string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}"
+            Text += string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
                 , System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)
                 , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
-                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor);
+                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
+                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build);
 
             LoadData();
 
@@ -327,6 +328,7 @@ namespace 档案汇总
                             string passWord = "";
                             if (!m_Token.ContainsKey(token))
                             {
+                                //优先分配,未分配过的账号
                                 foreach (DataGridViewRow row in dataGridView.Rows)
                                 {
                                     if (row.IsNewRow){continue;}
@@ -349,8 +351,10 @@ namespace 档案汇总
                                     }
                                 }
 
+                                //其次分配，签到失败账号
                                 if (accName == null || accName == "" || passWord == null || passWord == "")
                                 {
+                                    DataGridViewRow dstRow = null;
                                     foreach (DataGridViewRow row in dataGridView.Rows)
                                     {
                                         if (row.IsNewRow) { continue; }
@@ -358,18 +362,41 @@ namespace 档案汇总
                                         {
                                             if (row.Cells["State"].Value.ToString() == "签到失败")
                                             {
-                                                accName = row.Cells["Account"].Value as string;
-                                                passWord = row.Cells["Password"].Value as string;
                                                 if (accName != null && accName != "" && passWord != null && passWord != "")
                                                 {
-                                                    row.Cells["State"].Value = "已经分配";
-                                                    row.Cells["IP"].Value = c.handle.RemoteEndPoint.ToString();
-                                                    row.Cells["Code"].Value = code;
-                                                    m_Token[token] = accName;
+                                                    if (dstRow == null)
+                                                    {
+                                                        dstRow = row;
+                                                    }
+                                                    else
+                                                    {
+                                                        int c1 = 0;
+                                                        int c2 = 0;
+                                                        try {
+                                                            int.TryParse(dstRow.Cells["FailedCount"].ToString(),out c1);
+                                                            int.TryParse(row.Cells["FailedCount"].ToString(), out c2);
+                                                        }
+                                                        catch { }
+                                                        if (c1 > c2)
+                                                        {
+                                                            dstRow = row;
+                                                        }
+                                                    }
                                                 }
                                                 break;
                                             }
                                         }
+                                    }
+
+                                    if (dstRow != null)
+                                    {
+                                        accName = dstRow.Cells["Account"].Value as string;
+                                        passWord = dstRow.Cells["Password"].Value as string;
+
+                                        dstRow.Cells["State"].Value = "已经分配";
+                                        dstRow.Cells["IP"].Value = c.handle.RemoteEndPoint.ToString();
+                                        dstRow.Cells["Code"].Value = code;
+                                        m_Token[token] = accName;
                                     }
                                 }
 
@@ -379,7 +406,8 @@ namespace 档案汇总
                                     foreach (DataGridViewRow row in dataGridView.Rows)
                                     {
                                         if (row.IsNewRow) { continue; }
-                                        if ((row.Cells["Checked"].Value == null || row.Cells["Checked"].Value.ToString() != "True"))
+                                        if ((row.Cells["Checked"].Value == null || row.Cells["Checked"].Value.ToString() != "True")
+                                            && row.Cells["State"].Value.ToString() != "已经分配")
                                         {
                                             accName = row.Cells["Account"].Value as string;
                                             passWord = row.Cells["Password"].Value as string;
