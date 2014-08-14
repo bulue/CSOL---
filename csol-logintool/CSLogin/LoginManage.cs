@@ -15,22 +15,20 @@ using System.Net.NetworkInformation;
 
 namespace CSLogin
 {
-    class accountInfo{
+    class userInfo{
         public string account;
         public string pwd;
-        public string rawInfo;
 
-        public accountInfo(string acc_, string pwd_,string rawInfo_)
+        public userInfo(string a, string p)
         {
-            account = acc_;
-            pwd = pwd_;
-            rawInfo = rawInfo_;
+            account = a;
+            pwd = p;
         }
     }
 
-    class MainLogic
+    class LoginManage
     {
-        static public accountInfo m_account;
+        static public userInfo m_account;
 
         public string m_Code = "";
         public string m_ManageIp = "";
@@ -40,7 +38,7 @@ namespace CSLogin
 
         static public bool isStop = false;
 
-        public MainLogic(csLoginTool loginTool)
+        public LoginManage(csLoginTool loginTool)
         {
             MacId = GetMacAddress();
         }
@@ -69,7 +67,7 @@ namespace CSLogin
 
                             lock (this)
                             {
-                                m_account = new accountInfo(accName, passWord, "");
+                                m_account = new userInfo(accName, passWord);
                             }
                         }
                         break;
@@ -92,10 +90,17 @@ namespace CSLogin
                     if (!adapter.GetPhysicalAddress().ToString().Equals(""))
                     {
                         macAddress = adapter.GetPhysicalAddress().ToString();
-                        for (int i = 1; i < 6; i++)
+                        string tmpAddress = "";
+                        for (int i = 0; i < macAddress.Length; i++)
                         {
-                            macAddress = macAddress.Insert(3 * i - 1, ":");
+                            if (i > 0 && i % 2 == 0)
+                            {
+                                tmpAddress += ':';
+                            }
+                            tmpAddress += macAddress[i];
                         }
+
+                        macAddress = tmpAddress;
                         break;
                     }
                 }
@@ -187,7 +192,7 @@ namespace CSLogin
             JieShu,
         };
 
-        public void Run(accountInfo info,Session s)
+        public void Run(userInfo info,Session s)
         {
             _curAccInfo = info;
             _currentState = State.Kaishi;
@@ -437,12 +442,19 @@ namespace CSLogin
                                 CommonApi.ShowWindow(hwnd);
                                 if (notFindPic || !bInputPwd)
                                 {
-                                    Sleep(1500);
+                                    Sleep(2000);
                                     notFindPic = false;
                                 }
                                 else
                                 {
                                     Sleep(500);
+
+                                    yanzhengma_Lastime = System.Environment.TickCount;
+                                    xinbinbaodao_Lasttime = System.Environment.TickCount;
+                                    wujuese_Lasttime = System.Environment.TickCount;
+                                    queren_Lasttime = System.Environment.TickCount;
+                                    quxiao_Lasttime = System.Environment.TickCount;
+                                    mimacuowu_Lasttime = System.Environment.TickCount;
                                 }
                                 CommonApi.GetWindowXYWH(hwnd, out sX, out sY, out sW, out sH);
                                 x = sX + 150;
@@ -602,54 +614,7 @@ namespace CSLogin
 
                                     if (bInputPwd && CheckInterLastTime(ref yanzhengma_Lastime, 2000 + _Rand(2000)) && CommonApi.FindPic(x, y, w, h, @".\BMP\验证码.bmp", 0.99, out dx, out dy))
                                     {
-                                        bool boOpen = (bool)_loginTool.Invoke(new Delegate0<bool>(_loginTool.xiaoaiopenFunc));
-                                        if (boOpen)
-                                        {
-                                            using (Bitmap screen = CommonApi.ScreenShot(dx, dy + 87, 160, 63))
-                                            {
-                                                screen.Save("验证码.bmp");
-
-                                                string Tid = "";
-                                                xa.SetRebate("xiaozhuhaoa");
-                                                string ans = xa.SendFileEx(xiaoaiUserStr, "1040", @".\验证码.bmp", 60, 0, 0, Tid, 0).ToString();
-                                                if (xa.IsRight(ans) == true)
-                                                {
-                                                    string retCode = ans;
-                                                    CommonApi.Left_Click(dx + 170, dy + 200);
-                                                    Sleep(300);
-                                                    CommonApi.Left_Click(dx + 170, dy + 200);
-
-                                                    SendKeys.SendWait(retCode);
-                                                    Sleep(300);
-                                                    CommonApi.Left_Click(dx + 120, dy + 255);
-
-                                                    long nowTick = System.Environment.TickCount;
-                                                    do
-                                                    {
-                                                        Sleep(100);
-                                                        if (!CommonApi.FindPic(x, y, w, h, screen, 0.99, out dx, out dy))
-                                                        {
-                                                            break;
-                                                        }
-                                                    } while (System.Environment.TickCount - nowTick < 8000);
-
-                                                    SaveCaptcha(screen, retCode + ".bmp", "小爱打码");
-
-                                                    if (CommonApi.FindPic(x, y, w, h, screen, 0.99, out dx, out dy))
-                                                    {
-                                                        CommonApi.TraceInfo("验证码有误！！报告错误！！");
-                                                        xa.SendError(Tid);
-                                                    }
-                                                }
-                                                else
-                                                {
-
-                                                }
-                                            }
-                                            return;
-                                        }
-
-                                        boOpen = (bool)_loginTool.Invoke(new Delegate0<bool>(_loginTool.dama2OpenFunc));
+                                        bool boOpen = (bool)_loginTool.Invoke(new Delegate0<bool>(_loginTool.dama2OpenFunc));
                                         if (boOpen)
                                         {
 
@@ -674,18 +639,14 @@ namespace CSLogin
                                                 }
 
                                                 StringBuilder VCodeText = new StringBuilder(100);
-                                                int ret = Dama2.D2Buf(
-                                                    "c5aff0c4d218205cd5f762ca9acaa81e", //softawre key (software id)
-                                                    "xiaozhuhaoa",    //user name
-                                                    "19881226",     //password
-                                                    byteImage,         //图片数据，图片数据不可大于4M
-                                                    (uint)byteImage.Length, //图片数据长度
-                                                    30,         //超时时间，单位为秒，更换为实际需要的超时时间
-                                                    109,        //验证码类型ID，参见 http://wiki.dama2.com/index.php?n=ApiDoc.GetSoftIDandKEY
-                                                    VCodeText); //成功时返回验证码文本（答案）
-
-                                                //SendLogFailed(_accInfo);
-                                                //_NextState = State.JieShu;
+                                                int ret = Dama2.D2Buf("c5aff0c4d218205cd5f762ca9acaa81e" //softawre key (software id)
+                                                    ,"xiaozhuhaoa" //user name
+                                                    ,"19881226"     //password
+                                                    ,byteImage     //图片数据，图片数据不可大于4M
+                                                    ,(uint)byteImage.Length    //图片数据长度
+                                                    ,30     //超时时间，单位为秒，更换为实际需要的超时时间
+                                                    ,109    //验证码类型I, 中文 加减法
+                                                    ,VCodeText); //成功时返回验证码文本（答案）
 
                                                 if (ret > 0)
                                                 {
@@ -862,7 +823,7 @@ namespace CSLogin
 
         private void Sleep(int ticks, string option = "")
         {
-            while (MainLogic.isStop)
+            while (LoginManage.isStop)
             {
                 Thread.Sleep(1);
             }
@@ -888,17 +849,17 @@ namespace CSLogin
             }
         }
 
-        private void SendLogSucess(accountInfo account)
+        private void SendLogSucess(userInfo account)
         {
             m_client.SendMsg("3$" + account.account + "$" + "OK");
         }
 
-        private void SendLogFailed(accountInfo account)
+        private void SendLogFailed(userInfo account)
         {
             m_client.SendMsg("3$" + account.account + "$" + "Failed");
         }
 
-        private void SendLogPasswordError(accountInfo account)
+        private void SendLogPasswordError(userInfo account)
         {
             m_client.SendMsg("3$" + account.account + "$" + "PasswordError");
         }
@@ -922,11 +883,11 @@ namespace CSLogin
             set
             {
                 _xiaoaiUserStr = value;
-                _iniFile.IniWriteValue("xiaoai", "userstr", value);
+                _ini.IniWriteValue("xiaoai", "userstr", value);
             }
         }
 
-        private accountInfo _curAccInfo
+        private userInfo _curAccInfo
         {
             get
             {
@@ -935,23 +896,22 @@ namespace CSLogin
             set
             {
                 _AccInfo = value;
-                //_loginTool.Invoke(new DelegateV1<string>(_loginTool.setListboxSel), value.rawInfo);
             }
         }
 
         State _currentState;
         State _NextState;
 
-        accountInfo _AccInfo;
+        userInfo _AccInfo;
         Session m_client;
 
         public csLoginTool _loginTool = csLoginTool.Instance;
-        static IniFile _iniFile = new IniFile(@".\config.ini");
+        static IniFile _ini = new IniFile(@".\config.ini");
 
         static DateTime startTime = DateTime.Now;
 
         public static xiaoai.dt xa = new xiaoai.dt();      //小爱打码
-        private static string _xiaoaiUserStr = _iniFile.IniReadValue("xiaoai", "userstr");    //小爱密码串 
+        private static string _xiaoaiUserStr = _ini.IniReadValue("xiaoai", "userstr");    //小爱密码串 
 
         static string logFileName = String.Format("{0:yyyyMMdd_HHmmss}", DateTime.Now);
 

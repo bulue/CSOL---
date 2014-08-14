@@ -23,7 +23,7 @@ namespace CSLogin
         static private csLoginTool instance = null;
         private Thread _logicThread = null;
         public IniFile _iniFile = new IniFile(@".\config.ini");
-        private MainLogic _mainLogic = null;
+        private LoginManage _loginManage = null;
         bool _bAutoStart = false;
 #endregion
 
@@ -81,12 +81,13 @@ namespace CSLogin
 
         private void Init()
         {
-            Text += string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}"
+            Text += string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
                 , System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)
                 , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
-                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor);
+                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
+                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build);
 
-            _mainLogic = new MainLogic(this);
+            _loginManage = new LoginManage(this);
 
             System.Diagnostics.Process.Start("regsvr32", @"/s xiaoai.dll");
 
@@ -98,11 +99,11 @@ namespace CSLogin
             if (textBox_Code.Text == "")
             {
                 textBox_Code.Text = "<默认>" + Dns.GetHostName();
-                _mainLogic.m_Code = textBox_Code.Text;
+                _loginManage.m_Code = textBox_Code.Text;
             }
             else
             {
-                _mainLogic.m_Code = textBox_Code.Text;
+                _loginManage.m_Code = textBox_Code.Text;
             }
 
             if (textBox_IP.Text == "")
@@ -111,12 +112,12 @@ namespace CSLogin
                 IPHostEntry localhost = Dns.GetHostByName(hostname);
                 IPAddress localaddr = localhost.AddressList[0];
                 string IP = localaddr.ToString();
-                _mainLogic.m_ManageIp = IP;
+                _loginManage.m_ManageIp = IP;
                 textBox_IP.Text = IP;
             }
             else
             {
-                _mainLogic.m_ManageIp = textBox_IP.Text;
+                _loginManage.m_ManageIp = textBox_IP.Text;
             }
 
             this.autostartTimer.Interval = 2000;
@@ -183,11 +184,11 @@ namespace CSLogin
         private void startBtn_Click(object sender, EventArgs e)
         {
             StartLogin();
-            timer_flush.Start();
         }
 
         private void StartLogin()
         {
+
             if (_logicThread != null)
             {
                 MessageBox.Show("线程已经启动了!!");
@@ -196,12 +197,17 @@ namespace CSLogin
 
             if (_logicThread == null)
             {
-                _logicThread = new Thread(new ThreadStart(_mainLogic.Run));
+                _logicThread = new Thread(new ThreadStart(_loginManage.Run));
             }
 
             if (!_logicThread.IsAlive)
             {
                 _logicThread.Start();
+            }
+
+            if (!timer_flush.Enabled)
+            {
+                timer_flush.Start();
             }
         }
 
@@ -259,7 +265,7 @@ namespace CSLogin
             {
                 using (StreamWriter writer = new StreamWriter(logDir + @"\" + _logFileName, true))
                 {
-                    writer.WriteLine(m_logBuffer);
+                    writer.Write(m_logBuffer);
                 }
 
             }
@@ -296,38 +302,16 @@ namespace CSLogin
                 return;
             }
 
-            if (MainLogic.isStop)
+            if (LoginManage.isStop)
             {
-                MainLogic.isStop = false;
+                LoginManage.isStop = false;
                 PauseBtn.Text = "暂停 Ctrl+f12";
             }
             else
             {
-                MainLogic.isStop = true;
+                LoginManage.isStop = true;
                 PauseBtn.Text = "恢复 Ctrl+f12";
             }
-
-            //if (_logicThread.ThreadState == System.Threading.ThreadState.Stopped)
-            //{
-            //    MessageBox.Show("线程已经停止!!", "提示");
-            //    return;
-            //}
-            //if (_logicThread.ThreadState == System.Threading.ThreadState.WaitSleepJoin)
-            //{
-            //    MessageBox.Show("线程睡眠状态!!", "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //    return;
-            //}
-
-            //if (_logicThread.ThreadState == System.Threading.ThreadState.Suspended)
-            //{
-            //    _logicThread.Resume();
-            //    PauseBtn.Text = "暂停 Ctrl+f12";
-            //}
-            //else if (_logicThread.ThreadState == System.Threading.ThreadState.Running)
-            //{
-            //    _logicThread.Suspend();
-            //    PauseBtn.Text = "恢复 Ctrl+f12";
-            //}
         }
 
         private void dama2Btn_Click(object sender, EventArgs e)
@@ -481,7 +465,7 @@ namespace CSLogin
         private void SetCodeBtn_Click(object sender, EventArgs e)
         {
             string s = textBox_Code.Text;
-            _mainLogic.m_Code = s;
+            _loginManage.m_Code = s;
             _iniFile.IniWriteValue("UI", "code", s);
 
             MessageBox.Show("修改成功");
@@ -490,7 +474,7 @@ namespace CSLogin
         private void SetManageIpBtn_Click(object sender, EventArgs e)
         {
             string s = textBox_IP.Text;
-            _mainLogic.m_ManageIp = s;
+            _loginManage.m_ManageIp = s;
             _iniFile.IniWriteValue("UI", "manageIp", s);
 
             MessageBox.Show("修改成功");
@@ -506,7 +490,7 @@ namespace CSLogin
 
         public void OnMsg(string s)
         {
-            _mainLogic.OnMsg(s);
+            _loginManage.OnMsg(s);
         }
     }
 
