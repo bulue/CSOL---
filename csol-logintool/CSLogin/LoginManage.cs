@@ -910,7 +910,6 @@ namespace CSLogin
 
         static DateTime startTime = DateTime.Now;
 
-        public static xiaoai.dt xa = new xiaoai.dt();      //小爱打码
         private static string _xiaoaiUserStr = _ini.IniReadValue("xiaoai", "userstr");    //小爱密码串 
 
         static string logFileName = String.Format("{0:yyyyMMdd_HHmmss}", DateTime.Now);

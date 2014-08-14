@@ -18,13 +18,11 @@ namespace CSLogin
 
             if (userStr.Text != "")
             {
-                jiFen.Text = LoginState.xa.GetPoint(userStr.Text);
             } 
         }
 
         private void refreshBtn_Click(object sender, EventArgs e)
         {
-            this.jiFen.Text = LoginState.xa.GetPoint(this.userStr.Text);
         }
 
         private void okBtn_Click(object sender, EventArgs e)

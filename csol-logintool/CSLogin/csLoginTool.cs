@@ -25,6 +25,7 @@ namespace CSLogin
         public IniFile _iniFile = new IniFile(@".\config.ini");
         private LoginManage _loginManage = null;
         bool _bAutoStart = false;
+        int _rebootTime = 0;
 #endregion
 
 #region API
@@ -89,7 +90,7 @@ namespace CSLogin
 
             _loginManage = new LoginManage(this);
 
-            System.Diagnostics.Process.Start("regsvr32", @"/s xiaoai.dll");
+            //System.Diagnostics.Process.Start("regsvr32", @"/s xiaoai.dll");
 
             this.gamePath.Text = _iniFile.IniReadValue("UI", "gamePath");
 
@@ -120,8 +121,8 @@ namespace CSLogin
                 _loginManage.m_ManageIp = textBox_IP.Text;
             }
 
-            this.autostartTimer.Interval = 2000;
-            this.autostartTimer.Start();
+            autostartTimer.Interval = 2000;
+            autostartTimer.Start();
 
             rebootTimer.Interval = 1000;
 
@@ -395,7 +396,7 @@ namespace CSLogin
         {
             if (_bAutoStart)
             {
-                consoleLog("========开始启动自动登陆========","info");
+                CommonApi.TraceInfo("========开始启动自动登陆========");
                 StartLogin();
             }
             this.autostartTimer.Stop();
@@ -414,7 +415,7 @@ namespace CSLogin
                     int min = int.Parse(dialog.min.Text);
                     int sec = int.Parse(dialog.sec.Text);
 
-                    allTime = hour * 3600 + min * 60 + sec;
+                    _rebootTime = hour * 3600 + min * 60 + sec;
                     if (rebootTimer.Enabled == false)
                     {
                         rebootTimer.Start();
@@ -429,7 +430,7 @@ namespace CSLogin
                 }
                 else if (dlgRet == DialogResult.Cancel)
                 {
-                    allTime = 0;
+                    _rebootTime = 0;
                     if (rebootTimer.Enabled == true)
                     {
                         rebootTimer.Stop();
@@ -445,12 +446,12 @@ namespace CSLogin
 
         private void rebootTimer_Tick(object sender, EventArgs e)
         {
-            if (allTime > 0)
+            if (_rebootTime > 0)
             {
-                allTime--;
-                int h = allTime/3600;
-                int m = (allTime- h * 3600)/60;
-                int s = allTime - h * 3600 - m * 60;
+                _rebootTime--;
+                int h = _rebootTime / 3600;
+                int m = (_rebootTime - h * 3600) / 60;
+                int s = _rebootTime - h * 3600 - m * 60;
                 CountdownTime.Text = string.Format("重启倒计时 {0:D2}:{1:D2}:{2:D2}", h, m, s);
             }
             else
@@ -459,8 +460,6 @@ namespace CSLogin
                 System.Diagnostics.Process.Start("shutdown", @"/r");
             }
         }
-
-        int allTime;
 
         private void SetCodeBtn_Click(object sender, EventArgs e)
         {
