@@ -81,7 +81,6 @@ namespace CSLogin
 
         private string GetMacAddress()
         {
-            string macAddress = "";
             try
             {
                 NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
@@ -89,19 +88,7 @@ namespace CSLogin
                 {
                     if (!adapter.GetPhysicalAddress().ToString().Equals(""))
                     {
-                        macAddress = adapter.GetPhysicalAddress().ToString();
-                        string tmpAddress = "";
-                        for (int i = 0; i < macAddress.Length; i++)
-                        {
-                            if (i > 0 && i % 2 == 0)
-                            {
-                                tmpAddress += ':';
-                            }
-                            tmpAddress += macAddress[i];
-                        }
-
-                        macAddress = tmpAddress;
-                        break;
+                        return adapter.GetPhysicalAddress().ToString();
                     }
                 }
 
@@ -109,7 +96,7 @@ namespace CSLogin
             catch
             {
             }
-            return macAddress;
+            return "";
         }
 
         public void Run()

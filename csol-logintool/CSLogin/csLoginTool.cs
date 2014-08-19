@@ -99,7 +99,7 @@ namespace CSLogin
 
             if (textBox_Code.Text == "")
             {
-                textBox_Code.Text = "<默认>" + Dns.GetHostName();
+                textBox_Code.Text = "<默认>" + "1号机";
                 _loginManage.m_Code = textBox_Code.Text;
             }
             else

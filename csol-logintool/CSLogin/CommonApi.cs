@@ -86,7 +86,7 @@ namespace CSLogin
             }
             try
             {
-                long ticks = System.Environment.TickCount;
+                //long ticks = System.Environment.TickCount;
                 Bitmap screen = new Bitmap(w, h);
 
                 Graphics g = Graphics.FromImage(screen);
@@ -117,8 +117,7 @@ namespace CSLogin
                 imageResult.Dispose();
                 g.Dispose();
 
-                TraceInfo("图片 [" + picFileName + "] 耗时:" + (System.Environment.TickCount - ticks) + "ms.");
-                //Thread.Sleep((int)System.Environment.TickCount - (int)ticks);
+                //TraceInfo("图片 [" + picFileName + "] 耗时:" + (System.Environment.TickCount - ticks) + "ms.");
                 if (bestValue > approximation)
                 {
                     //TraceInfo("找到图片[" + picFileName + "]");
