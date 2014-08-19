@@ -13,11 +13,64 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Net;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Net.NetworkInformation;
 
 namespace 档案汇总
 {
     public partial class Grid : Form
     {
+        #region API
+        [DllImport("user32.dll")]
+        private static extern int RegisterHotKey(IntPtr hwnd, int id, int fsModifiers, int vk);
+        [DllImport("user32.dll")]
+        private static extern int UnregisterHotKey(IntPtr hwnd, int id);
+        int Space = 32; //热键ID
+        private const int WM_HOTKEY = 0x312; //窗口消息-热键
+        private const int WM_CREATE = 0x1; //窗口消息-创建
+        private const int WM_DESTROY = 0x2; //窗口消息-销毁
+        private const int MOD_ALT = 0x1; //ALT
+        private const int MOD_CONTROL = 0x2; //CTRL
+        private const int MOD_SHIFT = 0x4; //SHIFT
+        private const int VK_SPACE = 0x20; //SPACE
+        private const int VK_F12 = 123;
+        private const int VK_N = 78;
+
+
+        /// <summary>
+        /// 注册热键
+        /// </summary>
+        /// <param name="hwnd">窗口句柄</param>
+        /// <param name="hotKey_id">热键ID</param>
+        /// <param name="fsModifiers">组合键</param>
+        /// <param name="vk">热键</param>
+        private void RegKey(IntPtr hwnd, int hotKey_id, int fsModifiers, int vk)
+        {
+            bool result;
+            if (RegisterHotKey(hwnd, hotKey_id, fsModifiers, vk) == 0)
+            {
+                result = false;
+            }
+            else
+            {
+                result = true;
+            }
+            if (!result)
+            {
+                MessageBox.Show("注册热键失败！");
+            }
+        }
+        /// <summary>
+        /// 注销热键
+        /// </summary>
+        /// <param name="hwnd">窗口句柄</param>
+        /// <param name="hotKey_id">热键ID</param>
+        private void UnRegKey(IntPtr hwnd, int hotKey_id)
+        {
+            UnregisterHotKey(hwnd, hotKey_id);
+        }
+        #endregion
+
         public Grid()
         {
             InitializeComponent();
@@ -30,6 +83,15 @@ namespace 档案汇总
 
             LoadData();
 
+            if (IniReadValue("UI", "cbFailedFirst") == "1")
+            {
+                this.cbFailedFirst.Checked = true;
+            }
+            if (IniReadValue("UI", "cbClearData") == "1")
+            {
+                this.cbClearData.Checked = true;
+            }
+
             textBox_IP.Text = Sever.GetLocalIp();
 
             Tag = Width.ToString() + "," + Height.ToString();
@@ -39,6 +101,33 @@ namespace 档案汇总
             dataGridView.SortCompare += dataGridView_SortCompare;
             dataGridView.CellMouseDown +=new DataGridViewCellMouseEventHandler(dataGridView_CellMouseUp);
             dataGridView.DataError +=new DataGridViewDataErrorEventHandler(dataGridView_DataError);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            switch (m.Msg)
+            {
+                case WM_HOTKEY: //窗口消息-热键
+                    switch (m.WParam.ToInt32())
+                    {
+                        case 32: //热键ID
+                            //PauseBtn_Click(null, null);
+                            MessageBox.Show("热键触发成功");
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case WM_CREATE: //窗口消息-创建
+                    RegKey(Handle, Space, MOD_CONTROL, VK_N); //注册热键
+                    break;
+                case WM_DESTROY: //窗口消息-销毁
+                    UnRegKey(Handle, Space); //销毁热键
+                    break;
+                default:
+                    break;
+            }
         }
 
         void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e){}
@@ -222,6 +311,24 @@ namespace 档案汇总
             SaveData();
         }
 
+        [DllImport("kernel32")]
+        private static extern long WritePrivateProfileString(string section, string key, string val, string filePath);
+        [DllImport("kernel32")]
+        private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
+
+        private void IniWriteValue(string Section, string Key, string Value)
+        {
+            WritePrivateProfileString(Section, Key, Value, @".\config.ini");
+        }
+
+        //读INI文件         
+        private string IniReadValue(string Section, string Key)
+        {
+            StringBuilder temp = new StringBuilder(1024);
+            int i = GetPrivateProfileString(Section, Key, "", temp, 1024, @".\config.ini");
+            return temp.ToString();
+        }
+
         private void SaveData()
         {
             XmlDocument doc = new XmlDocument();
@@ -290,6 +397,40 @@ namespace 档案汇总
             }
         }
 
+
+        private string GetMacAddress()
+        {
+            string macAddress = "";
+            try
+            {
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (NetworkInterface adapter in nics)
+                {
+                    if (!adapter.GetPhysicalAddress().ToString().Equals(""))
+                    {
+                        macAddress = adapter.GetPhysicalAddress().ToString();
+                        string tmpAddress = "";
+                        for (int i = 0; i < macAddress.Length; i++)
+                        {
+                            if (i > 0 && i % 2 == 0)
+                            {
+                                tmpAddress += ':';
+                            }
+                            tmpAddress += macAddress[i];
+                        }
+
+                        macAddress = tmpAddress;
+                        break;
+                    }
+                }
+
+            }
+            catch
+            {
+            }
+            return macAddress;
+        }
+
         private void listenBtn_Click(object sender, EventArgs e)
         {
             try
@@ -313,7 +454,7 @@ namespace 档案汇总
         {
             try
             {
-
+                
                 Print("Thread:" + Thread.CurrentThread.ManagedThreadId + "Recv:" + s);
 
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
@@ -328,25 +469,60 @@ namespace 档案汇总
                             string passWord = "";
                             if (!m_Token.ContainsKey(token))
                             {
-                                //优先分配,未分配过的账号
-                                foreach (DataGridViewRow row in dataGridView.Rows)
+                                ///-- 根据选项优先分配失败1次的的账号
+                                if (this.cbFailedFirst.Checked == true)
                                 {
-                                    if (row.IsNewRow){continue;}
-                                    if ((row.Cells["Checked"].Value == null || row.Cells["Checked"].Value.ToString() != "True"))
+                                    foreach (DataGridViewRow row in dataGridView.Rows)
                                     {
-                                        if (row.Cells["State"].Value == null
-                                            || row.Cells["State"].Value.ToString() == "")
+                                        if (row.IsNewRow) { continue; }
+                                        if ((row.Cells["Checked"].Value == null
+                                            || row.Cells["Checked"].Value.ToString() != "True"))
                                         {
-                                            accName = row.Cells["Account"].Value as string;
-                                            passWord = row.Cells["Password"].Value as string;
-                                            if (accName != null && accName != "" && passWord != null && passWord != "")
+                                            if (row.Cells["State"].Value != null 
+                                                && row.Cells["State"].Value.ToString() == "签到失败")
                                             {
-                                                row.Cells["State"].Value = "已经分配";
-                                                row.Cells["IP"].Value = c.handle.RemoteEndPoint.ToString();
-                                                row.Cells["Code"].Value = code;
-                                                m_Token[token] = accName;
+                                                if (row.Cells["FailedCount"].Value == null
+                                                    || row.Cells["FailedCount"].Value.ToString() == "1"
+                                                    || row.Cells["FailedCount"].Value.ToString() == "0")
+                                                {
+                                                    accName = row.Cells["Account"].Value as string;
+                                                    passWord = row.Cells["Password"].Value as string;
+                                                    if (accName != null && accName != "" && passWord != null && passWord != "")
+                                                    {
+                                                        row.Cells["State"].Value = "已经分配";
+                                                        row.Cells["IP"].Value = c.handle.RemoteEndPoint.ToString();
+                                                        row.Cells["Code"].Value = code;
+                                                        m_Token[token] = accName;
+                                                    }
+                                                    break;
+                                                }
                                             }
-                                            break;
+                                        }
+                                    }
+                                }
+
+                                //优先分配,未分配过的账号
+                                if (accName == null || accName == "" || passWord == null || passWord == "")
+                                {
+                                    foreach (DataGridViewRow row in dataGridView.Rows)
+                                    {
+                                        if (row.IsNewRow) { continue; }
+                                        if ((row.Cells["Checked"].Value == null || row.Cells["Checked"].Value.ToString() != "True"))
+                                        {
+                                            if (row.Cells["State"].Value == null
+                                                || row.Cells["State"].Value.ToString() == "")
+                                            {
+                                                accName = row.Cells["Account"].Value as string;
+                                                passWord = row.Cells["Password"].Value as string;
+                                                if (accName != null && accName != "" && passWord != null && passWord != "")
+                                                {
+                                                    row.Cells["State"].Value = "已经分配";
+                                                    row.Cells["IP"].Value = c.handle.RemoteEndPoint.ToString();
+                                                    row.Cells["Code"].Value = code;
+                                                    m_Token[token] = accName;
+                                                }
+                                                break;
+                                            }
                                         }
                                     }
                                 }
@@ -613,6 +789,8 @@ namespace 档案汇总
             textBox.Text = "";
         }
 
+        private DateTime _lastClearDateTime = DateTime.Now;
+
         private void timer_StatusBarRefresh_Tick(object sender, EventArgs e)
         {
             lock(Sever.m_Clinets)
@@ -623,6 +801,21 @@ namespace 档案汇总
                 {
                     Session s = Sever.m_Clinets[i];
                     s.Send("0");
+                }
+            }
+
+            if (this.cbClearData.Checked == true)
+            {
+                if (DateTime.Now.Hour == 6 && DateTime.Now.Minute == 0)
+                {
+                    if (_lastClearDateTime.Day != DateTime.Now.Day
+                        || _lastClearDateTime.Hour != DateTime.Now.Hour
+                        || _lastClearDateTime.Minute != DateTime.Now.Minute)
+                    {
+                        Print("" + DateTime.Now + " 清空登陆数据!!");
+                        btnClearLoginData_Click(null, null);
+                        _lastClearDateTime = DateTime.Now;
+                    }
                 }
             }
         }
@@ -679,6 +872,44 @@ namespace 档案汇总
             catch (System.Exception ex)
             {
             	
+            }
+        }
+
+        private void btnClearLoginData_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in dataGridView.Rows)
+            {
+                if (row.IsNewRow) { continue; }
+                row.Cells["Checked"].Value = null;
+                row.Cells["State"].Value = null;
+                row.Cells["IP"].Value = null;
+                row.Cells["Code"].Value = null;
+                row.Cells["CheckTime"].Value = null;
+                row.Cells["FailedCount"].Value = null;
+            }
+        }
+
+        private void cbClearData_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.cbClearData.Checked == true)
+            {
+                IniWriteValue("UI", "cbClearData", "1");
+            }
+            else
+            {
+                IniWriteValue("UI", "cbClearData", "0");
+            }
+        }
+
+        private void cbFailedFirst_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.cbFailedFirst.Checked == true)
+            {
+                IniWriteValue("UI", "cbFailedFirst", "1");
+            }
+            else
+            {
+                IniWriteValue("UI", "cbFailedFirst", "0");
             }
         }
     }

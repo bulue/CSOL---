@@ -62,6 +62,9 @@
             this.timer_StatusBarRefresh = new System.Windows.Forms.Timer(this.components);
             this.timer_FlushTextbox = new System.Windows.Forms.Timer(this.components);
             this.button5 = new System.Windows.Forms.Button();
+            this.cbClearData = new System.Windows.Forms.CheckBox();
+            this.cbFailedFirst = new System.Windows.Forms.CheckBox();
+            this.btnClearLoginData = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -321,12 +324,47 @@
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
+            // cbClearData
+            // 
+            this.cbClearData.AutoSize = true;
+            this.cbClearData.Location = new System.Drawing.Point(12, 12);
+            this.cbClearData.Name = "cbClearData";
+            this.cbClearData.Size = new System.Drawing.Size(72, 16);
+            this.cbClearData.TabIndex = 12;
+            this.cbClearData.Text = "六点清零";
+            this.cbClearData.UseVisualStyleBackColor = true;
+            this.cbClearData.CheckedChanged += new System.EventHandler(this.cbClearData_CheckedChanged);
+            // 
+            // cbFailedFirst
+            // 
+            this.cbFailedFirst.AutoSize = true;
+            this.cbFailedFirst.Location = new System.Drawing.Point(108, 12);
+            this.cbFailedFirst.Name = "cbFailedFirst";
+            this.cbFailedFirst.Size = new System.Drawing.Size(72, 16);
+            this.cbFailedFirst.TabIndex = 13;
+            this.cbFailedFirst.Text = "失败优先";
+            this.cbFailedFirst.UseVisualStyleBackColor = true;
+            this.cbFailedFirst.CheckedChanged += new System.EventHandler(this.cbFailedFirst_CheckedChanged);
+            // 
+            // btnClearLoginData
+            // 
+            this.btnClearLoginData.Location = new System.Drawing.Point(909, 591);
+            this.btnClearLoginData.Name = "btnClearLoginData";
+            this.btnClearLoginData.Size = new System.Drawing.Size(75, 23);
+            this.btnClearLoginData.TabIndex = 14;
+            this.btnClearLoginData.Text = "清理登陆数据";
+            this.btnClearLoginData.UseVisualStyleBackColor = true;
+            this.btnClearLoginData.Click += new System.EventHandler(this.btnClearLoginData_Click);
+            // 
             // Grid
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1062, 692);
+            this.Controls.Add(this.btnClearLoginData);
+            this.Controls.Add(this.cbFailedFirst);
+            this.Controls.Add(this.cbClearData);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.dataGridView);
             this.Controls.Add(this.statusStrip);
@@ -381,6 +419,9 @@
         private System.Windows.Forms.Timer timer_StatusBarRefresh;
         private System.Windows.Forms.Timer timer_FlushTextbox;
         private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.CheckBox cbClearData;
+        private System.Windows.Forms.CheckBox cbFailedFirst;
+        private System.Windows.Forms.Button btnClearLoginData;
     }
 }
 
