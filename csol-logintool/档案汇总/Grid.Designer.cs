@@ -29,10 +29,10 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle9 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.dataGridView = new System.Windows.Forms.DataGridView();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            this.dgvUserData = new System.Windows.Forms.DataGridView();
             this.Account = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Password = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.FailedCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -65,27 +65,48 @@
             this.cbClearData = new System.Windows.Forms.CheckBox();
             this.cbFailedFirst = new System.Windows.Forms.CheckBox();
             this.btnClearLoginData = new System.Windows.Forms.Button();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.dgvSession = new System.Windows.Forms.DataGridView();
+            this.sIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sMac = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sState = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sFinishedNum = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sLoginState = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sDisconnect = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.reboot = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.cbRemoteReboot = new System.Windows.Forms.CheckBox();
+            this.tmReboot = new System.Windows.Forms.Timer(this.components);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
             this.Menu_Check.SuspendLayout();
             this.statusStrip.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
+            this.tabPage2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).BeginInit();
             this.SuspendLayout();
             // 
-            // dataGridView
+            // dgvUserData
             // 
-            this.dataGridView.AllowDrop = true;
-            this.dataGridView.BackgroundColor = System.Drawing.SystemColors.ButtonFace;
-            dataGridViewCellStyle7.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle7.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle7.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            dataGridViewCellStyle7.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle7.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle7.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle7;
-            this.dataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.dgvUserData.AllowDrop = true;
+            this.dgvUserData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvUserData.BackgroundColor = System.Drawing.SystemColors.ButtonFace;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvUserData.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvUserData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvUserData.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Account,
             this.Password,
             this.FailedCount,
@@ -95,27 +116,27 @@
             this.Days,
             this.IP,
             this.Code});
-            dataGridViewCellStyle8.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle8.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle8.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            dataGridViewCellStyle8.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle8.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle8.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle8.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.dataGridView.DefaultCellStyle = dataGridViewCellStyle8;
-            this.dataGridView.Location = new System.Drawing.Point(0, 41);
-            this.dataGridView.Name = "dataGridView";
-            dataGridViewCellStyle9.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle9.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle9.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            dataGridViewCellStyle9.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle9.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle9.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle9.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dataGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle9;
-            this.dataGridView.RowTemplate.Height = 23;
-            this.dataGridView.Size = new System.Drawing.Size(984, 414);
-            this.dataGridView.TabIndex = 0;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvUserData.DefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvUserData.Location = new System.Drawing.Point(0, 0);
+            this.dgvUserData.Name = "dgvUserData";
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvUserData.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
+            this.dgvUserData.RowTemplate.Height = 23;
+            this.dgvUserData.Size = new System.Drawing.Size(979, 400);
+            this.dgvUserData.TabIndex = 0;
             // 
             // Account
             // 
@@ -172,6 +193,7 @@
             // 
             // button2
             // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button2.Location = new System.Drawing.Point(909, 504);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
@@ -182,6 +204,7 @@
             // 
             // button3
             // 
+            this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button3.Location = new System.Drawing.Point(909, 475);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
@@ -192,7 +215,10 @@
             // 
             // textBox
             // 
-            this.textBox.Location = new System.Drawing.Point(0, 477);
+            this.textBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox.Location = new System.Drawing.Point(4, 465);
             this.textBox.Multiline = true;
             this.textBox.Name = "textBox";
             this.textBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
@@ -251,6 +277,7 @@
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(10, 647);
             this.label1.Name = "label1";
@@ -260,6 +287,7 @@
             // 
             // textBox_IP
             // 
+            this.textBox_IP.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.textBox_IP.Location = new System.Drawing.Point(57, 644);
             this.textBox_IP.Name = "textBox_IP";
             this.textBox_IP.ReadOnly = true;
@@ -268,6 +296,7 @@
             // 
             // button1
             // 
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button1.Location = new System.Drawing.Point(909, 533);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
@@ -316,6 +345,7 @@
             // 
             // button5
             // 
+            this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.button5.Location = new System.Drawing.Point(909, 562);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(75, 23);
@@ -348,6 +378,7 @@
             // 
             // btnClearLoginData
             // 
+            this.btnClearLoginData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClearLoginData.Location = new System.Drawing.Point(909, 591);
             this.btnClearLoginData.Name = "btnClearLoginData";
             this.btnClearLoginData.Size = new System.Drawing.Size(75, 23);
@@ -356,17 +387,137 @@
             this.btnClearLoginData.UseVisualStyleBackColor = true;
             this.btnClearLoginData.Click += new System.EventHandler(this.btnClearLoginData_Click);
             // 
+            // tabControl1
+            // 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Location = new System.Drawing.Point(0, 34);
+            this.tabControl1.Multiline = true;
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(983, 425);
+            this.tabControl1.TabIndex = 15;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.dgvUserData);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(975, 399);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "账号";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Controls.Add(this.dgvSession);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(975, 399);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "连接";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // dgvSession
+            // 
+            this.dgvSession.AllowUserToOrderColumns = true;
+            this.dgvSession.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvSession.BackgroundColor = System.Drawing.SystemColors.ButtonFace;
+            this.dgvSession.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvSession.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.sIP,
+            this.sCode,
+            this.sMac,
+            this.sState,
+            this.sFinishedNum,
+            this.sLoginState,
+            this.sDisconnect,
+            this.reboot});
+            this.dgvSession.Location = new System.Drawing.Point(-3, 0);
+            this.dgvSession.Name = "dgvSession";
+            this.dgvSession.RowTemplate.Height = 23;
+            this.dgvSession.Size = new System.Drawing.Size(978, 403);
+            this.dgvSession.TabIndex = 0;
+            this.dgvSession.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSession_CellContentClick);
+            // 
+            // sIP
+            // 
+            this.sIP.HeaderText = "IP";
+            this.sIP.Name = "sIP";
+            // 
+            // sCode
+            // 
+            this.sCode.HeaderText = "登陆机代号";
+            this.sCode.Name = "sCode";
+            // 
+            // sMac
+            // 
+            this.sMac.HeaderText = "Mac";
+            this.sMac.Name = "sMac";
+            // 
+            // sState
+            // 
+            this.sState.HeaderText = "连接状态";
+            this.sState.Name = "sState";
+            // 
+            // sFinishedNum
+            // 
+            this.sFinishedNum.HeaderText = "已经登陆账号";
+            this.sFinishedNum.Name = "sFinishedNum";
+            // 
+            // sLoginState
+            // 
+            this.sLoginState.HeaderText = "登陆情况";
+            this.sLoginState.Name = "sLoginState";
+            // 
+            // sDisconnect
+            // 
+            this.sDisconnect.HeaderText = "断开连接";
+            this.sDisconnect.Name = "sDisconnect";
+            this.sDisconnect.Text = "";
+            // 
+            // reboot
+            // 
+            this.reboot.HeaderText = "重启登陆机";
+            this.reboot.Name = "reboot";
+            this.reboot.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.reboot.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
+            // cbRemoteReboot
+            // 
+            this.cbRemoteReboot.AutoSize = true;
+            this.cbRemoteReboot.Location = new System.Drawing.Point(206, 12);
+            this.cbRemoteReboot.Name = "cbRemoteReboot";
+            this.cbRemoteReboot.Size = new System.Drawing.Size(84, 16);
+            this.cbRemoteReboot.TabIndex = 16;
+            this.cbRemoteReboot.Text = "重启登陆机";
+            this.cbRemoteReboot.UseVisualStyleBackColor = true;
+            this.cbRemoteReboot.CheckedChanged += new System.EventHandler(this.cbRemoteReboot_CheckedChanged);
+            // 
+            // tmReboot
+            // 
+            this.tmReboot.Interval = 3000;
+            this.tmReboot.Tick += new System.EventHandler(this.tmReboot_Tick);
+            // 
             // Grid
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1062, 692);
+            this.Controls.Add(this.cbRemoteReboot);
+            this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.btnClearLoginData);
             this.Controls.Add(this.cbFailedFirst);
             this.Controls.Add(this.cbClearData);
             this.Controls.Add(this.button5);
-            this.Controls.Add(this.dataGridView);
             this.Controls.Add(this.statusStrip);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.textBox_IP);
@@ -376,12 +527,16 @@
             this.Controls.Add(this.button2);
             this.Name = "Grid";
             this.Text = "账号管理";
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).EndInit();
             this.Menu_DeleteRow.ResumeLayout(false);
             this.Menu_ClearCell.ResumeLayout(false);
             this.Menu_Check.ResumeLayout(false);
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
+            this.tabPage2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -389,7 +544,7 @@
 
         #endregion
 
-        private System.Windows.Forms.DataGridView dataGridView;
+        private System.Windows.Forms.DataGridView dgvUserData;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.TextBox textBox;
@@ -422,6 +577,20 @@
         private System.Windows.Forms.CheckBox cbClearData;
         private System.Windows.Forms.CheckBox cbFailedFirst;
         private System.Windows.Forms.Button btnClearLoginData;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
+        private System.Windows.Forms.DataGridView dgvSession;
+        private System.Windows.Forms.DataGridViewTextBoxColumn sIP;
+        private System.Windows.Forms.DataGridViewTextBoxColumn sCode;
+        private System.Windows.Forms.DataGridViewTextBoxColumn sMac;
+        private System.Windows.Forms.DataGridViewTextBoxColumn sState;
+        private System.Windows.Forms.DataGridViewTextBoxColumn sFinishedNum;
+        private System.Windows.Forms.DataGridViewTextBoxColumn sLoginState;
+        private System.Windows.Forms.DataGridViewButtonColumn sDisconnect;
+        private System.Windows.Forms.DataGridViewButtonColumn reboot;
+        private System.Windows.Forms.CheckBox cbRemoteReboot;
+        private System.Windows.Forms.Timer tmReboot;
     }
 }
 

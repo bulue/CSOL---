@@ -91,16 +91,21 @@ namespace 档案汇总
             {
                 this.cbClearData.Checked = true;
             }
+            if (IniReadValue("UI", "cbRemoteReboot") == "1")
+            {
+                this.cbRemoteReboot.Checked = true;
+            }
 
             textBox_IP.Text = Sever.GetLocalIp();
 
-            Tag = Width.ToString() + "," + Height.ToString();
-            SizeChanged += Form1_SizeChanged;
-            dataGridView.DragDrop += dataGridView_DragDrop;
-            dataGridView.DragEnter += dataGridView_DragEnter;
-            dataGridView.SortCompare += dataGridView_SortCompare;
-            dataGridView.CellMouseDown +=new DataGridViewCellMouseEventHandler(dataGridView_CellMouseUp);
-            dataGridView.DataError +=new DataGridViewDataErrorEventHandler(dataGridView_DataError);
+            //Tag = Width.ToString() + "," + Height.ToString();
+            //SizeChanged += Form1_SizeChanged;
+            dgvUserData.DragDrop += dataGridView_DragDrop;
+            dgvUserData.DragEnter += dataGridView_DragEnter;
+            dgvUserData.SortCompare += dataGridView_SortCompare;
+            dgvUserData.RowPostPaint += dgvData_RowPostPaint;
+            dgvUserData.CellMouseDown +=new DataGridViewCellMouseEventHandler(dataGridView_CellMouseUp);
+            dgvUserData.DataError +=new DataGridViewDataErrorEventHandler(dataGridView_DataError);
         }
 
         protected override void WndProc(ref Message m)
@@ -134,9 +139,9 @@ namespace 档案汇总
 
         private void MenuItem_GouXuan_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewCell cell in dataGridView.SelectedCells)
+            foreach (DataGridViewCell cell in dgvUserData.SelectedCells)
             {
-                if (dataGridView.Columns[cell.ColumnIndex].Name == "Checked")
+                if (dgvUserData.Columns[cell.ColumnIndex].Name == "Checked")
                 {
                     cell.Value = true;
                 }
@@ -145,9 +150,9 @@ namespace 档案汇总
 
         private void MenuItem_ClearGouXuan_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewCell cell in dataGridView.SelectedCells)
+            foreach (DataGridViewCell cell in dgvUserData.SelectedCells)
             {
-                if (dataGridView.Columns[cell.ColumnIndex].Name == "Checked")
+                if (dgvUserData.Columns[cell.ColumnIndex].Name == "Checked")
                 {
                     cell.Value = false;
                 }
@@ -158,20 +163,20 @@ namespace 档案汇总
         {
             if (e.Button == MouseButtons.Right)
             {
-                if (dataGridView.SelectedRows.Count > 0)
+                if (dgvUserData.SelectedRows.Count > 0)
                 {
                     Menu_DeleteRow.Show(MousePosition.X, MousePosition.Y);
                 }
-                else if (dataGridView.SelectedCells.Count > 0)
+                else if (dgvUserData.SelectedCells.Count > 0)
                 {
                     int x = 0;
                     int columnIndex = -1;
 
-                    if (dataGridView.SelectedCells.Count > 0)
+                    if (dgvUserData.SelectedCells.Count > 0)
                     {
                         x = 1;
 
-                        foreach (DataGridViewCell cell in dataGridView.SelectedCells)
+                        foreach (DataGridViewCell cell in dgvUserData.SelectedCells)
                         {
                             if (columnIndex == -1)
                             {
@@ -189,7 +194,7 @@ namespace 档案汇总
 
                     if (x == 1)
                     {
-                        if (dataGridView.Columns[columnIndex].Name == "Checked")
+                        if (dgvUserData.Columns[columnIndex].Name == "Checked")
                         {
                             Menu_Check.Show(MousePosition.X, MousePosition.Y);
                         }
@@ -208,18 +213,18 @@ namespace 档案汇总
 
         private void MenuItem_DeleteRow_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewRow r in dataGridView.SelectedRows)
+            foreach (DataGridViewRow r in dgvUserData.SelectedRows)
             {
                 if (!r.IsNewRow)
                 {
-                    dataGridView.Rows.Remove(r);
+                    dgvUserData.Rows.Remove(r);
                 }
             }
         }
 
         private void MenuItem_ClearCell_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewCell cell in dataGridView.SelectedCells)
+            foreach (DataGridViewCell cell in dgvUserData.SelectedCells)
             {
                 cell.Value = null;
             }
@@ -248,20 +253,20 @@ namespace 档案汇总
 
         void Form1_SizeChanged(object sender, EventArgs e)
         {
-            string[] tmp = ((Form)sender).Tag.ToString().Split(',');
-            float width = (float)((Form)sender).Width / (float)Convert.ToInt16(tmp[0]);
-            float heigth = (float)((Form)sender).Height / (float)Convert.ToInt16(tmp[1]);
+            //string[] tmp = ((Form)sender).Tag.ToString().Split(',');
+            //float width = (float)((Form)sender).Width / (float)Convert.ToInt16(tmp[0]);
+            //float heigth = (float)((Form)sender).Height / (float)Convert.ToInt16(tmp[1]);
 
             //   Single currentSize = Convert.ToSingle((float)Convert.ToInt16(tmp[2]));
 
-            ((Form)sender).Tag = ((Form)sender).Width.ToString() + "," + ((Form)sender).Height;
+            //((Form)sender).Tag = ((Form)sender).Width.ToString() + "," + ((Form)sender).Height;
 
-            foreach (Control control in ((Form)sender).Controls)
-            {
-                control.Scale(new SizeF(width, heigth));
+            //foreach (Control control in ((Form)sender).Controls)
+            //{
+            //    control.Scale(new SizeF(width, heigth));
                 //  control.Font = new Font(control.Font.Name, currentSize, control.Font.Style, control.Font.Unit); 
 
-            }
+            //}
         }
 
         private void dataGridView_DragEnter(object sender, DragEventArgs e)
@@ -281,7 +286,7 @@ namespace 档案汇总
                 {
                     if (s[i].Trim() != "")
                     {
-                        dataGridView.Rows.Clear();
+                        dgvUserData.Rows.Clear();
                         string fileName = s[i];
                         StreamReader reader = new StreamReader(fileName);
                         string line;
@@ -294,7 +299,7 @@ namespace 档案汇总
                             {
                                 string userName = r.Groups[1].ToString();
                                 string userPwd = r.Groups[2].ToString();
-                                dataGridView.Rows.Add(userName, userPwd);
+                                dgvUserData.Rows.Add(userName, userPwd);
                             }
                         }
                     }
@@ -336,14 +341,14 @@ namespace 档案汇总
             XmlElement root = doc.CreateElement("Data");
             doc.AppendChild(root);
 
-            for (int row = 0; row < dataGridView.Rows.Count; ++row)
+            for (int row = 0; row < dgvUserData.Rows.Count; ++row)
             {
                 XmlElement item = doc.CreateElement("Item");
-                for (int i = 0; i < dataGridView.Rows[row].Cells.Count; ++i)
+                for (int i = 0; i < dgvUserData.Rows[row].Cells.Count; ++i)
                 {
-                    if (dataGridView.Rows[row].Cells[i].Value != null)
+                    if (dgvUserData.Rows[row].Cells[i].Value != null)
                     {
-                        item.SetAttribute(dataGridView.Columns[i].HeaderText, dataGridView.Rows[row].Cells[i].Value.ToString());
+                        item.SetAttribute(dgvUserData.Columns[i].HeaderText, dgvUserData.Rows[row].Cells[i].Value.ToString());
                     }
                     else
                     {
@@ -368,24 +373,24 @@ namespace 档案汇总
                 for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
                 {
                     bool bDelete = true;
-                    int newIdx = dataGridView.Rows.Add();
-                    for (int i = 0; i < dataGridView.Columns.Count; ++i)
+                    int newIdx = dgvUserData.Rows.Add();
+                    for (int i = 0; i < dgvUserData.Columns.Count; ++i)
                     {
-                        string HeaderText = dataGridView.Columns[i].HeaderText;
+                        string HeaderText = dgvUserData.Columns[i].HeaderText;
                         if (item.Attributes[HeaderText] != null)
                         {
                             string s = item.Attributes[HeaderText].Value;
-                            dataGridView.Rows[newIdx].Cells[i].Value = s;
+                            dgvUserData.Rows[newIdx].Cells[i].Value = s;
                             bDelete = false;
                         }
                     }
                     if (bDelete)
                     {
-                        dataGridView.Rows.Remove(dataGridView.Rows[newIdx]);
+                        dgvUserData.Rows.Remove(dgvUserData.Rows[newIdx]);
                     }
                 }
 
-                dataGridView.AutoResizeColumns();
+                dgvUserData.AutoResizeColumns();
             }
             catch (System.IO.FileNotFoundException)
             {
@@ -443,6 +448,7 @@ namespace 档案汇总
 
                 timer_StatusBarRefresh.Start();
                 timer_FlushTextbox.Start();
+                tmReboot.Start();
             }
             catch(Exception ex)
             {
@@ -460,6 +466,32 @@ namespace 档案汇总
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
                 switch (split[0])
                 {
+                    case "100":
+                        {
+                            string mac = split[1];
+                            string code = split[2];
+
+                            c.m_code = code;
+                            c.m_mac = mac;
+
+                            bool x = false;
+                            foreach (DataGridViewRow row  in dgvSession.Rows)
+                            {
+                                if (row.IsNewRow) continue;
+                                string rMac = (string)row.Cells["sMac"].Value;
+                                if (rMac == mac)
+                                {
+                                    row.Cells["sCode"].Value = code;
+                                    row.Cells["sIP"].Value = c.handle.RemoteEndPoint.ToString();
+                                    x = true;
+                                }
+                            }
+
+                            if (x == false)
+                            {
+                                dgvSession.Rows.Add(c.handle.RemoteEndPoint.ToString(), code, mac, "已连接", "0", DateTime.Now.ToLocalTime(), "断开","重启");
+                            }
+                        }break;
                     case "1":
                         {
                             string token = split[1];
@@ -472,7 +504,7 @@ namespace 档案汇总
                                 ///-- 根据选项优先分配失败1次的的账号
                                 if (this.cbFailedFirst.Checked == true)
                                 {
-                                    foreach (DataGridViewRow row in dataGridView.Rows)
+                                    foreach (DataGridViewRow row in dgvUserData.Rows)
                                     {
                                         if (row.IsNewRow) { continue; }
                                         if ((row.Cells["Checked"].Value == null
@@ -504,7 +536,7 @@ namespace 档案汇总
                                 //优先分配,未分配过的账号
                                 if (accName == null || accName == "" || passWord == null || passWord == "")
                                 {
-                                    foreach (DataGridViewRow row in dataGridView.Rows)
+                                    foreach (DataGridViewRow row in dgvUserData.Rows)
                                     {
                                         if (row.IsNewRow) { continue; }
                                         if ((row.Cells["Checked"].Value == null || row.Cells["Checked"].Value.ToString() != "True"))
@@ -531,7 +563,7 @@ namespace 档案汇总
                                 if (accName == null || accName == "" || passWord == null || passWord == "")
                                 {
                                     DataGridViewRow dstRow = null;
-                                    foreach (DataGridViewRow row in dataGridView.Rows)
+                                    foreach (DataGridViewRow row in dgvUserData.Rows)
                                     {
                                         if (row.IsNewRow) { continue; }
                                         if ((row.Cells["Checked"].Value == null || row.Cells["Checked"].Value.ToString() != "True"))
@@ -579,7 +611,7 @@ namespace 档案汇总
 
                                 if (accName == null || accName == "" || passWord == null || passWord == "")
                                 {
-                                    foreach (DataGridViewRow row in dataGridView.Rows)
+                                    foreach (DataGridViewRow row in dgvUserData.Rows)
                                     {
                                         if (row.IsNewRow) { continue; }
                                         if ((row.Cells["Checked"].Value == null || row.Cells["Checked"].Value.ToString() != "True")
@@ -602,13 +634,13 @@ namespace 档案汇总
                             else
                             {
                                 accName = m_Token[token];
-                                for (int i = 0; i < dataGridView.Rows.Count; ++i)
+                                for (int i = 0; i < dgvUserData.Rows.Count; ++i)
                                 {
-                                    if (dataGridView.Rows[i].Cells["Account"].Value != null && 
-                                        dataGridView.Rows[i].Cells["Account"].Value.ToString() == accName)
+                                    if (dgvUserData.Rows[i].Cells["Account"].Value != null && 
+                                        dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
                                     {
-                                        accName = dataGridView.Rows[i].Cells["Account"].Value as string;
-                                        passWord = dataGridView.Rows[i].Cells["Password"].Value as string;
+                                        accName = dgvUserData.Rows[i].Cells["Account"].Value as string;
+                                        passWord = dgvUserData.Rows[i].Cells["Password"].Value as string;
                                         break;
                                     }
                                 }
@@ -632,47 +664,55 @@ namespace 档案汇总
 
                             if (isOk == "OK")
                             {
-                                for (int i = 0; i < dataGridView.Rows.Count; ++i)
+                                for (int i = 0; i < dgvUserData.Rows.Count; ++i)
                                 {
-                                    if (dataGridView.Rows[i].Cells["Account"].Value != null
-                                        && dataGridView.Rows[i].Cells["Account"].Value.ToString() == accName)
+                                    if (dgvUserData.Rows[i].Cells["Account"].Value != null
+                                        && dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
                                     {
-                                        dataGridView.Rows[i].Cells["Checked"].Value = true;
-                                        dataGridView.Rows[i].Cells["State"].Value = "签到完成";
-                                        dataGridView.Rows[i].Cells["CheckTime"].Value = DateTime.Now.ToString();
-                                        dataGridView.Rows[i].Cells["FailedCount"].Value = 0;
+                                        dgvUserData.Rows[i].Cells["Checked"].Value = true;
+                                        dgvUserData.Rows[i].Cells["State"].Value = "签到完成";
+                                        dgvUserData.Rows[i].Cells["CheckTime"].Value = DateTime.Now.ToString();
+                                        dgvUserData.Rows[i].Cells["FailedCount"].Value = 0;
                                     }
                                 }
                             }
                             else if (isOk == "Failed")
                             {
-                                for (int i = 0; i < dataGridView.Rows.Count; ++i)
+                                for (int i = 0; i < dgvUserData.Rows.Count; ++i)
                                 {
-                                    if (dataGridView.Rows[i].Cells["Account"].Value != null
-                                        && dataGridView.Rows[i].Cells["Account"].Value.ToString() == accName)
+                                    if (dgvUserData.Rows[i].Cells["Account"].Value != null
+                                        && dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
                                     {
-                                        dataGridView.Rows[i].Cells["Checked"].Value = false;
-                                        dataGridView.Rows[i].Cells["State"].Value = "签到失败";
-                                        dataGridView.Rows[i].Cells["CheckTime"].Value = DateTime.Now.ToString();
-                                        dataGridView.Rows[i].Cells["FailedCount"].Value = dataGridView.Rows[i].Cells["FailedCount"].Value == null ? 1 : (int)dataGridView.Rows[i].Cells["FailedCount"].Value + 1;
+                                        dgvUserData.Rows[i].Cells["Checked"].Value = false;
+                                        dgvUserData.Rows[i].Cells["State"].Value = "签到失败";
+                                        dgvUserData.Rows[i].Cells["CheckTime"].Value = DateTime.Now.ToString();
+                                        dgvUserData.Rows[i].Cells["FailedCount"].Value = dgvUserData.Rows[i].Cells["FailedCount"].Value == null ? 1 : (int)dgvUserData.Rows[i].Cells["FailedCount"].Value + 1;
                                     }
                                 }
                             }
                             else if (isOk == "PasswordError")
                             {
-                                for (int i = 0; i < dataGridView.Rows.Count; ++i)
+                                for (int i = 0; i < dgvUserData.Rows.Count; ++i)
                                 {
-                                    if (dataGridView.Rows[i].Cells["Account"].Value != null
-                                        && dataGridView.Rows[i].Cells["Account"].Value.ToString() == accName)
+                                    if (dgvUserData.Rows[i].Cells["Account"].Value != null
+                                        && dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
                                     {
-                                        dataGridView.Rows[i].Cells["Checked"].Value = false;
-                                        dataGridView.Rows[i].Cells["State"].Value = "密码错误";
-                                        dataGridView.Rows[i].Cells["CheckTime"].Value = DateTime.Now.ToString();
-                                        dataGridView.Rows[i].Cells["FailedCount"].Value = dataGridView.Rows[i].Cells["FailedCount"].Value == null ? 1 : (int)dataGridView.Rows[i].Cells["FailedCount"].Value + 1;
+                                        dgvUserData.Rows[i].Cells["Checked"].Value = false;
+                                        dgvUserData.Rows[i].Cells["State"].Value = "密码错误";
+                                        dgvUserData.Rows[i].Cells["CheckTime"].Value = DateTime.Now.ToString();
+                                        dgvUserData.Rows[i].Cells["FailedCount"].Value = dgvUserData.Rows[i].Cells["FailedCount"].Value == null ? 1 : (int)dgvUserData.Rows[i].Cells["FailedCount"].Value + 1;
                                     }
                                 }
                             }
 
+                            foreach (DataGridViewRow row in dgvSession.Rows)
+                            {
+                                if (row.IsNewRow) continue;
+                                if (row.Cells["sMac"].Value == c.m_mac)
+                                {
+                                    row.Cells["sLoginState"].Value = DateTime.Now.ToLocalTime();
+                                }
+                            }
                             SaveData();
                         } break;
                     case "4":
@@ -683,12 +723,12 @@ namespace 档案汇总
                                 string accName = m_Token[token];
                                 m_Token.Remove(token);
 
-                                for (int i = 0; i < dataGridView.Rows.Count; ++i)
+                                for (int i = 0; i < dgvUserData.Rows.Count; ++i)
                                 {
-                                    if (dataGridView.Rows[i].Cells["Account"].Value != null
-                                        && dataGridView.Rows[i].Cells["Account"].Value.ToString() == accName)
+                                    if (dgvUserData.Rows[i].Cells["Account"].Value != null
+                                        && dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
                                     {
-                                        dataGridView.Rows[i].Cells["State"].Value = "正在签到";
+                                        dgvUserData.Rows[i].Cells["State"].Value = "正在签到";
                                     }
                                 }
                             }
@@ -697,12 +737,12 @@ namespace 档案汇总
                         {
                             string accName = split[1];
                             string Day = split[2];
-                            for (int i = 0; i < dataGridView.Rows.Count; ++i)
+                            for (int i = 0; i < dgvUserData.Rows.Count; ++i)
                             {
-                                if (dataGridView.Rows[i].Cells["Account"].Value != null
-                                    && dataGridView.Rows[i].Cells["Account"].Value.ToString() == accName)
+                                if (dgvUserData.Rows[i].Cells["Account"].Value != null
+                                    && dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
                                 {
-                                    dataGridView.Rows[i].Cells["Days"].Value = Day;
+                                    dgvUserData.Rows[i].Cells["Days"].Value = Day;
                                 }
                             }                     
                         }break;
@@ -795,12 +835,38 @@ namespace 档案汇总
         {
             lock(Sever.m_Clinets)
             {
-                StatusLab_SessionNum.Text = "当前连接:" + Sever.m_Clinets.Count;
-
                 for (int i = 0; i < Sever.m_Clinets.Count; ++i)
                 {
                     Session s = Sever.m_Clinets[i];
                     s.Send("0");
+                }
+
+                if (Sever.bChanged)
+                {
+                    Sever.bChanged = false;
+
+                    StatusLab_SessionNum.Text = "当前连接:" + Sever.m_Clinets.Count;
+
+                    foreach (DataGridViewRow row in dgvSession.Rows)
+                    {
+                        if (row.IsNewRow) 
+                            continue;
+
+                        bool x = false;
+                        for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                        {
+                            if (Sever.m_Clinets[i].m_mac == row.Cells["sMac"].Value.ToString())
+                            {
+                                row.Cells["sState"].Value = "良好";
+                                x = true;
+                            }
+                        }
+
+                        if (x == false)
+                        {
+                            row.Cells["sState"].Value = "已断开";
+                        }
+                    }
                 }
             }
 
@@ -840,7 +906,7 @@ namespace 档案汇总
                 if (dlg.ShowDialog() == DialogResult.OK)
                 {
                     string fileTxt = "";
-                    foreach (DataGridViewRow row in dataGridView.Rows)
+                    foreach (DataGridViewRow row in dgvUserData.Rows)
                     {
                         if (row.IsNewRow) { continue; }
 
@@ -877,7 +943,7 @@ namespace 档案汇总
 
         private void btnClearLoginData_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewRow row in dataGridView.Rows)
+            foreach (DataGridViewRow row in dgvUserData.Rows)
             {
                 if (row.IsNewRow) { continue; }
                 row.Cells["Checked"].Value = null;
@@ -910,6 +976,115 @@ namespace 档案汇总
             else
             {
                 IniWriteValue("UI", "cbFailedFirst", "0");
+            }
+        }
+
+        private void dgvData_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+            //Color color = dgvUserData.RowHeadersDefaultCellStyle.ForeColor;
+            //if (dgvUserData.Rows[e.RowIndex].Selected)
+            //    color = dgvUserData.RowHeadersDefaultCellStyle.SelectionForeColor;
+            //else
+            //    color = dgvUserData.RowHeadersDefaultCellStyle.ForeColor;
+
+            //using (SolidBrush b = new SolidBrush(color))
+            //{
+            //    e.Graphics.DrawString((e.RowIndex + 1).ToString(), e.InheritedRowStyle.Font, b, e.RowBounds.Location.X + 10, e.RowBounds.Location.Y + 6);
+            //}
+        }
+
+        private void dgvSession_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dgvSession.Columns[e.ColumnIndex].HeaderText == "断开连接")
+            {
+                if (!dgvSession.Rows[e.RowIndex].IsNewRow)
+                {
+                    lock (Sever.m_Clinets)
+                    {
+                        for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                        {
+                            Session s = Sever.m_Clinets[i];
+                            if (s.handle.RemoteEndPoint.ToString() == dgvSession.Rows[e.RowIndex].Cells["sIP"].Value.ToString())
+                            {
+                                s.handle.Shutdown(SocketShutdown.Both);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (dgvSession.Columns[e.ColumnIndex].HeaderText == "重启登陆机")
+            {
+                if (!dgvSession.Rows[e.RowIndex].IsNewRow)
+                {
+                    lock (Sever.m_Clinets)
+                    {
+                        for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                        {
+                            Session s = Sever.m_Clinets[i];
+                            if (s.handle.RemoteEndPoint.ToString() == dgvSession.Rows[e.RowIndex].Cells["sIP"].Value.ToString())
+                            {
+                                s.Send("101$reboot");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void cbRemoteReboot_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.cbRemoteReboot.Checked == true)
+            {
+                IniWriteValue("UI", "cbRemoteReboot", "1");
+            }
+            else
+            {
+                IniWriteValue("UI", "cbRemoteReboot", "0");
+            }
+        }
+
+        private void tmReboot_Tick(object sender, EventArgs e)
+        {
+            if (cbRemoteReboot.Checked)
+            {
+                Print("执行检测登陆状况...");
+                foreach (DataGridViewRow row in dgvSession.Rows)
+                {
+                    try
+                    {
+                        if (row.IsNewRow) continue;
+                        if (row.Cells["sState"].Value.ToString().Equals("良好"))
+                        {
+                            string remotePoint = row.Cells["sIP"].Value.ToString();
+                            DateTime lastTime = Convert.ToDateTime(row.Cells["sLoginState"].Value.ToString());
+                            TimeSpan ts = DateTime.Now - lastTime;
+
+                            if (ts.TotalSeconds > 40)
+                            {
+                                Print("mac:" + row.Cells["sMac"].Value + " code:" + row.Cells["sCode"].Value + " " + ts.TotalSeconds + "秒未登陆!");
+                            }
+                            if (ts.TotalMinutes > 5)
+                            {
+                                lock (Sever.m_Clinets)
+                                {
+                                    for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                                    {
+                                        Session s = Sever.m_Clinets[i];
+                                        if (s.handle.RemoteEndPoint.ToString() == remotePoint)
+                                        {
+                                            Print("mac:" + s.m_mac + " code:"+s.m_code + " 长时间未登陆成功账号..发送重启命令!!");
+                                            s.Send("101$reboot");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        Print(ex.ToString());
+                    }
+                }
             }
         }
     }

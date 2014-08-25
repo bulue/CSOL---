@@ -16,6 +16,8 @@ namespace 档案汇总
         string IP = GetLocalIp();
         int port = 28015;
 
+        static public bool bChanged = false;
+
         logHandle m_logHandle;
 
         static public List<Session> m_Clinets = new List<Session>();
@@ -50,11 +52,11 @@ namespace 档案汇总
                 Socket acceptor = (Socket)ar.AsyncState;
                 Session newClient = new Session(acceptor.EndAccept(ar));
 
-                newClient.Start();
-
                 lock (m_Clinets)
                 {
                     m_Clinets.Add(newClient);
+                    newClient.Start();
+                    bChanged = true;
                 }
                 
                 acceptor.BeginAccept(new AsyncCallback(OnAcceptSocket), acceptor);
@@ -88,6 +90,7 @@ namespace 档案汇总
             lock (m_Clinets)
             {
                 m_Clinets.Remove(s);
+                bChanged = true;
             }
         }
     }
@@ -98,6 +101,11 @@ namespace 档案汇总
         Socket m_sock;
         byte[] m_recvBuffer;
         List<byte> m_buffer;
+
+        public string m_mac;
+        public string m_code;
+
+        int m_lastCheckTime;
 
         static public msgHandle m_msgHandle;
         static public logHandle m_logHandle;
@@ -178,7 +186,7 @@ namespace 档案汇总
         {
             if (m_msgHandle != null)
             {
-                m_msgHandle(s, this);
+                m_msgHandle.BeginInvoke(s, this,null,null);
             }
         }
 
@@ -208,7 +216,8 @@ namespace 档案汇总
                 m_logHandle(ex.ToString());
             }
 
-            if (ex.SocketErrorCode == SocketError.ConnectionReset)
+            if (ex.SocketErrorCode == SocketError.ConnectionReset
+                || ex.SocketErrorCode == SocketError.ConnectionAborted)
             {
                 m_errorHandle(ex, this);
             }
