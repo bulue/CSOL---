@@ -23,6 +23,8 @@ namespace CSLogin
         public static string IP = "";
         static int port = 28015;
 
+        public string m_code = "";
+
         public Session()
         {
             try
@@ -47,6 +49,8 @@ namespace CSLogin
             {
                 m_isOk = true;
                 m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
+
+                SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code);
             }
             catch (System.Net.Sockets.SocketException ex)
             {
@@ -66,8 +70,8 @@ namespace CSLogin
                         Array.Copy(m_recvBuffer, recv, nRecv);
                         Parse(recv);
                     }
+                    m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
                 }
-                m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
             }
             catch(System.ArgumentException )
             {

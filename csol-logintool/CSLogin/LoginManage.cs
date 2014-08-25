@@ -40,7 +40,7 @@ namespace CSLogin
 
         public LoginManage(csLoginTool loginTool)
         {
-            MacId = GetMacAddress();
+            MacId = CommonApi.GetMacAddress();
         }
 
         public void OnMsg(string s)
@@ -71,32 +71,20 @@ namespace CSLogin
                             }
                         }
                         break;
+                    case "101":
+                        {
+                            string reboot = split[1];
+                            if (reboot == "reboot")
+                            {
+                                System.Diagnostics.Process.Start("shutdown", @"/r");
+                            }
+                        }break;
                 }
             }
             catch (Exception ex)
             {
                 CommonApi.TraceInfo(ex.ToString());
             }
-        }
-
-        private string GetMacAddress()
-        {
-            try
-            {
-                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-                foreach (NetworkInterface adapter in nics)
-                {
-                    if (!adapter.GetPhysicalAddress().ToString().Equals(""))
-                    {
-                        return adapter.GetPhysicalAddress().ToString();
-                    }
-                }
-
-            }
-            catch
-            {
-            }
-            return "";
         }
 
         public void Run()
@@ -114,6 +102,7 @@ namespace CSLogin
                     {
                         Session.IP = m_ManageIp;
                         m_session = new Session();
+                        m_session.m_code = m_Code;
                         m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
                     }
 
@@ -131,8 +120,8 @@ namespace CSLogin
                         {
                             m_session.SendMsg("4$" + MacId);
                             nLastQueryTime = 0;
-                            LoginState stateMachine = new LoginState();
-                            stateMachine.Run(m_account, m_session);
+                            //LoginState stateMachine = new LoginState();
+                            //stateMachine.Run(m_account, m_session);
 
                             //do
                             //{
@@ -386,7 +375,9 @@ namespace CSLogin
                 case State.Counter_Strike:
                     {
                         IntPtr hwnd = CommonApi.FindWindow(null, "Counter-Strike Online");
-                        if (hwnd != IntPtr.Zero)
+                        long beginStateTime = System.Environment.TickCount;
+
+                        while (hwnd != IntPtr.Zero && _currentState == State.Counter_Strike)
                         {
                             long beginCheckTime = System.Environment.TickCount;
 
@@ -775,16 +766,31 @@ namespace CSLogin
                                     CommonApi.CloseWindow(hwnd);
 
                                     _NextState = State.JieShu;
-                                    Sleep(1000,"游戏超时50秒,准备关闭");
+                                    Sleep(1000, "游戏超时50秒,准备关闭");
+
+                                    long endGameTime = System.Environment.TickCount;
+                                    while (CommonApi.FindWindow(null, "Counter-Strike Online") != null)
+                                    {
+                                        Sleep(1000);
+                                        CommonApi.CloseWindow(hwnd);
+                                        if (System.Environment.TickCount - endGameTime > 20 * 1000)
+                                        {
+                                            CommonApi.TraceInfo("20秒关闭游戏失败,执行重启计算机!!");
+                                            System.Diagnostics.Process.Start("shutdown", @"/r");
+                                            System.Environment.Exit(0);
+                                        }
+                                    }
 
                                     break;
                                 }
                             } while (true);
-                        }
-                        else
-                        {
-                            _NextState = State.Kaishi;
-                            Sleep(1000);
+
+                            if (System.Environment.TickCount - beginStateTime > 3 * 60 * 1000)
+                            {
+                                CommonApi.TraceInfo("超时3分钟,执行重启计算机!!");
+                                System.Diagnostics.Process.Start("shutdown", @"/r");
+                                System.Environment.Exit(0);
+                            }
                         }
                     }break;
             }

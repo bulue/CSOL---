@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using System.Net.NetworkInformation;
 
 namespace CSLogin
 {
@@ -319,6 +320,27 @@ namespace CSLogin
                 bestValue = maxValues[0];
                 bestPoint = maxLocations[0];
             }
+        }
+
+
+        public static string GetMacAddress()
+        {
+            try
+            {
+                NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (NetworkInterface adapter in nics)
+                {
+                    if (!adapter.GetPhysicalAddress().ToString().Equals(""))
+                    {
+                        return adapter.GetPhysicalAddress().ToString();
+                    }
+                }
+
+            }
+            catch
+            {
+            }
+            return "";
         }
 
         delegate void DelegateV<T>(T t);
