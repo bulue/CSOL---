@@ -458,6 +458,11 @@ namespace 档案汇总
 
         private void OnMsg(string s,Session c)
         {
+            this.BeginInvoke(new msgHandle(OnMsg_safe),s,c);
+        }
+
+        private void OnMsg_safe(string s,Session c)
+        {
             try
             {
                 
@@ -708,7 +713,7 @@ namespace 档案汇总
                             foreach (DataGridViewRow row in dgvSession.Rows)
                             {
                                 if (row.IsNewRow) continue;
-                                if (row.Cells["sMac"].Value == c.m_mac)
+                                if (row.Cells["sMac"].Value.ToString() == c.m_mac)
                                 {
                                     row.Cells["sLoginState"].Value = DateTime.Now.ToLocalTime();
                                 }
@@ -723,14 +728,14 @@ namespace 档案汇总
                                 string accName = m_Token[token];
                                 m_Token.Remove(token);
 
-                                for (int i = 0; i < dgvUserData.Rows.Count; ++i)
-                                {
-                                    if (dgvUserData.Rows[i].Cells["Account"].Value != null
-                                        && dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
-                                    {
-                                        dgvUserData.Rows[i].Cells["State"].Value = "正在签到";
-                                    }
-                                }
+                                //for (int i = 0; i < dgvUserData.Rows.Count; ++i)
+                                //{
+                                //    if (dgvUserData.Rows[i].Cells["Account"].Value != null
+                                //        && dgvUserData.Rows[i].Cells["Account"].Value.ToString() == accName)
+                                //    {
+                                //        dgvUserData.Rows[i].Cells["State"].Value = "正在签到";
+                                //    }
+                                //}
                             }
                         }break;
                     case "5":
@@ -1061,9 +1066,9 @@ namespace 档案汇总
 
                             if (ts.TotalSeconds > 40)
                             {
-                                Print("mac:" + row.Cells["sMac"].Value + " code:" + row.Cells["sCode"].Value + " " + ts.TotalSeconds + "秒未登陆!");
+                                Print("mac:" + row.Cells["sMac"].Value + " code:" + row.Cells["sCode"].Value + " " + Convert.ToInt32(ts.TotalSeconds) + "秒未登陆!");
                             }
-                            if (ts.TotalMinutes > 5)
+                            if (ts.TotalMinutes > 3)
                             {
                                 lock (Sever.m_Clinets)
                                 {
