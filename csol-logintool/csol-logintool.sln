@@ -5,11 +5,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "测试用例", "WindowsForm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSLogin", "CSLogin\CSLogin.csproj", "{B42A0AF7-F6E9-4F90-B6B9-995A4354FF6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grid", "档案汇总\Grid.csproj", "{78023CBF-82E0-4667-A7A7-4DED7F8D6CF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "账号管理", "档案汇总\账号管理.csproj", "{78023CBF-82E0-4667-A7A7-4DED7F8D6CF1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "测试套接字", "测试套接字\测试套接字.csproj", "{4621FFFF-6F66-43A9-9D49-C9FAE03C7EB5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "crackme", "crackme\crackme.csproj", "{64B21A10-F6DD-41B0-A7C4-FC7DCE86BDD9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "账号管理--外发版本", "账号管理--外发版本\账号管理--外发版本.csproj", "{96DBE673-036C-49CC-8C43-0D0AB3195A28}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "注册器--外发版本", "注册器--外发版本\注册器--外发版本.csproj", "{3679BEB2-9A5C-43A4-88A0-6BB1865CF6D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "路由器", "路由器\路由器.csproj", "{AC143590-1CB3-4F8C-8419-53304D7645D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +57,24 @@ Global
 		{64B21A10-F6DD-41B0-A7C4-FC7DCE86BDD9}.Release|Any CPU.ActiveCfg = Release|x86
 		{64B21A10-F6DD-41B0-A7C4-FC7DCE86BDD9}.Release|x86.ActiveCfg = Release|x86
 		{64B21A10-F6DD-41B0-A7C4-FC7DCE86BDD9}.Release|x86.Build.0 = Release|x86
+		{96DBE673-036C-49CC-8C43-0D0AB3195A28}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{96DBE673-036C-49CC-8C43-0D0AB3195A28}.Debug|x86.ActiveCfg = Debug|x86
+		{96DBE673-036C-49CC-8C43-0D0AB3195A28}.Debug|x86.Build.0 = Debug|x86
+		{96DBE673-036C-49CC-8C43-0D0AB3195A28}.Release|Any CPU.ActiveCfg = Release|x86
+		{96DBE673-036C-49CC-8C43-0D0AB3195A28}.Release|x86.ActiveCfg = Release|x86
+		{96DBE673-036C-49CC-8C43-0D0AB3195A28}.Release|x86.Build.0 = Release|x86
+		{3679BEB2-9A5C-43A4-88A0-6BB1865CF6D0}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{3679BEB2-9A5C-43A4-88A0-6BB1865CF6D0}.Debug|x86.ActiveCfg = Debug|x86
+		{3679BEB2-9A5C-43A4-88A0-6BB1865CF6D0}.Debug|x86.Build.0 = Debug|x86
+		{3679BEB2-9A5C-43A4-88A0-6BB1865CF6D0}.Release|Any CPU.ActiveCfg = Release|x86
+		{3679BEB2-9A5C-43A4-88A0-6BB1865CF6D0}.Release|x86.ActiveCfg = Release|x86
+		{3679BEB2-9A5C-43A4-88A0-6BB1865CF6D0}.Release|x86.Build.0 = Release|x86
+		{AC143590-1CB3-4F8C-8419-53304D7645D0}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{AC143590-1CB3-4F8C-8419-53304D7645D0}.Debug|x86.ActiveCfg = Debug|x86
+		{AC143590-1CB3-4F8C-8419-53304D7645D0}.Debug|x86.Build.0 = Debug|x86
+		{AC143590-1CB3-4F8C-8419-53304D7645D0}.Release|Any CPU.ActiveCfg = Release|x86
+		{AC143590-1CB3-4F8C-8419-53304D7645D0}.Release|x86.ActiveCfg = Release|x86
+		{AC143590-1CB3-4F8C-8419-53304D7645D0}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
