@@ -346,9 +346,9 @@ namespace CSLogin
             }
         }
 
-        private void autoStartCkbox_CheckedChanged(object sender, EventArgs e)
+        public static void RegAutoStart(bool reg,bool showDialg = false)
         {
-            if (autoStartCkbox.Checked == true)
+            if (reg)
             {
                 string starupPath = Application.ExecutablePath;
                 try
@@ -364,11 +364,13 @@ namespace CSLogin
                     loca.Close();
                     run.Close();
 
-                    _iniFile.IniWriteValue("Other", "autoStart", "1");
                 }
                 catch (Exception ee)
                 {
-                    MessageBox.Show(ee.Message.ToString(), "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (showDialg)
+                    {
+                        MessageBox.Show(ee.Message.ToString(), "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
             else
@@ -383,12 +385,28 @@ namespace CSLogin
                     run.Close();
 
                     MessageBox.Show("已经关闭开机启动!!", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    _iniFile.IniWriteValue("Other", "autoStart", "0");
                 }
                 catch (System.Exception ex)
                 {
-                    MessageBox.Show(ex.Message.ToString(), "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    if (showDialg)
+                    {
+                        MessageBox.Show(ex.Message.ToString(), "提示", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
+            }
+        }
+
+        private void autoStartCkbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (autoStartCkbox.Checked)
+            {
+                RegAutoStart(true,true);       //注册开机自动重启
+                _iniFile.IniWriteValue("Other", "autoStart", "1");
+            }
+            else
+            {
+                RegAutoStart(false,true);
+                _iniFile.IniWriteValue("Other", "autoStart", "0");
             }
         }
 

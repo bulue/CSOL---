@@ -11,6 +11,8 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using System.Net.NetworkInformation;
+using System.Security.Cryptography;
+using System.IO;
 
 namespace CSLogin
 {
@@ -74,7 +76,7 @@ namespace CSLogin
         #endregion
 
 
-        static Dictionary<string, Bitmap> m_FileMap = new Dictionary<string, Bitmap>();
+        static Dictionary<string, Image<Bgr, Byte> > m_sImage = new Dictionary<string, Image<Bgr, Byte> >();
 
         static public bool FindPic(int x, int y, int w, int h, string picFileName, double approximation,out int nX,out int nY)
         {
@@ -88,22 +90,28 @@ namespace CSLogin
             try
             {
                 //long ticks = System.Environment.TickCount;
+
                 Bitmap screen = new Bitmap(w, h);
 
                 Graphics g = Graphics.FromImage(screen);
                 g.CopyFromScreen(x, y, 0, 0, screen.Size);
 
-                Bitmap pic;
-                try {
-                    pic = m_FileMap[picFileName];
-                }catch (System.Collections.Generic.KeyNotFoundException)
-                {
-                    pic = (Bitmap)Bitmap.FromFile(picFileName);
-                    m_FileMap.Add(picFileName,pic);
-                }
+                Image<Bgr, Byte> img;
+                Image<Bgr, Byte> templ;
 
-                Image<Bgr, Byte> img = new Image<Bgr, Byte>(screen);
-                Image<Bgr, Byte> templ = new Image<Bgr, Byte>(pic);
+                img = new Image<Bgr, Byte>(screen);
+                try 
+                {
+                    templ = m_sImage[picFileName];
+                }
+                catch (System.Collections.Generic.KeyNotFoundException)
+                {
+                    using (Bitmap pic = (Bitmap)Bitmap.FromFile(picFileName))
+                    {
+                        templ = new Image<Bgr, Byte>(pic);
+                        m_sImage.Add(picFileName, templ);
+                    }
+                }
 
                 TM_TYPE tmType = TM_TYPE.CV_TM_CCORR_NORMED;
                 Image<Gray, float> imageResult = img.MatchTemplate(templ, tmType);
@@ -114,7 +122,7 @@ namespace CSLogin
 
                 screen.Dispose();
                 img.Dispose();
-                templ.Dispose();
+                //templ.Dispose();
                 imageResult.Dispose();
                 g.Dispose();
 
@@ -125,10 +133,12 @@ namespace CSLogin
                     nX = bestPoint.X + x;
                     nY = bestPoint.Y + y;
 
+                    //AddXY(picFileName, sMD5, nX, nY);
                     return true;
                 }
                 else
                 {
+                    //AddXY(picFileName, sMD5, -1, -1);
                     return false;
                 }
             }

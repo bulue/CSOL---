@@ -68,6 +68,7 @@
             // 
             // startBtn
             // 
+            this.startBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.startBtn.Location = new System.Drawing.Point(482, 334);
             this.startBtn.Name = "startBtn";
             this.startBtn.Size = new System.Drawing.Size(117, 38);
@@ -95,6 +96,7 @@
             // 
             // PauseBtn
             // 
+            this.PauseBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.PauseBtn.Location = new System.Drawing.Point(620, 334);
             this.PauseBtn.Name = "PauseBtn";
             this.PauseBtn.Size = new System.Drawing.Size(117, 38);
@@ -105,6 +107,9 @@
             // 
             // textBox
             // 
+            this.textBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox.Cursor = System.Windows.Forms.Cursors.Default;
             this.textBox.Location = new System.Drawing.Point(21, 97);
             this.textBox.Multiline = true;
@@ -156,6 +161,7 @@
             // 
             // autoStartCkbox
             // 
+            this.autoStartCkbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.autoStartCkbox.AutoSize = true;
             this.autoStartCkbox.Location = new System.Drawing.Point(87, 334);
             this.autoStartCkbox.Name = "autoStartCkbox";
@@ -171,6 +177,7 @@
             // 
             // button2
             // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button2.Location = new System.Drawing.Point(21, 334);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(44, 22);
