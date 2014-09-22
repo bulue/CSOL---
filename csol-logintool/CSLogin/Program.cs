@@ -33,4 +33,9 @@ namespace CSLogin
             }
         }
     }
+
+    public static class Global
+    {
+        public static CLogger logger;
+    }
 }

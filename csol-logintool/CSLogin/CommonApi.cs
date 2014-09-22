@@ -194,8 +194,8 @@ namespace CSLogin
             }
             catch (Emgu.CV.Util.CvException ex)
             {
-                TraceInfo(String.Format("FindPic({0},{1},{2},{3})  异常!!", x, y, w, h));
-                TraceDebug(ex.ToString());
+                Global.logger.Debug(String.Format("FindPic({0},{1},{2},{3})  异常!!", x, y, w, h));
+                Global.logger.Debug(ex.ToString());
             }
 
             return false;
@@ -280,36 +280,6 @@ namespace CSLogin
             y = 0;
             w = 0;
             h = 0;
-        }
-
-        static public void TraceDebug(string format, params object[] args)
-        {
-            csLoginTool.Instance.consoleLog(string.Format(format, args), "debug");
-        }
-
-        static public void TraceDebug(string format, object arg0)
-        {
-            csLoginTool.Instance.consoleLog(string.Format(format, arg0), "debug");
-        }
-
-        static public void TraceDebug(string format, object arg0, object arg1)
-        {
-            csLoginTool.Instance.consoleLog(string.Format(format, arg0, arg1), "debug");
-        }
-
-        static public void TraceInfo(string format, params object[] args)
-        {
-            csLoginTool.Instance.consoleLog(string.Format(format, args), "info");
-        }
-
-        static public void TraceInfo(string format, object arg0)
-        {
-            csLoginTool.Instance.consoleLog(string.Format(format, arg0), "info");
-        }
-
-        static public void TraceInfo(string format, object arg0, object arg1)
-        {
-            csLoginTool.Instance.consoleLog(string.Format(format, arg0, arg1), "info");
         }
 
         static private void FindBestMatchPointAndValue(Image<Gray, Single> image, TM_TYPE tmType, out double bestValue, out Point bestPoint)

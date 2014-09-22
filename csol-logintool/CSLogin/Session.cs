@@ -31,7 +31,7 @@ namespace CSLogin
             {
                 m_sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 m_sock.BeginConnect(IP, port, new AsyncCallback(OnConnect), m_sock);
-                CommonApi.TraceInfo("线程ID:" + Thread.CurrentThread.ManagedThreadId + " 开始连接" + IP);
+                Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " 开始连接" + IP);
             }
             catch (System.Net.Sockets.SocketException ex)
             {
@@ -129,7 +129,7 @@ namespace CSLogin
                 byte[] buffer = Bit.StructToBytes<stMsg>(s);
                 //byte[] buffer = System.Text.Encoding.Default.GetBytes(msg);
                 m_sock.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(onSend), m_sock);
-                CommonApi.TraceInfo("发送内容:" + msg);
+                Global.logger.Debug("发送内容:" + msg);
             }
             catch (System.Net.Sockets.SocketException ex)
             {
@@ -145,11 +145,11 @@ namespace CSLogin
                 int Sec = 5;
                 if (ex.ErrorCode == 10057)
                 {
-                    CommonApi.TraceInfo("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
+                    Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
                 }
                 else
                 {
-                    CommonApi.TraceInfo("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + ex.Message + "......" +Sec + "秒之后尝试重新连接...");
+                    Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + ex.Message + "......" + Sec + "秒之后尝试重新连接...");
                 }
 
                 Thread.Sleep(Sec * 1000);

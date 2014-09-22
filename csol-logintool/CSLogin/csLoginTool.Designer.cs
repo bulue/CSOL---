@@ -52,7 +52,6 @@
             this.textBox_Code = new System.Windows.Forms.TextBox();
             this.SetCodeBtn = new System.Windows.Forms.Button();
             this.SetManageIpBtn = new System.Windows.Forms.Button();
-            this.timer_flush = new System.Windows.Forms.Timer(this.components);
             this.statusBar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -257,10 +256,6 @@
             this.SetManageIpBtn.UseVisualStyleBackColor = true;
             this.SetManageIpBtn.Click += new System.EventHandler(this.SetManageIpBtn_Click);
             // 
-            // timer_flush
-            // 
-            this.timer_flush.Tick += new System.EventHandler(this.timer_flush_Tick);
-            // 
             // csLoginTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -319,7 +314,6 @@
         private System.Windows.Forms.TextBox textBox_Code;
         private System.Windows.Forms.Button SetCodeBtn;
         private System.Windows.Forms.Button SetManageIpBtn;
-        private System.Windows.Forms.Timer timer_flush;
 
     }
 }

@@ -49,7 +49,7 @@ namespace CSLogin
             {
                 if (s != "0")
                 {
-                    CommonApi.TraceInfo("Thread:" + Thread.CurrentThread.ManagedThreadId + " Recv:" + s);
+                    Global.logger.Debug("Thread:" + Thread.CurrentThread.ManagedThreadId + " Recv:" + s);
                 }
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -76,7 +76,7 @@ namespace CSLogin
                             string reboot = split[1];
                             if (reboot == "reboot")
                             {
-                                CommonApi.TraceInfo("收到重启系统的请求,执行");
+                                Global.logger.Info("收到重启系统的请求,执行");
                                 csLoginTool.RegAutoStart(true);
                                 System.Diagnostics.Process.Start("shutdown", @"/r");
                                 System.Environment.Exit(0);
@@ -86,7 +86,7 @@ namespace CSLogin
             }
             catch (Exception ex)
             {
-                CommonApi.TraceInfo(ex.ToString());
+                Global.logger.Warn(ex.ToString());
             }
         }
 
@@ -177,8 +177,8 @@ namespace CSLogin
             _currentState = State.Kaishi;
             m_client = s;
 
-            CommonApi.TraceInfo("");
-            CommonApi.TraceInfo("=====账号:" + _curAccInfo.account + "开始=====");
+            Global.logger.Info("");
+            Global.logger.Info("=====账号:" + _curAccInfo.account + "开始=====");
             do 
             {
                 Sleep(1);
@@ -190,8 +190,8 @@ namespace CSLogin
                 {
                     WaitEnd();
                     Sleep(1000);
-                    CommonApi.TraceInfo("=====账号:" + _curAccInfo.account + "结束=====");
-                    CommonApi.TraceInfo("");
+                    Global.logger.Info("=====账号:" + _curAccInfo.account + "结束=====");
+                    Global.logger.Info("");
                     break;
                 }
             } while (true);
@@ -249,7 +249,7 @@ namespace CSLogin
                     CommonApi.GetWindowXYWH(hwnd, out x, out y, out w, out h);
                     if (w < 600)
                     {
-                        CommonApi.TraceInfo("关闭 Counter-Strike Online 广告窗口");
+                        Global.logger.Debug("关闭 Counter-Strike Online 广告窗口");
                         CommonApi.CloseWindow(hwnd);
                         loopBreak = false;
                         Sleep(1000);
@@ -418,7 +418,7 @@ namespace CSLogin
                                 {
                                     if (bInputPwd)
                                     {
-                                        CommonApi.TraceInfo("账号 " + _curAccInfo.account + " 检测到游戏窗口关闭，登陆失败");
+                                        Global.logger.Debug("账号 " + _curAccInfo.account + " 检测到游戏窗口关闭，登陆失败");
                                         _NextState = State.JieShu;
                                         SendLogFailed(_curAccInfo);
                                     }
@@ -478,7 +478,7 @@ namespace CSLogin
                                         Sleep(200);
                                         CommonApi.Left_Click(dx, dy);
 
-                                        CommonApi.TraceInfo("等待登陆完成..");
+                                        Global.logger.Info("等待登陆完成..");
                                         //Sleep(5000, "点击登陆");
 
                                         long nowTick = System.Environment.TickCount;
@@ -536,7 +536,7 @@ namespace CSLogin
                                             }
                                         }
 
-                                        CommonApi.TraceInfo("点击之前,已经领过" + nOldDay + "天");
+                                        Global.logger.Debug("点击之前,已经领过" + nOldDay + "天");
 
                                         CommonApi.Left_Click(dx + 5, dy + 5);
 
@@ -558,7 +558,7 @@ namespace CSLogin
 
                                             if (nDay == nOldDay + 1)
                                             {
-                                                CommonApi.TraceInfo("点击之后,已经领过" + nDay + "天");
+                                                Global.logger.Debug("点击之后,已经领过" + nDay + "天");
                                                 m_client.SendMsg("5$" + _AccInfo.account + "$" + nDay);
                                                 SendLogSucess(_curAccInfo);
                                                 CommonApi.CloseWindow(hwnd);
@@ -593,7 +593,7 @@ namespace CSLogin
                                             int offset = (i - 1) * 92;
                                             if (!CommonApi.FindPic(sX + 180 + offset, sY + 280, 108, 75, @".\BMP\领取" + i + "天.bmp", 0.99, out dx, out dy))
                                             {
-                                                CommonApi.TraceInfo("账号领取过" + i + "天");
+                                                Global.logger.Debug("账号领取过" + i + "天");
                                                 m_client.SendMsg("5$" + _AccInfo.account + "$" + i);
                                             }
                                         }
@@ -680,7 +680,7 @@ namespace CSLogin
 
                                                     if (CommonApi.FindPic(x, y, w, h, screen, 0.99, out dx, out dy))
                                                     {
-                                                        CommonApi.TraceInfo("验证码有误！！报告错误！！");
+                                                        Global.logger.Debug("验证码有误！！报告错误！！");
                                                         Dama2.ReportResult((uint)ret, 0);
 
                                                         //CommonApi.Left_Click(dx + 210, dy + 120);       //换一个验证码
@@ -691,6 +691,7 @@ namespace CSLogin
                                             Sleep(1000);
                                         }
 
+                                        m_client.SendMsg("6$" + "changeip");
                                         Sleep(60 * 1000, "遇到验证码");
 
                                         SendLogFailed(_curAccInfo);
@@ -859,7 +860,7 @@ namespace CSLogin
                 }
 
                 x = true;
-                CommonApi.TraceInfo("等待时长{0}秒,原因:{1}...", ticks / 1000, option);
+                Global.logger.Debug("等待时长{0}秒,原因:{1}...", ticks / 1000, option);
             }
 
             Thread.Sleep(ticks);
@@ -867,7 +868,7 @@ namespace CSLogin
 
             if (x)
             {
-                CommonApi.TraceInfo("结束等待");
+                Global.logger.Debug("结束等待");
             }
         }
 

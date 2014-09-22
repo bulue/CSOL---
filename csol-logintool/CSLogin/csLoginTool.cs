@@ -131,6 +131,25 @@ namespace CSLogin
             {
                 this.autoStartCkbox.Checked = true;
             }
+
+            Global.logger = new CLogger("log/log",new ShowLog(ShowLogFunc));
+        }
+
+        public void ShowLogFunc(CLogger.eLoggerLevel l,string s)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new ShowLog(ShowLogFunc),l,s);
+            }
+            else
+            {
+                textBox.Text += s;
+                textBox.Text += "\r\n";
+                if (textBox.Text.Length > 2000)
+                {
+                    textBox.Text = "";
+                }
+            }
         }
 
         protected override void OnLoad(EventArgs e)
@@ -205,11 +224,6 @@ namespace CSLogin
             {
                 _logicThread.Start();
             }
-
-            if (!timer_flush.Enabled)
-            {
-                timer_flush.Start();
-            }
         }
 
         protected override void OnClosed(EventArgs e)
@@ -234,51 +248,6 @@ namespace CSLogin
                 _iniFile.IniWriteValue("UI", "gamePath", this.gamePath.Text);
             }
         }
-
-        public void consoleLog(string msg,string level)
-        {
-            string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} {1} {2}", DateTime.Now, level, msg);
-
-            m_logBuffer += format_msg + "\r\n";
-            if (m_logBuffer.Length > 1024)
-            {
-                textBox.Invoke(new ConsoleLog(flushToTextBox));
-            }
-        }
-
-        private void flushToTextBox()
-        {
-            if (textBox.Text.Length > 1024*8)
-            {
-                textBox.Text = "";
-            }
-            textBox.Text = textBox.Text + m_logBuffer;
-            textBox.SelectionStart = textBox.Text.Length;  //设定光标位置
-            textBox.ScrollToCaret();
-
-            const string logDir = @".\log";
-            if (!Directory.Exists(logDir))
-            {
-                Directory.CreateDirectory(logDir);
-            }
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(logDir + @"\" + _logFileName, true))
-                {
-                    writer.Write(m_logBuffer);
-                }
-
-            }
-            catch
-            {
-
-            }
-
-            m_logBuffer = "";
-        }
-
-        private string m_logBuffer = "";
 
         public string getGamePath()
         {
@@ -414,7 +383,7 @@ namespace CSLogin
         {
             if (_bAutoStart)
             {
-                CommonApi.TraceInfo("========开始启动自动登陆========");
+                Global.logger.Info("========开始启动自动登陆========");
                 StartLogin();
             }
             this.autostartTimer.Stop();
@@ -497,19 +466,16 @@ namespace CSLogin
             MessageBox.Show("修改成功");
         }
 
-        private void timer_flush_Tick(object sender, EventArgs e)
-        {
-            if (m_logBuffer.Length > 0)
-            {
-                flushToTextBox();
-            }
-        }
-
         public void OnMsg(string s)
         {
             _loginManage.OnMsg(s);
         }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+            Global.logger.Stop();
+        }
     }
 
-    delegate void ConsoleLog();
 }
