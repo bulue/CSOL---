@@ -25,4 +25,9 @@ namespace 档案汇总
             }
         }
     }
+
+    static class Global
+    {
+        public static CLogger logger;
+    }
 }
