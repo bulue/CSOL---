@@ -404,6 +404,7 @@ namespace CSLogin
                             int queren_Lasttime = System.Environment.TickCount;
                             int quxiao_Lasttime = System.Environment.TickCount;
                             int mimacuowu_Lasttime = System.Environment.TickCount;
+                            int tingfeng_Lasttime = System.Environment.TickCount;
 
                             int wujuese_Interval = 0;
                             int queren_Interval = 2000;
@@ -447,6 +448,7 @@ namespace CSLogin
                                     queren_Lasttime = System.Environment.TickCount;
                                     quxiao_Lasttime = System.Environment.TickCount;
                                     mimacuowu_Lasttime = System.Environment.TickCount;
+                                    tingfeng_Lasttime = System.Environment.TickCount;
                                 }
                                 CommonApi.GetWindowXYWH(hwnd, out sX, out sY, out sW, out sH);
                                 x = sX + 150;
@@ -486,9 +488,50 @@ namespace CSLogin
                                         {
                                             if (!CommonApi.FindPic(x + 300, y + 300, 100, 50, @".\BMP\游戏登陆.bmp", 0.99, out dx, out dy))
                                             {
+                                                if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\密码错误.bmp", 0.99, out dx, out dy))
+                                                {
+                                                    CommonApi.CloseWindow(hwnd);
+
+                                                    SendLogPasswordError(_curAccInfo);
+                                                    _NextState = State.JieShu;
+
+                                                    Sleep(3000, "密码错误,关闭游戏");
+
+                                                }
+                                                else if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\密码有误停封.bmp", 0.99, out dx, out dy))
+                                                {
+                                                    CommonApi.CloseWindow(hwnd);
+
+                                                    SendLogForbidden(_curAccInfo);
+                                                    _NextState = State.JieShu;
+
+                                                    Sleep(1000, "账号停封,关闭游戏");
+                                                }
+                                                else if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\连续输入错误.bmp", 0.99, out dx, out dy))
+                                                {
+                                                    CommonApi.CloseWindow(hwnd);
+
+                                                    m_client.SendMsg("6$" + "changeip");
+                                                    Sleep(60 * 1000, "连续输入错误");
+
+                                                    SendLogPasswordError(_curAccInfo);
+
+                                                    _NextState = State.JieShu;
+                                                    Sleep(3000, "连续输入错误,关闭游戏");
+                                                }
+                                                else if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\服务器连接中断.bmp", 0.99, out dx, out dy))
+                                                {
+                                                    CommonApi.CloseWindow(hwnd);
+
+                                                    SendLogPasswordError(_curAccInfo);
+                                                    _NextState = State.JieShu;
+
+                                                    Sleep(3000, "服务器连接中断,关闭游戏");
+                                                }
+
                                                 break;
                                             }
-                                            Sleep(1000);
+                                            Sleep(2000);
                                         } while (System.Environment.TickCount - nowTick < 7 * 1000);
 
                                         break;
@@ -608,16 +651,16 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (bInputPwd && CheckInterLastTime(ref mimacuowu_Lasttime, 2000 + _Rand(2000)) && CommonApi.FindPic(x, y, w, h - 30, @".\BMP\密码错误.bmp", 0.99, out dx, out dy))
-                                    {
-                                        CommonApi.CloseWindow(hwnd);
+                                    //if (bInputPwd && CheckInterLastTime(ref mimacuowu_Lasttime, 2000) && CommonApi.FindPic(x, y, w, h - 30, @".\BMP\密码错误.bmp", 0.99, out dx, out dy))
+                                    //{
+                                    //    CommonApi.CloseWindow(hwnd);
 
-                                        SendLogPasswordError(_curAccInfo);
-                                        _NextState = State.JieShu;
+                                    //    SendLogPasswordError(_curAccInfo);
+                                    //    _NextState = State.JieShu;
 
-                                        Sleep(1000, "密码错误,关闭游戏");
-                                        break;
-                                    }
+                                    //    Sleep(1000, "密码错误,关闭游戏");
+                                    //    break;
+                                    //}
 
                                     if (bInputPwd && CheckInterLastTime(ref yanzhengma_Lastime, 2000 + _Rand(2000)) && CommonApi.FindPic(x, y, w, h, @".\BMP\验证码.bmp", 0.99, out dx, out dy))
                                     {
@@ -874,17 +917,38 @@ namespace CSLogin
 
         private void SendLogSucess(userInfo account)
         {
-            m_client.SendMsg("3$" + account.account + "$" + "OK");
+            if (!bSendRet)
+            {
+                bSendRet = true;
+                m_client.SendMsg("3$" + account.account + "$" + "OK");
+            }
         }
 
         private void SendLogFailed(userInfo account)
         {
-            m_client.SendMsg("3$" + account.account + "$" + "Failed");
+            if (!bSendRet)
+            {
+                bSendRet = true;
+                m_client.SendMsg("3$" + account.account + "$" + "Failed");
+            }
         }
 
         private void SendLogPasswordError(userInfo account)
         {
-            m_client.SendMsg("3$" + account.account + "$" + "PasswordError");
+            if (!bSendRet)
+            {
+                bSendRet = true;
+                m_client.SendMsg("3$" + account.account + "$" + "PasswordError");
+            }
+        }
+
+        private void SendLogForbidden(userInfo account)
+        {
+            if (!bSendRet)
+            {
+                bSendRet = true;
+                m_client.SendMsg("3$" + account.account + "$" + "Forbidden");
+            }
         }
 
         private void SaveCaptcha(Bitmap bmp,string Name,string subdir)
@@ -925,6 +989,8 @@ namespace CSLogin
 
         userInfo _AccInfo;
         Session m_client;
+
+        bool bSendRet = false;
 
         public csLoginTool _loginTool = csLoginTool.Instance;
         static IniFile _ini = new IniFile(@".\config.ini");
