@@ -453,12 +453,14 @@ namespace 档案汇总
             this.BeginInvoke(new msgHandle(OnMsg_safe),s,c);
         }
 
+        Dictionary<string, long> m_accountRecord = new Dictionary<string, long>(); //<账号,时间>
+
         private void OnMsg_safe(string s,Session c)
         {
             try
             {
                 
-                Print("Thread:" + Thread.CurrentThread.ManagedThreadId + "Recv:" + s);
+                Print("Recv:" + s);
 
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
                 switch (split[0])
@@ -659,6 +661,17 @@ namespace 档案汇总
                             string accName = split[1];
                             string isOk = split[2];
 
+                            if (m_accountRecord.ContainsKey(accName))
+                            {
+                                long recordTime = m_accountRecord[accName];
+                                if (DateTime.Now.Ticks - recordTime < 10)
+                                {
+                                    return;
+                                }
+                            }
+
+                            m_accountRecord[accName]=DateTime.Now.Ticks;
+
                             if (isOk == "OK")
                             {
                                 for (int i = 0; i < dgvUserData.Rows.Count; ++i)
@@ -698,6 +711,20 @@ namespace 档案汇总
                                         dgvUserData.Rows[i].Cells["State"].Value = "密码错误";
                                         dgvUserData.Rows[i].Cells["CheckTime"].Value = DateTime.Now.ToString();
                                         dgvUserData.Rows[i].Cells["FailedCount"].Value = dgvUserData.Rows[i].Cells["FailedCount"].Value == null ? 1 : (int)dgvUserData.Rows[i].Cells["FailedCount"].Value + 1;
+                                    }
+                                }
+                            }
+                            else if (isOk == "Forbidden")
+                            {
+                                foreach (DataGridViewRow row in dgvUserData.Rows)
+                                {
+                                    if (row.Cells["Account"].Value != null
+                                        && row.Cells["Account"].Value.ToString() == accName)
+                                    {
+                                        row.Cells["Checked"].Value = false;
+                                        row.Cells["State"].Value = "封停";
+                                        row.Cells["CheckTime"].Value = DateTime.Now.ToString();
+                                        row.Cells["FailedCount"].Value = row.Cells["FailedCount"].Value == null ? 1 : (int)row.Cells["FailedCount"].Value + 1;
                                     }
                                 }
                             }
