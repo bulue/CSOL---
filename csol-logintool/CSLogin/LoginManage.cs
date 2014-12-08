@@ -562,7 +562,8 @@ namespace CSLogin
                                     if (CommonApi.FindPic(sX + 268, sY + 584, 133, 40, @".\BMP\战场补给.bmp", 0.99, out dx, out dy))
                                     {
                                         CommonApi.Left_Click(dx + 5, dy + 5);
-                                        Sleep(50);
+                                        Sleep(200);
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
                                         break;
                                     }
 
