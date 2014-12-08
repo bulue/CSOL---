@@ -138,7 +138,7 @@
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvUserData.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgvUserData.RowTemplate.Height = 23;
-            this.dgvUserData.Size = new System.Drawing.Size(979, 400);
+            this.dgvUserData.Size = new System.Drawing.Size(948, 400);
             this.dgvUserData.TabIndex = 0;
             // 
             // Account
@@ -197,7 +197,7 @@
             // button2
             // 
             this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(909, 504);
+            this.button2.Location = new System.Drawing.Point(878, 504);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 3;
@@ -208,7 +208,7 @@
             // button3
             // 
             this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button3.Location = new System.Drawing.Point(909, 475);
+            this.button3.Location = new System.Drawing.Point(878, 475);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 4;
@@ -224,7 +224,7 @@
             this.textBox.Multiline = true;
             this.textBox.Name = "textBox";
             this.textBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox.Size = new System.Drawing.Size(879, 157);
+            this.textBox.Size = new System.Drawing.Size(848, 157);
             this.textBox.TabIndex = 5;
             // 
             // Menu_DeleteRow
@@ -299,7 +299,7 @@
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(909, 533);
+            this.button1.Location = new System.Drawing.Point(878, 533);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 8;
@@ -315,7 +315,7 @@
             this.StatusLab_SessionNum});
             this.statusStrip.Location = new System.Drawing.Point(0, 670);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(1062, 22);
+            this.statusStrip.Size = new System.Drawing.Size(1031, 22);
             this.statusStrip.TabIndex = 9;
             this.statusStrip.Text = "statusStrip1";
             // 
@@ -348,7 +348,7 @@
             // button5
             // 
             this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button5.Location = new System.Drawing.Point(909, 562);
+            this.button5.Location = new System.Drawing.Point(878, 562);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(75, 23);
             this.button5.TabIndex = 11;
@@ -381,7 +381,7 @@
             // btnClearLoginData
             // 
             this.btnClearLoginData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClearLoginData.Location = new System.Drawing.Point(909, 591);
+            this.btnClearLoginData.Location = new System.Drawing.Point(878, 591);
             this.btnClearLoginData.Name = "btnClearLoginData";
             this.btnClearLoginData.Size = new System.Drawing.Size(75, 23);
             this.btnClearLoginData.TabIndex = 14;
@@ -400,7 +400,7 @@
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(983, 425);
+            this.tabControl1.Size = new System.Drawing.Size(952, 425);
             this.tabControl1.TabIndex = 15;
             // 
             // tabPage1
@@ -409,7 +409,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(975, 399);
+            this.tabPage1.Size = new System.Drawing.Size(944, 399);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "账号";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -511,7 +511,7 @@
             // btnRoutineIp
             // 
             this.btnRoutineIp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRoutineIp.Location = new System.Drawing.Point(909, 620);
+            this.btnRoutineIp.Location = new System.Drawing.Point(878, 620);
             this.btnRoutineIp.Name = "btnRoutineIp";
             this.btnRoutineIp.Size = new System.Drawing.Size(75, 23);
             this.btnRoutineIp.TabIndex = 17;
@@ -535,7 +535,7 @@
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1062, 692);
+            this.ClientSize = new System.Drawing.Size(1031, 692);
             this.Controls.Add(this.cbRoutineIp);
             this.Controls.Add(this.btnRoutineIp);
             this.Controls.Add(this.cbRemoteReboot);

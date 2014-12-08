@@ -820,18 +820,6 @@ namespace 档案汇总
         private void Print(string s)
         {
             Global.logger.Debug(s);
-            //string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} Thread:{1} {2} {3}", DateTime.Now, Thread.CurrentThread.ManagedThreadId, "Debug", s);
-            //lock (m_textBoxBuffer)
-            //{
-            //    //textBox.BeginInvoke(new Delegate_Print(Print1), format_msg);
-            //    m_textBoxBuffer += format_msg;
-            //    m_textBoxBuffer += "\r\n";
-
-            //    if (m_textBoxBuffer.Length > 1024)
-            //    {
-            //        textBox.Invoke(new Delegate_Flush(FlushToTextBox));
-            //    }
-            //}
         }
 
         private void FlushToTextBox()
