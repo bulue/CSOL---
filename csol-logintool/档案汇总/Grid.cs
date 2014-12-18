@@ -327,7 +327,7 @@ namespace 档案汇总
                 foreach (userinfo info in m_userinfos.Values)
                 {
                     if (info.failedcount <= 1
-                        && info.status != "签到失败"
+                        && info.status != "密码错误"
                         && info.status != "封停"
                         && info.status != "签到完成")
                     {
@@ -544,7 +544,7 @@ namespace 档案汇总
                 {
                     if (info.bocheck == 0
                         && info.failedcount <= 1 
-                        && info.status != "签到失败"
+                        && info.status != "密码错误"
                         && info.status != "封停"
                         && info.status != "签到完成")
                     {
@@ -580,6 +580,8 @@ namespace 档案汇总
             else
             {
                 dgvUserData.Rows.Clear();
+
+                List<userinfo> userlist = new List<userinfo>();
                 foreach(userinfo info in m_userinfos.Values)
                 {
                     switch (showtype)
@@ -603,8 +605,14 @@ namespace 档案汇总
                             }break;
                     }
 
-                    int newidx = dgvUserData.Rows.Add();
+                    userlist.Add(info);
 
+                }
+
+                int newidx = 0;
+                dgvUserData.Rows.Add(userlist.Count);
+                foreach (userinfo info in userlist)
+                {
                     if (info.username != null)
                     {
                         dgvUserData.Rows[newidx].Cells["Account"].Value = info.username;
@@ -649,8 +657,10 @@ namespace 档案汇总
                     {
                         dgvUserData.Rows[newidx].Cells["Code"].Value = info.logincode;
                     }
+
+                    newidx++;
                 }
-                dgvUserData.AutoResizeColumns();
+                //dgvUserData.AutoResizeColumns();
             }
         }
 
@@ -715,6 +725,15 @@ namespace 档案汇总
 
         Dictionary<string, long> m_accountRecord = new Dictionary<string, long>(); //<账号,时间>
 
+        enum working_state
+        {
+            normal = 0,
+            advanced = 1,
+            finish = 2,
+        }
+
+        working_state _working_state = working_state.normal;
+
         private void OnMsg_safe(string s,Session c)
         {
             try
@@ -776,60 +795,77 @@ namespace 档案汇总
 
                             if (accName == "" && passWord == "")
                             {
-                                int nLoop;
-
-                                // 根据选项优先分配失败1次的的账号
-                                nLoop = 0;
-                                foreach (var info in m_checkuserinfos.Values)
+                                switch(_working_state)
                                 {
-                                    if (nLoop++ > 50) break;
-                                    if (info.bocheck == 0 && info.status == "签到失败" && info.failedcount <= 1)
-                                    {
-                                        accName = info.username;
-                                        break;
-                                    }
-                                }
-
-                                //优先分配,未分配过的账号
-                                nLoop = 0;
-                                if (accName == "")
-                                {
-                                    foreach (var info in m_checkuserinfos.Values)
-                                    {
-                                        if (nLoop++ > 50) break;
-                                        if (info.bocheck == 0 && (info.status == null || info.status == ""))
+                                    case working_state.normal:
                                         {
-                                            accName = info.username;
-                                            break;
-                                        }
-                                    }
-                                }
+                                            int nLoop;
 
-                                //其次分配，签到失败账号
-                                nLoop = 0;
-                                if (accName == "")
-                                {
-                                    foreach (var info in m_checkuserinfos.Values)
-                                    {
-                                        if (nLoop++ > 50) break;
-                                        if (info.bocheck == 0 && info.status == "签到失败")
-                                        {
-                                            accName = info.username;
-                                            break;
-                                        }
-                                    }
-                                }
+                                            // 根据选项优先分配失败1次的的账号
+                                            nLoop = 0;
+                                            foreach (var info in m_checkuserinfos.Values)
+                                            {
+                                                if (nLoop++ > 50) break;
+                                                if (info.bocheck == 0 && info.status == "签到失败" && info.failedcount <= 1 && !m_Token.ContainsValue(info.username))
+                                                {
+                                                    accName = info.username;
+                                                    break;
+                                                }
+                                            }
 
-                                if (accName == "")
-                                {
-                                    foreach (var info in m_checkuserinfos.Values)
-                                    {
-                                        if (info.bocheck == 0)
+                                            //优先分配,未分配过的账号
+                                            nLoop = 0;
+                                            if (accName == "")
+                                            {
+                                                foreach (var info in m_checkuserinfos.Values)
+                                                {
+                                                    if (nLoop++ > 50) break;
+                                                    if (info.bocheck == 0 && (info.status == null || info.status == "") && !m_Token.ContainsValue(info.username))
+                                                    {
+                                                        accName = info.username;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            //其次分配，签到失败账号
+                                            nLoop = 0;
+                                            if (accName == "")
+                                            {
+                                                foreach (var info in m_checkuserinfos.Values)
+                                                {
+                                                    if (nLoop++ > 50) break;
+                                                    if (info.bocheck == 0 && info.status == "签到失败" && !m_Token.ContainsValue(info.username))
+                                                    {
+                                                        accName = info.username;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+
+                                            if (accName == "")
+                                            {
+                                                foreach (var info in m_checkuserinfos.Values)
+                                                {
+                                                    if (info.bocheck == 0 && !m_Token.ContainsValue(info.username))
+                                                    {
+                                                        accName = info.username;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }break;
+                                    case working_state.advanced:
                                         {
-                                            accName = info.username;
-                                            break;
-                                        }
-                                    }
+                                            foreach (var info in m_checkuserinfos.Values)
+                                            {
+                                                if (info.bocheck == 0 && !m_Token.ContainsValue(info.username))
+                                                {
+                                                    accName = info.username;
+                                                    break;
+                                                }
+                                            }
+                                        }break;
                                 }
 
                                 if (m_checkuserinfos.ContainsKey(accName))
@@ -850,7 +886,26 @@ namespace 档案汇总
 
                             if (accName == "" || passWord == "")
                             {
-                                Print("没有对应账户可以用了");
+                                if (_working_state == working_state.finish
+                                    || _working_state == working_state.advanced)
+                                {
+                                    Print("所有账号已经登陆完毕>>>>>>");
+                                }
+                                else if (_working_state == working_state.normal)
+                                {
+                                    m_checkuserinfos.Clear();
+                                    foreach (userinfo info in m_userinfos.Values)
+                                    {
+                                        if (info.bocheck == 0
+                                            && info.status != "密码错误"
+                                            && info.status != "封停"
+                                            && info.status != "签到完成")
+                                        {
+                                            m_checkuserinfos.Add(info.username, info);
+                                        }
+                                    }
+                                    _working_state = working_state.advanced;
+                                }
                             }
                             else
                             {
@@ -907,7 +962,10 @@ namespace 档案汇总
 
                                     if (info.failedcount >= 2)
                                     {
-                                        m_checkuserinfos.Remove(accName);
+                                        if (_working_state == working_state.normal)
+                                        {
+                                            m_checkuserinfos.Remove(accName);
+                                        }
                                     }
                                 }
                             }
@@ -1300,6 +1358,36 @@ namespace 档案汇总
                 row.Cells["CheckTime"].Value = null;
                 row.Cells["FailedCount"].Value = null;
             }
+
+            List<userinfo> userlist = new List<userinfo>();
+            foreach (userinfo info in m_userinfos.Values)
+            {
+                userinfo newInfo = new userinfo();
+                newInfo.username = info.username;
+                newInfo.password = info.password;
+                userlist.Add(newInfo);
+            }
+
+            m_userinfos.Clear();
+            foreach (userinfo info in userlist)
+            {
+                m_userinfos.Add(info.username, info);
+            }
+
+            m_checkuserinfos.Clear();
+            foreach (userinfo info in m_userinfos.Values)
+            {
+                if (info.bocheck == 0
+                    && info.failedcount <= 1
+                    && info.status != "密码错误"
+                    && info.status != "封停"
+                    && info.status != "签到完成")
+                {
+                    m_checkuserinfos.Add(info.username, info);
+                }
+            }
+
+            _working_state = working_state.normal;
         }
 
         private void cbClearData_CheckedChanged(object sender, EventArgs e)
