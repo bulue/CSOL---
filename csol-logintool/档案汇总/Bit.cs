@@ -66,6 +66,14 @@ namespace 档案汇总
         public ushort wMsgLen;
     };
 
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]  //变量在内存中的对齐方式 
+    public struct MsgHeader1
+    {
+        public int wMsgLen;
+        public byte btRar;
+    };
+
     [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
     struct stMsg
     {

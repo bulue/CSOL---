@@ -71,6 +71,7 @@
             this.cbFailedFirst = new System.Windows.Forms.CheckBox();
             this.btnClearLoginData = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.dgvProgress = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -82,7 +83,6 @@
             this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.dgvSession = new System.Windows.Forms.DataGridView();
             this.sIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -108,9 +108,9 @@
             this.Menu_Check.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvProgress)).BeginInit();
-            this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).BeginInit();
             this.SuspendLayout();
@@ -149,7 +149,7 @@
             dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgvUserData.DefaultCellStyle = dataGridViewCellStyle2;
-            this.dgvUserData.Location = new System.Drawing.Point(0, 3);
+            this.dgvUserData.Location = new System.Drawing.Point(0, 0);
             this.dgvUserData.Name = "dgvUserData";
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
@@ -160,7 +160,7 @@
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvUserData.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgvUserData.RowTemplate.Height = 23;
-            this.dgvUserData.Size = new System.Drawing.Size(1090, 445);
+            this.dgvUserData.Size = new System.Drawing.Size(1093, 448);
             this.dgvUserData.TabIndex = 0;
             // 
             // Account
@@ -423,8 +423,8 @@
             this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Location = new System.Drawing.Point(0, 34);
             this.tabControl1.Multiline = true;
@@ -432,6 +432,17 @@
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(1101, 474);
             this.tabControl1.TabIndex = 15;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.dgvUserData);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(1093, 448);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "账号";
+            this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // tabPage3
             // 
@@ -489,7 +500,7 @@
             dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvProgress.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
             this.dgvProgress.RowTemplate.Height = 23;
-            this.dgvProgress.Size = new System.Drawing.Size(1090, 445);
+            this.dgvProgress.Size = new System.Drawing.Size(1097, 452);
             this.dgvProgress.TabIndex = 1;
             // 
             // dataGridViewTextBoxColumn1
@@ -545,17 +556,6 @@
             this.dataGridViewTextBoxColumn8.HeaderText = "登陆机代号";
             this.dataGridViewTextBoxColumn8.Name = "dataGridViewTextBoxColumn8";
             // 
-            // tabPage1
-            // 
-            this.tabPage1.Controls.Add(this.dgvUserData);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1093, 448);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "账号";
-            this.tabPage1.UseVisualStyleBackColor = true;
-            // 
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.dgvSession);
@@ -588,7 +588,7 @@
             this.dgvSession.Location = new System.Drawing.Point(-3, 0);
             this.dgvSession.Name = "dgvSession";
             this.dgvSession.RowTemplate.Height = 23;
-            this.dgvSession.Size = new System.Drawing.Size(1127, 452);
+            this.dgvSession.Size = new System.Drawing.Size(1096, 448);
             this.dgvSession.TabIndex = 0;
             this.dgvSession.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSession_CellContentClick);
             // 
@@ -757,9 +757,9 @@
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvProgress)).EndInit();
-            this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).EndInit();
             this.ResumeLayout(false);

