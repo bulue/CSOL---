@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Security.Cryptography;
 using Noesis.Javascript;
 using CommonQ;
+using System.Threading;
 
 namespace PwcTool
 {
@@ -31,36 +32,53 @@ namespace PwcTool
 
         public Dictionary<string, string> m_lgcaptcha;
         public Dictionary<string, string> m_pwcaptcha;
-        public Queue<Tuple<string, string>> m_uidqueue;
+
+        bool m_bostop = false;
 
         public event Action<CpWorker,string, string, string, string> FinishTask;
 
         const string md5js = "md5.js";
+        string m_safekey = "";
 
-        public CpWorker(Dictionary<string, string> lg,Dictionary<string, string> pw)
+        public bool IsWorking = false;
+
+        public CpWorker(Dictionary<string, string> lg,Dictionary<string, string> pw,string safekey)
         {
             m_lgcaptcha = new Dictionary<string, string>(lg);
             m_pwcaptcha = new Dictionary<string, string>(pw);
 
+            m_safekey = safekey;
             m_logger = CLogger.FromFolder("pwclog");
             m_JsContext.Run(File.ReadAllText(md5js));
         }
 
-        public void TryTaskChangePwd(string uid, string pwd,string newpwd)
+        public void BeginTaskChangePwd(string uid, string pwd,string newpwd)
         {
-            
-            m_logger.Debug("修改 uid:" + uid);
-            string url = "http://passport.tiancity.com/login/login.aspx";
+            IsWorking = true;
+            try
+            {
+                m_logger.Debug("====Begin uid:" + uid + "this:" + this.GetHashCode());
+                string url = "http://passport.tiancity.com/login/login.aspx";
 
-            HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-            request.ServicePoint.Expect100Continue = false;
-            request.Timeout = 1000 * 60;
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.CookieContainer = new CookieContainer();
-            request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_1), new Tuple<HttpWebRequest, string, string, string>(request, uid, pwd, newpwd));
+                HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                request.ServicePoint.Expect100Continue = false;
+                request.Timeout = 1000 * 60;
+                request.ContentType = "application/x-www-form-urlencoded";
+                request.CookieContainer = new CookieContainer();
+                request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_GetCookies), new Tuple<HttpWebRequest, string, string, string>(request, uid, pwd, newpwd));
+            }
+            catch (System.Exception ex)
+            {
+                m_logger.Error(ex.ToString());
+            }
         }
 
-        void OnTryLoginCallBack_1(IAsyncResult ar)
+        public void StopTask()
+        {
+            m_bostop = true;
+        }
+
+        void OnTryLoginCallBack_GetCookies(IAsyncResult ar)
         {
             try
             {
@@ -71,14 +89,16 @@ namespace PwcTool
                 string pwd = tuple.Item3;
                 string newpwd = tuple.Item4;
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
+                CookieCollection cookies = response.Cookies;
+                response.Close();
 
                 HttpWebRequest next_request = System.Net.WebRequest.Create(url_capcheck + "&fid=104&uid=" + uid) as HttpWebRequest;
                 next_request.ServicePoint.Expect100Continue = false;
                 next_request.Timeout = 1000 * 60;
                 next_request.ContentType = "application/x-www-form-urlencoded";
-                next_request.CookieContainer = request.CookieContainer;
-                next_request.CookieContainer.Add(response.Cookies);
-                next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_2), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                next_request.CookieContainer = new CookieContainer(); ;
+                next_request.CookieContainer.Add(cookies);
+                next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_CheckCaptcha), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
             }
             catch (System.Exception ex)
             {
@@ -86,7 +106,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryLoginCallBack_2(IAsyncResult ar)
+        void OnTryLoginCallBack_CheckCaptcha(IAsyncResult ar)
         {
             try
             {
@@ -100,6 +120,8 @@ namespace PwcTool
 
                 StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
                 string s = reader.ReadToEnd();
+                reader.Close();
+                response.Close();
 
                 string pattern = @"[^\(\)]+\(([^\(\)]+)\)";
                 Match mt = Regex.Match(s, pattern);
@@ -118,7 +140,7 @@ namespace PwcTool
                         next_request.Timeout = 1000 * 60;
                         next_request.ContentType = "application/x-www-form-urlencoded";
                         next_request.CookieContainer = request.CookieContainer;
-                        next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_3), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newpwd, captoken));
+                        next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_GetCaptcha), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newpwd, captoken));
                     }
                 }
             }
@@ -128,7 +150,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryLoginCallBack_3(IAsyncResult ar)
+        void OnTryLoginCallBack_GetCaptcha(IAsyncResult ar)
         {
             try
             {
@@ -149,22 +171,25 @@ namespace PwcTool
                 {
                     bytecount += readcount;
                 }
+                response.Close();
+                s.Close();
 
                 MD5 md5 = new MD5CryptoServiceProvider();
                 byte[] md5_bytes = md5.ComputeHash(img_buf, 0, bytecount);
                 string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
-
+                string old_md5_str = md5_str;
+                md5_str = cs_md5(md5_str + m_safekey);
+                md5_str = cs_md5(md5_str + m_safekey + old_md5_str);
                 if (m_lgcaptcha.ContainsKey(md5_str))
                 {
                     string cap = m_lgcaptcha[md5_str];
-                    m_logger.Debug("发现 name:" + md5_str + " value:" + cap);
 
                     HttpWebRequest next_request = System.Net.WebRequest.Create(url_matcheck + "&id=" + uid) as HttpWebRequest;
                     next_request.ServicePoint.Expect100Continue = false;
                     next_request.Timeout = 1000 * 60;
                     next_request.ContentType = "application/x-www-form-urlencoded";
                     next_request.CookieContainer = request.CookieContainer;
-                    next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_4), new Tuple<HttpWebRequest, string, string, string, string, string>(next_request, uid, pwd, newpwd, captoken, cap));
+                    next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_RsaKey), new Tuple<HttpWebRequest, string, string, string, string, string>(next_request, uid, pwd, newpwd, captoken, cap));
                 }
                 else
                 {
@@ -175,7 +200,7 @@ namespace PwcTool
                     next_request.Timeout = 1000 * 60;
                     next_request.ContentType = "application/x-www-form-urlencoded";
                     next_request.CookieContainer = request.CookieContainer;
-                    next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_3), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newpwd, newcaptoken));
+                    next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_GetCaptcha), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newpwd, newcaptoken));
                 }
             }
             catch (System.Exception ex)
@@ -184,7 +209,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryLoginCallBack_4(IAsyncResult ar)
+        void OnTryLoginCallBack_RsaKey(IAsyncResult ar)
         {
             try
             {
@@ -200,6 +225,8 @@ namespace PwcTool
 
                 StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
                 string s = reader.ReadToEnd();
+                response.Close();
+                reader.Close();
 
                 string pattern = @"[^\(\)]+\(([^\(\)]+)\)";
                 Match r = Regex.Match(s, pattern);
@@ -218,22 +245,29 @@ namespace PwcTool
                     string pk = jsObj["pk"].ToString();
                     string rsa = jsObj["rsa"].ToString();
 
-                    string ei = "id=" + uid + "&pw=" + pwd + "&mt=" + mt + "&lt=" + 0;
-                    m_JsContext.SetParameter("ei", ei);
-                    m_JsContext.SetParameter("pk", pk);
-                    m_JsContext.SetParameter("pm", pm);
-                    FCQ = (string)m_JsContext.Run("JiaMi(ei,pk,pm)");
+                    if (code == "199" && rsa == "True")
+                    {
+                        string ei = "id=" + uid + "&pw=" + pwd + "&mt=" + mt + "&lt=" + 0;
+                        m_JsContext.SetParameter("ei", ei);
+                        m_JsContext.SetParameter("pk", pk);
+                        m_JsContext.SetParameter("pm", pm);
+                        FCQ = (string)m_JsContext.Run("JiaMi(ei,pk,pm)");
 
-                    m_JsContext.SetParameter("cp", cp);
-                    cp = (string)m_JsContext.Run("encodeURIComponent(cp)");
-                    string url = url_log + "&FCQ=" + FCQ + "&cp=" + cp + "&fl=" + fl + "&st=" + st;
+                        m_JsContext.SetParameter("cp", cp);
+                        cp = (string)m_JsContext.Run("encodeURIComponent(cp)");
+                        string url = url_log + "&FCQ=" + FCQ + "&cp=" + cp + "&fl=" + fl + "&st=" + st;
 
-                    HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                    next_request.ServicePoint.Expect100Continue = false;
-                    next_request.Timeout = 1000 * 60;
-                    next_request.ContentType = "application/x-www-form-urlencoded";
-                    next_request.CookieContainer = request.CookieContainer;
-                    next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_5), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                        HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                        next_request.ServicePoint.Expect100Continue = false;
+                        next_request.Timeout = 1000 * 60;
+                        next_request.ContentType = "application/x-www-form-urlencoded";
+                        next_request.CookieContainer = request.CookieContainer;
+                        next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_LoginRet), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                    }
+                    else
+                    {
+                        TaskFinishInvoke(this, uid, pwd, newpwd, "RsaKeyError:" + code);
+                    }
                 }
             }
             catch (System.Exception ex)
@@ -242,7 +276,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryLoginCallBack_5(IAsyncResult ar)
+        void OnTryLoginCallBack_LoginRet(IAsyncResult ar)
         {
             try
             {
@@ -255,6 +289,8 @@ namespace PwcTool
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
                 StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
                 string s = reader.ReadToEnd();
+                reader.Close();
+                response.Close();
 
                 string pattern = @"[^\(\)]+\(([^\(\)]+)\)";
                 Match r = Regex.Match(s, pattern);
@@ -277,15 +313,22 @@ namespace PwcTool
                         next_request.ContentType = "application/x-www-form-urlencoded";
                         next_request.CookieContainer = new CookieContainer();
                         next_request.CookieContainer.Add(response.Cookies);
-                        next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_1), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                        next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
                     }
                     else if (logRet == "7")
                     {
                         m_logger.Debug("ip被封");
+                        TaskFinishInvoke(this, uid, pwd, newpwd, "IP被封");
+                    }
+                    else if (logRet == "4")
+                    {
+                        m_logger.Info("uid:" + uid + "密码错误!");
+                        TaskFinishInvoke(this, uid, pwd, newpwd, "密码错误");
                     }
                     else
                     {
-                        m_logger.Info("遇到错误码:" + logRet);
+                        m_logger.Info("uid:" + uid + " 登录错误:" + logRet);
+                        TaskFinishInvoke(this, uid, pwd, newpwd, "登录错误:" + logRet);
                     }
                 }
             }
@@ -295,7 +338,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryChangePwd_1(IAsyncResult ar)
+        void OnTryChangePwd_GetCaptchaUrl(IAsyncResult ar)
         {
             try
             {
@@ -307,8 +350,11 @@ namespace PwcTool
 
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
                 StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
-                JObject jsObj = JObject.Parse(reader.ReadToEnd());
-                string url = jsObj["Url"].ToString() + "&r=" + m_rgen.NextDouble() * 99999; ;
+                string s = reader.ReadToEnd();
+                reader.Close();
+                response.Close();
+                JObject jsObj = JObject.Parse(s);
+                string url = jsObj["Url"].ToString() + "&r=" + m_rgen.NextDouble() * 99999;
 
                 HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
                 next_request.ServicePoint.Expect100Continue = false;
@@ -316,7 +362,8 @@ namespace PwcTool
                 next_request.ContentType = "application/x-www-form-urlencoded";
                 next_request.CookieContainer = request.CookieContainer;
                 next_request.CookieContainer.Add(response.Cookies);
-                next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_2), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Captcha), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                return;
             }
             catch (System.Exception ex)
             {
@@ -324,7 +371,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryChangePwd_2(IAsyncResult ar)
+        void OnTryChangePwd_Captcha(IAsyncResult ar)
         {
             try
             {
@@ -343,11 +390,15 @@ namespace PwcTool
                 {
                     bytecount += readcount;
                 }
+                s.Close();
+                response.Close();
 
                 MD5 md5 = new MD5CryptoServiceProvider();
                 byte[] md5_bytes = md5.ComputeHash(img_buf, 0, bytecount);
                 string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
-
+                string old_md5_str = md5_str;
+                md5_str = cs_md5(md5_str + m_safekey);
+                md5_str = cs_md5(md5_str + m_safekey + old_md5_str);
                 if (m_pwcaptcha.ContainsKey(md5_str))
                 {
                     string cap = m_pwcaptcha[md5_str];
@@ -369,10 +420,11 @@ namespace PwcTool
                     Stream postStream = next_request.GetRequestStream();
                     postStream.Write(post_buffer, 0, post_buffer.Length);
                     postStream.Close();
-                    next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_3), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                    next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Result), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
                 }
                 else
                 {
+                    //不能识别,重新尝试获取验证码
                     string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
                     HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
                     next_request.ServicePoint.Expect100Continue = false;
@@ -382,7 +434,7 @@ namespace PwcTool
                     next_request.ContentType = "application/x-www-form-urlencoded";
                     next_request.CookieContainer = request.CookieContainer;
                     next_request.CookieContainer.Add(response.Cookies);
-                    next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_1), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                    next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
                 }
             }
             catch (System.Exception ex)
@@ -391,7 +443,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryChangePwd_3(IAsyncResult ar)
+        void OnTryChangePwd_Result(IAsyncResult ar)
         {
             try
             {
@@ -404,16 +456,49 @@ namespace PwcTool
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
                 StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
                 string s = reader.ReadToEnd();
-                m_logger.Debug(s);
 
-                if (FinishTask != null)
+                reader.Close();
+                response.Close();
+
+                JObject jsObj = JObject.Parse(s);
+                if (jsObj["Code"].ToString() == "1")
                 {
-                    FinishTask.Invoke(this, uid, pwd, newpwd, s);
+                    TaskFinishInvoke(this, uid, pwd, newpwd, "成功");
+                }
+                else
+                {
+                    string retstr = jsObj["Msg"].ToString();
+                    if (retstr == "验证码不正确")
+                    {
+                        m_logger.Debug("uid:" + uid + "验证码错误,重新尝试获取验证码!");
+                        string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
+                        HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                        next_request.ServicePoint.Expect100Continue = false;
+                        next_request.Timeout = 1000 * 60;
+                        next_request.Method = "POST";
+                        next_request.ContentLength = 0;
+                        next_request.ContentType = "application/x-www-form-urlencoded";
+                        next_request.CookieContainer = request.CookieContainer;
+                        next_request.CookieContainer.Add(response.Cookies);
+                        next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                    }
+                    else
+                    {
+                        TaskFinishInvoke(this, uid, pwd, newpwd, jsObj["Msg"].ToString());
+                    }
                 }
             }
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+            }
+        }
+
+        void TaskFinishInvoke(CpWorker worker, string uid, string pwd, string newpwd, string ret)
+        {
+            if (FinishTask != null)
+            {
+                FinishTask.BeginInvoke(worker, uid, pwd, newpwd, ret, null, null);
             }
         }
 
@@ -423,7 +508,16 @@ namespace PwcTool
             return (string)m_JsContext.Run("encry(src)");
         }
 
-        private void AutoLogin(string uid, string pwd)
+        public string cs_md5(string src)
+        {
+            MD5 md5 = new MD5CryptoServiceProvider();
+            byte[] strbytes = Encoding.Default.GetBytes(src);
+            byte[] md5_bytes = md5.ComputeHash(strbytes, 0, strbytes.Length);
+            string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
+            return md5_str;
+        }
+
+        public void AutoLogin(string uid, string pwd)
         {
             try
             {
@@ -445,6 +539,7 @@ namespace PwcTool
                     HttpWebResponse myResponse = (HttpWebResponse)webRequest.GetResponse();
                     CookieCollection cookies = myResponse.Cookies;
                     SessionCookies.Add(cookies);
+                    webRequest.Abort();
                     //StreamReader reader = new StreamReader(myResponse.GetResponseStream(), Encoding.UTF8);
                     //MessageBox.Show(reader.ReadToEnd());
                     //reader.Close();
@@ -472,6 +567,7 @@ namespace PwcTool
                         JObject jsObj = JObject.Parse(recvJsonStr);
                         R = jsObj["R"].ToString();
                     }
+                    webRequest.Abort();
                 } while (false);
 
                 string CapToken = "";
@@ -549,6 +645,7 @@ namespace PwcTool
                         m_JsContext.SetParameter("pm", pm);
                         FCQ = (string)m_JsContext.Run("JiaMi(ei,pk,pm)");
                     }
+                    webRequest.Abort();
                 } while (false);
 
                 do
@@ -590,6 +687,7 @@ namespace PwcTool
                             m_logger.Info("遇到错误码:" + logRet);
                         }
                     }
+                    webRequest.Abort();
                 } while (false);
             }
             catch (System.Exception ex)
