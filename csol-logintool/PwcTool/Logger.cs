@@ -123,7 +123,7 @@ namespace CommonQ
                         foreach (logContent c in _lineList)
                         {
                             _Writer.WriteLine(c.line);
-                            _showFunc.BeginInvoke(c.lvl, c.line, null, null);
+                            //_showFunc.Invoke(c.lvl, c.line);
 
                             if (c.lvl >= eLoggerLevel.ERROR)
                             {
@@ -227,6 +227,7 @@ namespace CommonQ
             lock (_lineList)
             {
                 string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} {1} {2}", DateTime.Now, lvl, msg);
+                _showFunc.Invoke(lvl, format_msg);
                 _lineList.Add(new logContent(lvl, format_msg));
             }
         }
