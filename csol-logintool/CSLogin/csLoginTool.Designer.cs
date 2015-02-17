@@ -36,10 +36,6 @@
             this.gamePathPickBtn = new System.Windows.Forms.Button();
             this.PauseBtn = new System.Windows.Forms.Button();
             this.textBox = new System.Windows.Forms.TextBox();
-            this.dama2Btn = new System.Windows.Forms.Button();
-            this.dama2Ckbox = new System.Windows.Forms.CheckBox();
-            this.xiaoaiCkbox = new System.Windows.Forms.CheckBox();
-            this.xiaoaiBtn = new System.Windows.Forms.Button();
             this.autoStartCkbox = new System.Windows.Forms.CheckBox();
             this.autostartTimer = new System.Windows.Forms.Timer(this.components);
             this.button2 = new System.Windows.Forms.Button();
@@ -68,7 +64,7 @@
             // startBtn
             // 
             this.startBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.startBtn.Location = new System.Drawing.Point(482, 334);
+            this.startBtn.Location = new System.Drawing.Point(350, 277);
             this.startBtn.Name = "startBtn";
             this.startBtn.Size = new System.Drawing.Size(117, 38);
             this.startBtn.TabIndex = 5;
@@ -96,7 +92,7 @@
             // PauseBtn
             // 
             this.PauseBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.PauseBtn.Location = new System.Drawing.Point(620, 334);
+            this.PauseBtn.Location = new System.Drawing.Point(490, 277);
             this.PauseBtn.Name = "PauseBtn";
             this.PauseBtn.Size = new System.Drawing.Size(117, 38);
             this.PauseBtn.TabIndex = 9;
@@ -114,55 +110,14 @@
             this.textBox.Multiline = true;
             this.textBox.Name = "textBox";
             this.textBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox.Size = new System.Drawing.Size(774, 219);
+            this.textBox.Size = new System.Drawing.Size(543, 139);
             this.textBox.TabIndex = 10;
-            // 
-            // dama2Btn
-            // 
-            this.dama2Btn.Location = new System.Drawing.Point(648, 75);
-            this.dama2Btn.Name = "dama2Btn";
-            this.dama2Btn.Size = new System.Drawing.Size(40, 20);
-            this.dama2Btn.TabIndex = 11;
-            this.dama2Btn.Text = "...";
-            this.dama2Btn.UseVisualStyleBackColor = true;
-            this.dama2Btn.Click += new System.EventHandler(this.dama2Btn_Click);
-            // 
-            // dama2Ckbox
-            // 
-            this.dama2Ckbox.AutoSize = true;
-            this.dama2Ckbox.Location = new System.Drawing.Point(558, 75);
-            this.dama2Ckbox.Name = "dama2Ckbox";
-            this.dama2Ckbox.Size = new System.Drawing.Size(84, 16);
-            this.dama2Ckbox.TabIndex = 12;
-            this.dama2Ckbox.Text = "开启打码兔";
-            this.dama2Ckbox.UseVisualStyleBackColor = true;
-            // 
-            // xiaoaiCkbox
-            // 
-            this.xiaoaiCkbox.AutoSize = true;
-            this.xiaoaiCkbox.Location = new System.Drawing.Point(410, 75);
-            this.xiaoaiCkbox.Name = "xiaoaiCkbox";
-            this.xiaoaiCkbox.Size = new System.Drawing.Size(96, 16);
-            this.xiaoaiCkbox.TabIndex = 13;
-            this.xiaoaiCkbox.Text = "开启小爱打码";
-            this.xiaoaiCkbox.UseVisualStyleBackColor = true;
-            this.xiaoaiCkbox.CheckedChanged += new System.EventHandler(this.xiaoaiCkbox_CheckedChanged);
-            // 
-            // xiaoaiBtn
-            // 
-            this.xiaoaiBtn.Location = new System.Drawing.Point(512, 71);
-            this.xiaoaiBtn.Name = "xiaoaiBtn";
-            this.xiaoaiBtn.Size = new System.Drawing.Size(40, 20);
-            this.xiaoaiBtn.TabIndex = 14;
-            this.xiaoaiBtn.Text = "...";
-            this.xiaoaiBtn.UseVisualStyleBackColor = true;
-            this.xiaoaiBtn.Click += new System.EventHandler(this.xiaoaiBtn_Click);
             // 
             // autoStartCkbox
             // 
             this.autoStartCkbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.autoStartCkbox.AutoSize = true;
-            this.autoStartCkbox.Location = new System.Drawing.Point(87, 334);
+            this.autoStartCkbox.Location = new System.Drawing.Point(87, 277);
             this.autoStartCkbox.Name = "autoStartCkbox";
             this.autoStartCkbox.Size = new System.Drawing.Size(96, 16);
             this.autoStartCkbox.TabIndex = 15;
@@ -177,7 +132,7 @@
             // button2
             // 
             this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button2.Location = new System.Drawing.Point(21, 334);
+            this.button2.Location = new System.Drawing.Point(21, 277);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(44, 22);
             this.button2.TabIndex = 17;
@@ -193,9 +148,9 @@
             // 
             this.statusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.CountdownTime});
-            this.statusBar.Location = new System.Drawing.Point(0, 411);
+            this.statusBar.Location = new System.Drawing.Point(0, 354);
             this.statusBar.Name = "statusBar";
-            this.statusBar.Size = new System.Drawing.Size(807, 22);
+            this.statusBar.Size = new System.Drawing.Size(619, 22);
             this.statusBar.TabIndex = 18;
             this.statusBar.Text = "状态栏";
             // 
@@ -260,7 +215,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(807, 433);
+            this.ClientSize = new System.Drawing.Size(619, 376);
             this.Controls.Add(this.SetManageIpBtn);
             this.Controls.Add(this.SetCodeBtn);
             this.Controls.Add(this.textBox_Code);
@@ -270,10 +225,6 @@
             this.Controls.Add(this.statusBar);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.autoStartCkbox);
-            this.Controls.Add(this.xiaoaiBtn);
-            this.Controls.Add(this.xiaoaiCkbox);
-            this.Controls.Add(this.dama2Ckbox);
-            this.Controls.Add(this.dama2Btn);
             this.Controls.Add(this.textBox);
             this.Controls.Add(this.PauseBtn);
             this.Controls.Add(this.startBtn);
@@ -298,10 +249,6 @@
         private System.Windows.Forms.Button gamePathPickBtn;
         private System.Windows.Forms.Button PauseBtn;
         private System.Windows.Forms.TextBox textBox;
-        private System.Windows.Forms.Button dama2Btn;
-        private System.Windows.Forms.CheckBox dama2Ckbox;
-        private System.Windows.Forms.CheckBox xiaoaiCkbox;
-        private System.Windows.Forms.Button xiaoaiBtn;
         private System.Windows.Forms.CheckBox autoStartCkbox;
         private System.Windows.Forms.Timer autostartTimer;
         private System.Windows.Forms.Button button2;

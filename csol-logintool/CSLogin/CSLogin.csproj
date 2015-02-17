@@ -95,13 +95,6 @@
     <Compile Include="csLoginTool.Designer.cs">
       <DependentUpon>csLoginTool.cs</DependentUpon>
     </Compile>
-    <Compile Include="Dama2.cs" />
-    <Compile Include="dama2Info.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="dama2Info.Designer.cs">
-      <DependentUpon>dama2Info.cs</DependentUpon>
-    </Compile>
     <Compile Include="IniFile.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LoginManage.cs" />
@@ -120,9 +113,6 @@
     <EmbeddedResource Include="csLoginTool.resx">
       <DependentUpon>csLoginTool.cs</DependentUpon>
       <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="dama2Info.resx">
-      <DependentUpon>dama2Info.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

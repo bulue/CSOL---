@@ -9,7 +9,6 @@ using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 
-using Dama2Lib;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -132,15 +131,20 @@ namespace CSLogin
                             //    if (a == 1)
                             //    {
                             //        m_session.SendMsg("3$" + m_account.account + "$" + "OK");
+                            //        m_session.SendMsg("4$" + MacId);
                             //    }
                             //    else if (a == 2)
                             //    {
                             //        m_session.SendMsg("3$" + m_account.account + "$" + "Failed");
+                            //        m_session.SendMsg("4$" + MacId);
                             //    }
                             //    else
                             //    {
                             //        m_session.SendMsg("3$" + m_account.account + "$" + "PasswordError");
+                            //        m_session.SendMsg("4$" + MacId);
                             //    }
+
+                            //    Thread.Sleep(1000 / 35);
                             //} while (false);
 
                              m_account = null;
@@ -514,7 +518,7 @@ namespace CSLogin
                                                     m_client.SendMsg("6$" + "changeip");
                                                     Sleep(60 * 1000, "连续输入错误");
 
-                                                    SendLogPasswordError(_curAccInfo);
+                                                    SendLogFailed(_curAccInfo);
 
                                                     _NextState = State.JieShu;
                                                     Sleep(3000, "连续输入错误,关闭游戏");
@@ -523,7 +527,7 @@ namespace CSLogin
                                                 {
                                                     CommonApi.CloseWindow(hwnd);
 
-                                                    SendLogPasswordError(_curAccInfo);
+                                                    SendLogFailed(_curAccInfo);
                                                     _NextState = State.JieShu;
 
                                                     Sleep(3000, "服务器连接中断,关闭游戏");
@@ -561,9 +565,9 @@ namespace CSLogin
 
                                     if (CommonApi.FindPic(sX + 268, sY + 584, 133, 40, @".\BMP\战场补给.bmp", 0.99, out dx, out dy))
                                     {
-                                        CommonApi.Left_Click(dx + 5, dy + 5);
-                                        Sleep(200);
-                                        CommonApi.Left_Click(dx + 5, dy + 5);
+                                        CommonApi.Left_Click(dx + 6, dy + 6);
+                                        Sleep(500);
+                                        CommonApi.Left_Click(dx + 6, dy + 6);
                                         break;
                                     }
 
@@ -665,76 +669,6 @@ namespace CSLogin
 
                                     if (bInputPwd && CheckInterLastTime(ref yanzhengma_Lastime, 2000 + _Rand(2000)) && CommonApi.FindPic(x, y, w, h, @".\BMP\验证码.bmp", 0.99, out dx, out dy))
                                     {
-                                        bool boOpen = (bool)_loginTool.Invoke(new Delegate0<bool>(_loginTool.dama2OpenFunc));
-                                        if (boOpen)
-                                        {
-
-                                            using (Bitmap screen = CommonApi.ScreenShot(dx, dy + 87, 160, 63))
-                                            {
-                                                MemoryStream ms = null;
-                                                byte[] byteImage;
-                                                try
-                                                {
-                                                    ms = new MemoryStream();
-                                                    screen.Save(ms, System.Drawing.Imaging.ImageFormat.Bmp);
-                                                    byteImage = new Byte[ms.Length];
-                                                    byteImage = ms.ToArray();
-                                                }
-                                                catch (ArgumentNullException ex)
-                                                {
-                                                    throw ex;
-                                                }
-                                                finally
-                                                {
-                                                    ms.Close();
-                                                }
-
-                                                StringBuilder VCodeText = new StringBuilder(100);
-                                                int ret = Dama2.D2Buf("c5aff0c4d218205cd5f762ca9acaa81e" //softawre key (software id)
-                                                    , "xiaozhuhaoa" //user name
-                                                    , "19881226"     //password
-                                                    , byteImage     //图片数据，图片数据不可大于4M
-                                                    , (uint)byteImage.Length    //图片数据长度
-                                                    , 30     //超时时间，单位为秒，更换为实际需要的超时时间
-                                                    , 109    //验证码类型I, 中文 加减法
-                                                    , VCodeText); //成功时返回验证码文本（答案）
-
-                                                if (ret > 0)
-                                                {
-                                                    string retCode = VCodeText.ToString();
-                                                    CommonApi.Left_Click(dx + 170, dy + 200);
-                                                    Sleep(300);
-                                                    CommonApi.Left_Click(dx + 170, dy + 200);
-
-                                                    SendKeys.SendWait(retCode);
-                                                    Sleep(300);
-                                                    CommonApi.Left_Click(dx + 120, dy + 255);
-
-                                                    long nowTick = System.Environment.TickCount;
-                                                    do
-                                                    {
-                                                        Sleep(100);
-                                                        if (!CommonApi.FindPic(x, y, w, h, screen, 0.99, out dx, out dy))
-                                                        {
-                                                            break;
-                                                        }
-                                                    } while (System.Environment.TickCount - nowTick < 6000);
-
-                                                    SaveCaptcha(screen, retCode + ".bmp", "打码兔");
-
-                                                    if (CommonApi.FindPic(x, y, w, h, screen, 0.99, out dx, out dy))
-                                                    {
-                                                        Global.logger.Debug("验证码有误！！报告错误！！");
-                                                        Dama2.ReportResult((uint)ret, 0);
-
-                                                        //CommonApi.Left_Click(dx + 210, dy + 120);       //换一个验证码
-                                                    }
-                                                }
-                                            }
-
-                                            Sleep(1000);
-                                        }
-
                                         m_client.SendMsg("6$" + "changeip");
                                         Sleep(60 * 1000, "遇到验证码");
 

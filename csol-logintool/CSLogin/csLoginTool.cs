@@ -131,7 +131,6 @@ namespace CSLogin
             {
                 this.autoStartCkbox.Checked = true;
             }
-
             Global.logger = new CLogger("log/log",new ShowLog(ShowLogFunc));
         }
 
@@ -163,6 +162,10 @@ namespace CSLogin
             Init();
             
             _bAutoStart = bAutoStart;
+            if (_bAutoStart)
+            {
+                this.WindowState = FormWindowState.Minimized;
+            }
 
             instance = this;
         }
@@ -254,16 +257,6 @@ namespace CSLogin
             return this.gamePath.Text;
         }
 
-        public bool dama2OpenFunc()
-        {
-            return this.dama2Ckbox.Checked;
-        }
-
-        public bool xiaoaiopenFunc()
-        {
-            return this.xiaoaiCkbox.Checked;
-        }
-
         private void PauseBtn_Click(object sender, EventArgs e)
         {
             if (_logicThread == null)
@@ -284,35 +277,10 @@ namespace CSLogin
             }
         }
 
-        private void dama2Btn_Click(object sender, EventArgs e)
-        {
-             dama2Info dialog = new dama2Info();
-             dialog.ShowDialog();
-        }
-
         private void xiaoaiBtn_Click(object sender, EventArgs e)
         {
             xiaoaiInfo dialog = new xiaoaiInfo();
             dialog.ShowDialog();
-        }
-
-        private void xiaoaiCkbox_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.xiaoaiCkbox.Checked)
-            {
-                if (LoginState.xiaoaiUserStr == "")
-                {
-                    xiaoaiInfo dialog = new xiaoaiInfo();
-                    dialog.ShowDialog();
-
-                    LoginState.xiaoaiUserStr = dialog.userStr.Text;
-                }
-
-                if (LoginState.xiaoaiUserStr == "")
-                {
-                    this.xiaoaiCkbox.Checked = false;
-                }
-            }
         }
 
         public static void RegAutoStart(bool reg,bool showDialg = false)
