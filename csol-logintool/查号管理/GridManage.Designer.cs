@@ -61,6 +61,7 @@
             this.cbFailedFirst = new System.Windows.Forms.CheckBox();
             this.btnClearLoginData = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.dgvProgress = new System.Windows.Forms.DataGridView();
             this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -74,7 +75,6 @@
             this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column3 = new System.Windows.Forms.DataGridViewImageColumn();
             this.Column4 = new System.Windows.Forms.DataGridViewImageColumn();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.dgvSession = new System.Windows.Forms.DataGridView();
             this.sIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -99,8 +99,6 @@
             this.Password = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column1 = new System.Windows.Forms.DataGridViewImageColumn();
-            this.Column2 = new System.Windows.Forms.DataGridViewImageColumn();
             this.FailedCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.CheckTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.State = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -114,9 +112,9 @@
             this.Menu_Check.SuspendLayout();
             this.statusStrip.SuspendLayout();
             this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvProgress)).BeginInit();
-            this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).BeginInit();
             this.SuspendLayout();
@@ -142,8 +140,6 @@
             this.Password,
             this.Column5,
             this.Column6,
-            this.Column1,
-            this.Column2,
             this.FailedCount,
             this.CheckTime,
             this.State,
@@ -369,8 +365,8 @@
             this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Location = new System.Drawing.Point(0, 34);
             this.tabControl1.Multiline = true;
@@ -378,6 +374,17 @@
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(1138, 474);
             this.tabControl1.TabIndex = 15;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.dgvUserData);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(1130, 448);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "账号";
+            this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // tabPage3
             // 
@@ -506,17 +513,6 @@
             this.Column4.Name = "Column4";
             this.Column4.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             this.Column4.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
-            // tabPage1
-            // 
-            this.tabPage1.Controls.Add(this.dgvUserData);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1130, 448);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "账号";
-            this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // tabPage2
             // 
@@ -720,20 +716,6 @@
             this.Column6.HeaderText = "芯片";
             this.Column6.Name = "Column6";
             // 
-            // Column1
-            // 
-            this.Column1.HeaderText = "密码箱图";
-            this.Column1.Name = "Column1";
-            this.Column1.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Column1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
-            // Column2
-            // 
-            this.Column2.HeaderText = "破译芯片图";
-            this.Column2.Name = "Column2";
-            this.Column2.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.Column2.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
             // FailedCount
             // 
             this.FailedCount.HeaderText = "失败次数";
@@ -808,9 +790,9 @@
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvProgress)).EndInit();
-            this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).EndInit();
             this.ResumeLayout(false);
@@ -883,8 +865,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Password;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column5;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column6;
-        private System.Windows.Forms.DataGridViewImageColumn Column1;
-        private System.Windows.Forms.DataGridViewImageColumn Column2;
         private System.Windows.Forms.DataGridViewTextBoxColumn FailedCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn CheckTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn State;

