@@ -242,6 +242,9 @@ namespace 档案汇总
                                 }
                             }
                         }
+
+                        reader.Dispose();
+                        reader.Close();
                     }
                 }
 
@@ -690,16 +693,16 @@ namespace 档案汇总
             }
             else
             {
-                string s = "";
+                StringBuilder sb = new StringBuilder();
                 foreach (userinfo info in m_userinfos.Values)
                 {
-                    if (s != "")
+                    if (sb.Length != 0)
                     {
-                        s += ",";
+                        sb.Append(",");
                     }
-                    s = s + info.username + "-" + info.password;
+                    sb.Append(info.username + "-" + info.password);
                 }
-                m_AuthenticationSession.SendMsg("1&" + s);
+                m_AuthenticationSession.SendMsg("1&" + sb.ToString());
             }
         }
 
