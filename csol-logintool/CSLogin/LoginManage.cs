@@ -613,6 +613,8 @@ namespace CSLogin
                                                 _NextState = State.JieShu;
                                                 Sleep(1000, "检测领取成功");
 
+                                                m_uidbacker.PushUid(_curAccInfo.account, _curAccInfo.pwd, "" + nDay);
+
                                                 long n = System.Environment.TickCount;
                                                 IntPtr oldPtr = hwnd;
                                                 do
@@ -643,6 +645,8 @@ namespace CSLogin
                                             {
                                                 Global.logger.Debug("账号领取过" + i + "天");
                                                 m_client.SendMsg("5$" + _AccInfo.account + "$" + i);
+
+                                                m_uidbacker.PushUid(_curAccInfo.account, _curAccInfo.pwd, "" + i);
                                             }
                                         }
 
@@ -934,6 +938,7 @@ namespace CSLogin
 
         static string logFileName = String.Format("{0:yyyyMMdd_HHmmss}", DateTime.Now);
 
+        static UidBackup m_uidbacker = new UidBackup();
         delegate void DelegateV1<T>(T t);
         delegate R Delegate0<R>();
         delegate R Delegate1<R,T>(T t); 

@@ -277,12 +277,6 @@ namespace CSLogin
             }
         }
 
-        private void xiaoaiBtn_Click(object sender, EventArgs e)
-        {
-            xiaoaiInfo dialog = new xiaoaiInfo();
-            dialog.ShowDialog();
-        }
-
         public static void RegAutoStart(bool reg,bool showDialg = false)
         {
             if (reg)
