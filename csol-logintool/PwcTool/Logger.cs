@@ -22,19 +22,17 @@ namespace CommonQ
         string _logFileName;
         string _Folder;
 
-        Thread _writeThread;
         Action<eLoggerLevel, string> _showFunc;
 
         List<logContent> _lineList;
         StreamWriter _Writer;
 
-        int _ByteCount;         //文件最大字节
-        int _Stop;
+        int _ByteCount;         
         int _LastFlushTime;
         bool _IsNeedFlush;
 
-        const int _MaxByteCount = 500000;
-        const int _MaxFlushInterval = 100000;
+        const int _MaxByteCount = 64 * 1000 * 1000;    //日志文件最大值
+        const int _MaxFlushInterval = 10000;           //最大刷新间隔,10秒
 
         public struct logContent
         {
@@ -48,23 +46,40 @@ namespace CommonQ
             }
         }
 
-        static List<CLogger> _loggers = new List<CLogger>();
+        static Thread _workThread;
+        static Dictionary<string, CLogger> _loggers = new Dictionary<string, CLogger>();
+        static bool _stopAllLogger = false;
 
         static public CLogger FromFolder(string FolderName, Action<eLoggerLevel, string> showFunc = null)
         {
             lock (_loggers)
             {
-                foreach (CLogger logger in _loggers)
+                if (_loggers.ContainsKey(FolderName))
                 {
-                    if (logger._loggerName == FolderName)
-                    {
-                        return logger;
-                    }
+                    return _loggers[FolderName];
                 }
 
                 CLogger newLogger = new CLogger(FolderName, showFunc);
-                _loggers.Add(newLogger);
+                _loggers.Add(FolderName,newLogger);
                 return newLogger;
+            }
+        }
+
+        static public void StopAllLoggers()
+        {
+            _stopAllLogger = true;
+            if (_workThread != null)
+            {
+                _workThread.Join(10*1000);
+            }
+        }
+
+        static public void Close()
+        {
+            _stopAllLogger = true;
+            if (_workThread != null)
+            {
+                _workThread.Join(10 * 1000);
             }
         }
 
@@ -97,24 +112,45 @@ namespace CommonQ
                 _showFunc = showFunc;
             }
 
-            _writeThread = new Thread(new ThreadStart(this.Run));
-            _writeThread.Start();
-            _Stop = 0;
+            if (_workThread == null)
+            {
+                _workThread = new Thread(new ThreadStart(logThreadRun));
+                _workThread.Start();
+            }
+            //_writeThread = new Thread(new ThreadStart(this.Run));
+            //_writeThread.Start();
             _LastFlushTime = Environment.TickCount;
             _IsNeedFlush = false;
         }
 
+        static void logThreadRun()
+        {
+            while (!_stopAllLogger)
+            {
+                lock (_loggers)
+                {
+                    foreach (CLogger logger in _loggers.Values)
+                    {
+                        logger.Run();
+                    }
+                }
+                Thread.Sleep(90);
+            }
+
+            lock (_loggers)
+            {
+                foreach (CLogger logger in _loggers.Values)
+                {
+                    logger.FlushAndDispose();
+                }
+                _loggers.Clear();
+            }
+        }
+
         private void Run()
         {
-            do
-            {
-                if (_Stop == 1)
-                {
-                    _Writer.Flush();
-                    _Writer.Dispose();
-                    _Writer.Close();
-                    break;
-                }
+            //do
+            //{
 
                 lock (_lineList)
                 {
@@ -158,13 +194,14 @@ namespace CommonQ
                     _LastFlushTime = Environment.TickCount;
                 }
 
-                Thread.Sleep(90);
-            } while (true);
+            //} while (true);
         }
 
-        public void Stop()
+        void FlushAndDispose()
         {
-            _Stop = 1;
+            _Writer.Flush();
+            _Writer.Dispose();
+            _Writer.Close(); 
         }
 
         public void Debug(string s)

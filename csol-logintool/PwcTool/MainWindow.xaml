@@ -5,13 +5,13 @@
     <Grid MinHeight="300" HorizontalAlignment="Stretch" Margin="1">
         <Button Content="开始" Height="23" HorizontalAlignment="Left" Margin="503,13,0,0" Name="btnStart" VerticalAlignment="Top" Width="75" Click="button1_Click" />
         <DataGrid AutoGenerateColumns="True" Margin="12,45,6,12" Name="UidGrid" DragEnter="statusGrid_DragEnter" Drop="statusGrid_Drop" AllowDrop="True" />
-        <TextBox Height="23" HorizontalAlignment="Left" Margin="254,13,0,0" Name="FixPwdTextbox" VerticalAlignment="Top" Width="120" KeyDown="OnFixPwdKeyDownHandler" Text="qqww1234567" />
+        <TextBox Height="23" HorizontalAlignment="Left" Margin="254,13,0,0" Name="FixPwdTextbox" VerticalAlignment="Top" Width="120" KeyDown="OnFixPwdKeyDownHandler"  />
         <TextBlock Height="23" HorizontalAlignment="Left" Margin="192,16,0,0" Name="textBlock1" Text="固定密码" VerticalAlignment="Top" />
         <TextBlock Height="23" HorizontalAlignment="Left" Margin="12,16,0,0" Name="textBlock2" Text="随机密码" VerticalAlignment="Top" />
-        <TextBox Height="23" HorizontalAlignment="Left" Margin="66,13,0,0" Name="RandomPwdTextbox" VerticalAlignment="Top" Width="120" KeyDown="OnRandomPwdKeyDownHandler" Text="" />
+        <TextBox Height="23" HorizontalAlignment="Left" Margin="66,13,0,0" Name="RandomPwdTextbox" VerticalAlignment="Top" Width="120" KeyDown="OnRandomPwdKeyDownHandler" Text="A-Za-z0-9" />
         <Button Content="停止" Height="23" Margin="584,13,0,0" Name="btnStop" Width="75" Click="button2_Click" VerticalAlignment="Top" HorizontalAlignment="Left" />
-        <TextBlock Height="23" HorizontalAlignment="Left" Margin="380,16,0,0" Name="textBlock3" Text="线程数量" VerticalAlignment="Top" />
-        <TextBox Height="20" HorizontalAlignment="Left" Margin="442,13,0,0" Name="textBox1" VerticalAlignment="Top" Width="38" Text="1" MaxLength="2" />
+        <TextBlock Height="23" HorizontalAlignment="Left" Margin="380,16,0,0" Name="textBlock3" Text="工作者数量" VerticalAlignment="Top" />
+        <TextBox Height="20" HorizontalAlignment="Left" Margin="442,13,0,0" Name="tbxWorkerNumber" VerticalAlignment="Top" Width="38" Text="1" MaxLength="2" />
         <Button Content="导出" Height="23" HorizontalAlignment="Left" Margin="665,13,0,0" Name="button3" VerticalAlignment="Top" Width="75" Click="button3_Click" />
     </Grid>
 </Window>

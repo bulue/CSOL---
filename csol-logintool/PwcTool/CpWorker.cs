@@ -15,25 +15,28 @@ namespace PwcTool
 {
     class CpWorker
     {
-        string url_qrcode = "https://passport.tiancity.com/handler/getqrcodekey.ashx?";
-        string url_capcheck = "http://captcha.tiancity.com/CheckSwitch.ashx?jsoncallback=j";
-        string url_capimage = "http://captcha.tiancity.com/client.ashx?fid=104&code=1";
-        string url_matcheck = "https://passport.tiancity.com/handler/GetMatrix.ashx?jsoncallback=?";
-        string url_matsms = "https://passport.tiancity.com/handler/GetSmsMatrix.ashx?jsoncallback=?";
-        string url_dpwd = "https://passport.tiancity.com/handler/GetSmsDynamic.ashx?jsoncallback=?";
-        string url_log = "https://passport.tiancity.com/Login.ashx?jsoncallback=?";
-        string url_pmsg = "https://passport.tiancity.com/handler/PushLoginMsg.ashx?jsoncallback=?";
-        string url_qrlog = "https://passport.tiancity.com/handler/QrCodeKeyLogin.ashx?jsoncallback=?";
-        string url_aqjf = "http://aq.tiancity.com/Protect/ReopenedAccount";
+        const string url_qrcode = "https://passport.tiancity.com/handler/getqrcodekey.ashx?";
+        const string url_capcheck = "http://captcha.tiancity.com/CheckSwitch.ashx?jsoncallback=j";
+        const string url_capimage = "http://captcha.tiancity.com/client.ashx?fid=104&code=1";
+        const string url_matcheck = "https://passport.tiancity.com/handler/GetMatrix.ashx?jsoncallback=?";
+        const string url_matsms = "https://passport.tiancity.com/handler/GetSmsMatrix.ashx?jsoncallback=?";
+        const string url_dpwd = "https://passport.tiancity.com/handler/GetSmsDynamic.ashx?jsoncallback=?";
+        const string url_log = "https://passport.tiancity.com/Login.ashx?jsoncallback=?";
+        const string url_pmsg = "https://passport.tiancity.com/handler/PushLoginMsg.ashx?jsoncallback=?";
+        const string url_qrlog = "https://passport.tiancity.com/handler/QrCodeKeyLogin.ashx?jsoncallback=?";
+        const string url_aqjf = "http://aq.tiancity.com/Protect/ReopenedAccount";
 
-        Random m_rgen = new Random(System.Environment.TickCount);
+        static Random m_rgen = new Random(System.Environment.TickCount);
         JavascriptContext m_JsContext = new JavascriptContext();
         CLogger m_logger;
+        CLogger m_textlogger;
+
+        public static string Uid = "";
+        public static string Matchinfo = "";
+        public static string DBpwd = "";
 
         public Dictionary<string, string> m_lgcaptcha;
         public Dictionary<string, string> m_pwcaptcha;
-
-        bool m_bostop = false;
 
         public event Action<CpWorker,string, string, string, string> FinishTask;
 
@@ -49,6 +52,7 @@ namespace PwcTool
 
             m_safekey = safekey;
             m_logger = CLogger.FromFolder("pwclog");
+            m_textlogger = CLogger.FromFolder("error_captcha");
             m_JsContext.Run(File.ReadAllText(md5js));
         }
 
@@ -71,11 +75,6 @@ namespace PwcTool
             {
                 m_logger.Error(ex.ToString());
             }
-        }
-
-        public void StopTask()
-        {
-            m_bostop = true;
         }
 
         void OnTryLoginCallBack_GetCookies(IAsyncResult ar)
@@ -167,6 +166,7 @@ namespace PwcTool
                 int bytecount = 0;
                 int readcount = 0;
                 byte[] img_buf = new byte[1024 * 10];
+
                 while ((readcount = s.Read(img_buf, bytecount, img_buf.Length - bytecount)) > 0)
                 {
                     bytecount += readcount;
@@ -178,8 +178,9 @@ namespace PwcTool
                 byte[] md5_bytes = md5.ComputeHash(img_buf, 0, bytecount);
                 string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
                 string old_md5_str = md5_str;
-                md5_str = cs_md5(md5_str + m_safekey);
-                md5_str = cs_md5(md5_str + m_safekey + old_md5_str);
+                md5_str = cs_md5(md5_str + Uid);
+                md5_str = cs_md5(md5_str + Matchinfo + old_md5_str);
+                md5_str = cs_md5(md5_str + DBpwd + old_md5_str);
                 if (m_lgcaptcha.ContainsKey(md5_str))
                 {
                     string cap = m_lgcaptcha[md5_str];
@@ -381,6 +382,7 @@ namespace PwcTool
                 string pwd = tuple.Item3;
                 string newpwd = tuple.Item4;
 
+                //int ticks = System.Environment.TickCount;
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
                 Stream s = response.GetResponseStream();
                 int bytecount = 0;
@@ -392,17 +394,19 @@ namespace PwcTool
                 }
                 s.Close();
                 response.Close();
+                //m_logger.Debug("2===downloadticks " + (System.Environment.TickCount - ticks) + " ms");
 
                 MD5 md5 = new MD5CryptoServiceProvider();
                 byte[] md5_bytes = md5.ComputeHash(img_buf, 0, bytecount);
                 string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
                 string old_md5_str = md5_str;
-                md5_str = cs_md5(md5_str + m_safekey);
-                md5_str = cs_md5(md5_str + m_safekey + old_md5_str);
+                md5_str = cs_md5(md5_str + Uid);
+                md5_str = cs_md5(md5_str + Matchinfo + old_md5_str);
+                md5_str = cs_md5(md5_str + DBpwd + old_md5_str);
                 if (m_pwcaptcha.ContainsKey(md5_str))
                 {
                     string cap = m_pwcaptcha[md5_str];
-                    m_logger.Debug("pwcaptcha 发现 name:" + md5_str + " value:" + cap);
+                    //m_logger.Debug("pwcaptcha 发现 name:" + md5_str + " value:" + cap);
 
                     string post = "old_pwd=" + Encrypt(pwd) + "&new_pwd1=" + Encrypt(newpwd) + "&new_pwd2=" + Encrypt(newpwd) + "&captcha=" + cap;
                     byte[] post_buffer = System.Text.Encoding.UTF8.GetBytes(post);
@@ -417,10 +421,7 @@ namespace PwcTool
                     next_request.CookieContainer = request.CookieContainer;
                     next_request.CookieContainer.Add(response.Cookies);
 
-                    Stream postStream = next_request.GetRequestStream();
-                    postStream.Write(post_buffer, 0, post_buffer.Length);
-                    postStream.Close();
-                    next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Result), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                    next_request.BeginGetRequestStream(new AsyncCallback(OnGetPostChangePwdBufferStream), new Tuple<HttpWebRequest, string, string, string,byte[]>(next_request, uid, pwd, newpwd, post_buffer));
                 }
                 else
                 {
@@ -436,6 +437,29 @@ namespace PwcTool
                     next_request.CookieContainer.Add(response.Cookies);
                     next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
                 }
+            }
+            catch (System.Exception ex)
+            {
+                m_logger.Error(ex.ToString());
+            }
+        }
+
+        void OnGetPostChangePwdBufferStream(IAsyncResult ar)
+        {
+            try
+            {
+                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string, byte[]>;
+                HttpWebRequest request = tuple.Item1;
+                string uid = tuple.Item2;
+                string pwd = tuple.Item3;
+                string newpwd = tuple.Item4;
+                byte[] post_buffer = tuple.Item5;
+
+                Stream postStream = request.EndGetRequestStream(ar);
+                postStream.Write(post_buffer, 0, post_buffer.Length);
+                postStream.Close();
+
+                request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Result), new Tuple<HttpWebRequest, string, string, string>(request, uid, pwd, newpwd));
             }
             catch (System.Exception ex)
             {

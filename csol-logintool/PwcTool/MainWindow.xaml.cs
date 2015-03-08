@@ -23,6 +23,7 @@ using System.Data.SQLite;
 using System.Data;
 using System.ComponentModel;
 using System.IO.Compression;
+using System.Threading;
 
 namespace PwcTool
 {
@@ -31,23 +32,9 @@ namespace PwcTool
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static byte[] Compress(byte[] raw)
-        {
-            using (MemoryStream memory = new MemoryStream())
-            {
-                using (GZipStream gzip = new GZipStream(memory,
-                CompressionMode.Compress, true))
-                {
-                    gzip.Write(raw, 0, raw.Length);
-                }
-                return memory.ToArray();
-            }
-        }
-
         public MainWindow()
         {
             InitializeComponent();
-
 
             try
             {
@@ -56,12 +43,12 @@ namespace PwcTool
                 login dlg = new login();
                 dlg.m_safekey = m_safekey;
                 dlg.ShowDialog();
-                string account = dlg.textBox1.Text;
+                string account = dlg.tbxUid.Text;
                 m_safelg = dlg.m_lg;
                 m_safepw = dlg.m_pw;
+                m_safedbpwd = dlg.m_dbpwd;
                 if (String.IsNullOrEmpty(account)
-                    || String.IsNullOrEmpty(m_safelg)
-                    || String.IsNullOrEmpty(m_safepw))
+                    || String.IsNullOrEmpty(m_safedbpwd))
                 {
                     Environment.Exit(0);
                 }
@@ -73,7 +60,8 @@ namespace PwcTool
             }
 
             m_logger = CLogger.FromFolder("pwclog");
-
+            m_saveThread = new Thread(new ThreadStart(SaveUidPwdStatus));
+            m_saveThread.Start();
             try
             {
                 if (!File.Exists(datasource))
@@ -116,10 +104,6 @@ namespace PwcTool
             }     
         }
 
-        void CheckAccount(string account)
-        {
-        }
-
         CLogger m_logger;
         Random m_rgen = new Random(System.Environment.TickCount);
 
@@ -131,6 +115,7 @@ namespace PwcTool
         const string uidtxt = "uid.txt";
         const string md5js = "md5.js";
         const string datasource = "uid.db";
+        const string captchadb = "captcha";
 
         const string uidtable = "uidlogin";
         const string column_uid = "uid";
@@ -142,6 +127,7 @@ namespace PwcTool
         const string status_ok = "成功";
 
         string m_safekey = "";
+        string m_safedbpwd = "";
         string m_safelg = "";
         string m_safepw = "";
         string m_constkey = "0xab3aff";
@@ -153,6 +139,12 @@ namespace PwcTool
         string m_randompwd = "";
 
         bool m_bofirststart = true;
+
+        Thread m_saveThread;
+        List<object> m_saveObjList = new List<object>();
+        bool m_boshutdwon;
+
+        UidBackup m_uidbacker = new UidBackup();
 
         List<CpWorker> m_workers = new List<CpWorker>();
 
@@ -178,34 +170,35 @@ namespace PwcTool
                 m_fixpwd = FixPwdTextbox.Text;
             }
 
-            //if (!File.Exists(lgxml))
-            //{
-            //    MessageBox.Show(lgxml + "文件不存在", "", MessageBoxButton.OK, MessageBoxImage.Error);
-            //    return;
-            //}
-
-            //if (!File.Exists(pwxml))
-            //{
-            //    MessageBox.Show(lgxml + "文件不存在", "", MessageBoxButton.OK, MessageBoxImage.Error);
-            //    return;
-            //}
-
             if (!File.Exists(md5js))
             {
                 MessageBox.Show(lgxml + "文件不存在", "", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            //load_captcha_xml(lgxml, m_lgcaptcha);
-            //load_captcha_xml(pwxml, m_pwcaptcha);
             if (m_bofirststart)
             {
-                load_captcha_from_safetxt(m_safelg, m_constkey, m_lgcaptcha);
-                load_captcha_from_safetxt(m_safepw, m_constkey, m_pwcaptcha);
+                CpWorker.DBpwd = MyDes.Decode(m_safedbpwd, m_safekey);
+
+                if (!String.IsNullOrEmpty(m_safelg)
+                    && !String.IsNullOrEmpty(m_safepw))
+                {
+                    load_captcha_from_safetxt(m_safelg, m_constkey, m_lgcaptcha);
+                    load_captcha_from_safetxt(m_safepw, m_constkey, m_pwcaptcha);
+
+                    save_captcha_db_from_dic(m_lgcaptcha, CpWorker.DBpwd, "lg");
+                    save_captcha_db_from_dic(m_pwcaptcha, CpWorker.DBpwd, "pwc");
+                }
+                else
+                {
+                    load_captcha_from_db(m_lgcaptcha,CpWorker.DBpwd,"lg");
+                    load_captcha_from_db(m_pwcaptcha, CpWorker.DBpwd, "pwc");
+                }
+
                 m_logger.Debug("lg:" + m_lgcaptcha.Count + " pw:" + m_pwcaptcha.Count);
             }
 
-            int num = int.Parse(textBox1.Text);
+            int num = int.Parse(tbxWorkerNumber.Text);
             for (int i = 0; i < num; ++i)
             {
                 if (m_workers.Count <= i)
@@ -224,7 +217,7 @@ namespace PwcTool
                     m_workers[i].BeginTaskChangePwd(uid.ToLower().Trim(), pwd.Trim(), newpwd);
                     nextuidrow[column_status] = status_ready;
 
-                    m_logger.Debug("begin uid:" + uid + " pwd:" + pwd + " newpwd:" + newpwd);
+                    //m_logger.Debug("begin uid:" + uid + " pwd:" + pwd + " newpwd:" + newpwd);
                 }
                 else
                 {
@@ -235,7 +228,7 @@ namespace PwcTool
             m_bofirststart = false;
             RandomPwdTextbox.IsEnabled = false;
             FixPwdTextbox.IsEnabled = false;
-            textBox1.IsEnabled = false;
+            tbxWorkerNumber.IsEnabled = false;
 
             btnStart.IsEnabled = false;
             btnStop.IsEnabled = true;
@@ -292,7 +285,6 @@ namespace PwcTool
             worker.DoWork += new DoWorkEventHandler(worker_DoWork);
             worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(worker_RunWorkerCompleted);
             worker.RunWorkerAsync(new Tuple<CpWorker, string, string, string, string>(cpwoker, uid, pwd, newpwd, result));
-
         }
 
         void worker_DoWork(object sender, DoWorkEventArgs e)
@@ -309,22 +301,82 @@ namespace PwcTool
             if (result == "成功")
             {
                 nowpwd = newpwd;
+                m_uidbacker.PushUid(uid, nowpwd);
             }
-            
-            using (SQLiteCommand cmd = new SQLiteCommand(m_conn))
+
+            lock (m_saveObjList)
             {
-                cmd.CommandText = "UPDATE " + uidtable + " SET " + column_status + " = @status , " + column_password + " = @pwd"
-                    + " WHERE " + column_uid + " = @uid  ";
-
-                cmd.Parameters.Add(new SQLiteParameter("@status", result));
-                cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
-                cmd.Parameters.Add(new SQLiteParameter("@pwd", nowpwd));
-
-                cmd.ExecuteNonQuery();
+                m_saveObjList.Add(new Tuple<string, string, string>(uid, nowpwd, result));
             }
-            m_logger.Debug("update:" + (System.Environment.TickCount - begintick) + "ms");
+
+            //using (SQLiteCommand cmd = new SQLiteCommand(m_conn))
+            //{
+            //    cmd.CommandText = "UPDATE " + uidtable + " SET " + column_status + " = @status , " + column_password + " = @pwd"
+            //        + " WHERE " + column_uid + " = @uid  ";
+
+            //    cmd.Parameters.Add(new SQLiteParameter("@status", result));
+            //    cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
+            //    cmd.Parameters.Add(new SQLiteParameter("@pwd", nowpwd));
+
+            //    cmd.ExecuteNonQuery();
+            //}
+            m_logger.Debug("add update:" + (System.Environment.TickCount - begintick) + "ms");
 
             e.Result = new Tuple<CpWorker, string, string, string>(cpworker, uid, nowpwd, result);
+        }
+
+        void SaveUidPwdStatus()
+        {
+            while (true)
+            {
+                List<object> tmplist = new List<object>();
+                lock (m_saveObjList)
+                {
+                    if (m_saveObjList.Count > 0)
+                    {
+                        for (int i = 0; i < m_saveObjList.Count; ++i)
+                            tmplist.Add(m_saveObjList[i]);
+                        m_saveObjList.Clear();
+                    }
+                    else
+                    {
+                        if (m_boshutdwon)
+                            return;
+                    }
+                }
+
+                if (tmplist.Count > 0)
+                {
+                    int begintick = System.Environment.TickCount;
+                    using (SQLiteTransaction ts = m_conn.BeginTransaction())
+                    {
+                        for (int i = 0; i < tmplist.Count; ++i)
+                        {
+                            var tuple = tmplist[i] as Tuple<string, string, string>;
+                            string uid = tuple.Item1;
+                            string pwd = tuple.Item2;
+                            string status = tuple.Item3;
+
+                            using (SQLiteCommand cmd = new SQLiteCommand(m_conn))
+                            {
+                                cmd.CommandText = "UPDATE " + uidtable + " SET " + column_status + " = @status , " + column_password + " = @pwd"
+                                    + " WHERE " + column_uid + " = @uid  ";
+
+                                cmd.Parameters.Add(new SQLiteParameter("@status", status));
+                                cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
+                                cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
+
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        ts.Commit();
+                    }
+
+                    m_logger.Debug("update count:" + tmplist.Count + " time:" + (System.Environment.TickCount - begintick) + "ms");
+                }
+
+                Thread.Sleep(300);
+            }
         }
 
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -354,7 +406,7 @@ namespace PwcTool
                             cpwoker.BeginTaskChangePwd(nextuid.ToLower().Trim(), nextpwd.Trim(), nextnewpwd);
                             nextuidrow[column_status] = status_ready;
 
-                            m_logger.Debug("begin next uid:" + nextuid + " pwd:" + nextpwd + " newpwd:" + nextnewpwd);
+                            //m_logger.Debug("begin next uid:" + nextuid + " pwd:" + nextpwd + " newpwd:" + nextnewpwd);
                         }
                         else
                         {
@@ -386,6 +438,9 @@ namespace PwcTool
             }
             btnStart.IsEnabled = true;
             btnStop.IsEnabled = true;
+            tbxWorkerNumber.IsEnabled = true;
+            RandomPwdTextbox.IsEnabled = true;
+            FixPwdTextbox.IsEnabled = true;
         }
 
         void load_captcha_xml(string xmlfile,Dictionary<string, string> dic)
@@ -407,20 +462,107 @@ namespace PwcTool
 
         void load_captcha_from_safetxt(string safe_str, string key, Dictionary<string, string> dic)
         {
-            string src_txt = MyDes.Decode(safe_str, key);
-            string[] split = src_txt.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-            if (split.Length > 0)
+            if (!String.IsNullOrEmpty(safe_str))
             {
-                foreach (string s in split)
+                string src_txt = MyDes.Decode(safe_str, key);
+                string[] split = src_txt.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                if (split.Length > 0)
                 {
-                    string pattern = @"(\w+)=(\w+)";
-                    Match mt = Regex.Match(s, pattern);
-                    if (mt.Groups.Count == 3)
+                    foreach (string s in split)
                     {
-                        dic.Add(mt.Groups[1].ToString(), mt.Groups[2].ToString());
+                        string pattern = @"(\w+)=(\w+)";
+                        Match mt = Regex.Match(s, pattern);
+                        if (mt.Groups.Count == 3)
+                        {
+                            dic.Add(mt.Groups[1].ToString(), mt.Groups[2].ToString());
+                        }
                     }
                 }
             }
+        }
+
+        void save_captcha_db_from_dic(Dictionary<string, string> dic,string dbpwd,string tablename)
+        {
+            if (!File.Exists(captchadb))
+            {
+                System.Data.SQLite.SQLiteConnection.CreateFile(captchadb);
+            }
+            SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
+            connstr.DataSource = captchadb;
+            SQLiteConnection captcha_dbconn = new SQLiteConnection();
+            captcha_dbconn.ConnectionString = connstr.ToString();
+            captcha_dbconn.SetPassword(dbpwd);
+            captcha_dbconn.Open();
+
+            using (SQLiteCommand cmd = new SQLiteCommand(captcha_dbconn))
+            {
+                cmd.CommandText = "select count(*) from sqlite_master where type = 'table' and name = '" + tablename + "'";
+                Int64 result = (Int64)cmd.ExecuteScalar();
+                if (result == 0)
+                {
+                    cmd.CommandText = "CREATE TABLE " + tablename + "(name varchar(50) primary key,value varchar(20))";
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            using (SQLiteTransaction ts = captcha_dbconn.BeginTransaction())
+            {
+                using (SQLiteCommand cmd = new SQLiteCommand(captcha_dbconn))
+                {
+                    foreach (string name in dic.Keys)
+                    {
+                        string value = dic[name];
+
+                        cmd.CommandText = "INSERT INTO " + tablename + " (name , value) VALUES(@name,@value)";
+
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add(new SQLiteParameter("@name", name));
+                        cmd.Parameters.Add(new SQLiteParameter("@value", value));
+
+                        cmd.ExecuteNonQuery();
+
+                    }
+                }
+                ts.Commit();
+            }
+
+            captcha_dbconn.Close();
+        }
+
+        void load_captcha_from_db(Dictionary<string, string> dic,string dbpwd,string tablename)
+        {
+            if (!File.Exists(captchadb))
+            {
+                return;
+            }
+            SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
+            connstr.DataSource = captchadb;
+            SQLiteConnection captcha_dbconn = new SQLiteConnection();
+            captcha_dbconn.ConnectionString = connstr.ToString();
+            captcha_dbconn.SetPassword(dbpwd);
+            captcha_dbconn.Open();
+
+            using (SQLiteCommand cmd = new SQLiteCommand(captcha_dbconn))
+            {
+                cmd.CommandText = "SELECT name,value FROM " + tablename;
+
+                cmd.CommandType = CommandType.Text;
+
+                SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
+                DataSet tmpdataset = new DataSet();
+                da.Fill(tmpdataset);
+
+                if (tmpdataset.Tables[0].Rows.Count > 0)
+                {
+                    dic.Clear();
+                    foreach (DataRow row in tmpdataset.Tables[0].Rows)
+                    {
+                        dic.Add(row["name"].ToString(), row["value"].ToString());
+                    }
+                }
+            }
+
+            captcha_dbconn.Close();
         }
 
         void load_uidtxt(string uidtxt)
@@ -491,10 +633,15 @@ namespace PwcTool
         {
             try
             {
+                m_boshutdwon = true;
+
+                m_uidbacker.BackUp();
+                Thread.Sleep(2000);
                 m_conn.Close();
-                m_logger.Stop();
+                CLogger.StopAllLoggers();
+                m_saveThread.Join(3000);
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
 
             }
