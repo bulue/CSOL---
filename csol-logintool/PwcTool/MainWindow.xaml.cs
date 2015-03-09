@@ -38,6 +38,8 @@ namespace PwcTool
 
             try
             {
+                System.Net.ServicePointManager.DefaultConnectionLimit = 512;
+
                 m_safekey = RandomString.Next(8, "1-9A-Za-z");
 
                 login dlg = new login();
@@ -405,8 +407,6 @@ namespace PwcTool
                             string nextnewpwd = this.GetNewPassword();
                             cpwoker.BeginTaskChangePwd(nextuid.ToLower().Trim(), nextpwd.Trim(), nextnewpwd);
                             nextuidrow[column_status] = status_ready;
-
-                            //m_logger.Debug("begin next uid:" + nextuid + " pwd:" + nextpwd + " newpwd:" + nextnewpwd);
                         }
                         else
                         {
@@ -419,6 +419,7 @@ namespace PwcTool
                         cpwoker.IsWorking = false;
                         CheckCpWorkerStatus();
                     }
+                
                 }
                 catch (System.Exception ex)
                 {

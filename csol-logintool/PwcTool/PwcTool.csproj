@@ -82,6 +82,8 @@
     <Compile Include="MyDes.cs" />
     <Compile Include="RandomString.cs" />
     <Compile Include="CpWorker.cs" />
+    <Compile Include="UidBackup.cs" />
+    <Compile Include="UrlFunction.cs" />
     <Page Include="login.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
