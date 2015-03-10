@@ -34,6 +34,8 @@ namespace PwcTool
         public static string Uid = "";
         public static string Matchinfo = "";
         public static string DBpwd = "";
+        public static int KeepRunTime = 0;
+        public static int StartRunTime = 0;
 
         public Dictionary<string, string> m_lgcaptcha;
         public Dictionary<string, string> m_pwcaptcha;

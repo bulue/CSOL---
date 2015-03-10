@@ -54,29 +54,38 @@ namespace PwcTool
             request.CookieContainer = new CookieContainer();
             request.BeginGetResponse(new AsyncCallback((ar) =>
             {
-                StreamReader reader = new StreamReader(request.EndGetResponse(ar).GetResponseStream());
-                JObject jsobj = JObject.Parse(reader.ReadToEnd());
-                if (jsobj["R"].ToString() == "登录成功")
+                try
                 {
-                    m_lg = jsobj["lg"].ToString();
-                    m_pw = jsobj["pw"].ToString();
-                    m_dbpwd = jsobj["dbpwd"].ToString();
+                    StreamReader reader = new StreamReader(request.EndGetResponse(ar).GetResponseStream());
+                    JObject jsobj = JObject.Parse(reader.ReadToEnd());
+                    if (jsobj["R"].ToString() == "登录成功")
+                    {
+                        m_lg = jsobj["lg"].ToString();
+                        m_pw = jsobj["pw"].ToString();
+                        m_dbpwd = jsobj["dbpwd"].ToString();
+                        CpWorker.KeepRunTime = int.Parse(jsobj["deadline"].ToString()) * 1000;
 
-                    this.Dispatcher.BeginInvoke(new Action(() =>
+                        this.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            CpWorker.Uid = tbxUid.Text;
+                            CpWorker.Matchinfo = Computer.Instance().DiskID + ";" + Computer.Instance().CpuID + ";";
+                            MainWindow.captchadb = CpWorker.Uid;
+                            this.Cursor = Cursors.Arrow;
+                            this.Close();
+                        }));
+                    }
+                    else
                     {
-                        CpWorker.Uid = tbxUid.Text;
-                        CpWorker.Matchinfo = Computer.Instance().DiskID + ";" + Computer.Instance().CpuID + ";";
-                        this.Cursor = Cursors.Arrow;
-                        this.Close();
-                    }));
+                        this.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            this.Cursor = Cursors.Arrow;
+                            MessageBox.Show(jsobj["R"].ToString(), "");
+                        }));
+                    }
                 }
-                else
+                catch (System.Exception ex)
                 {
-                    this.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        this.Cursor = Cursors.Arrow;
-                        MessageBox.Show(jsobj["R"].ToString(), "");
-                    }));
+                    MessageBox.Show(ex.ToString());
                 }
             }), request);
         }

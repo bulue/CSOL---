@@ -117,7 +117,8 @@ namespace PwcTool
         const string uidtxt = "uid.txt";
         const string md5js = "md5.js";
         const string datasource = "uid.db";
-        const string captchadb = "captcha";
+
+        static public string captchadb = "captcha";
 
         const string uidtable = "uidlogin";
         const string column_uid = "uid";
@@ -197,7 +198,30 @@ namespace PwcTool
                     load_captcha_from_db(m_pwcaptcha, CpWorker.DBpwd, "pwc");
                 }
 
+                CpWorker.StartRunTime = System.Environment.TickCount;
+
                 m_logger.Debug("lg:" + m_lgcaptcha.Count + " pw:" + m_pwcaptcha.Count);
+            }
+
+            if (CpWorker.KeepRunTime != 0)
+            {
+                if (System.Environment.TickCount - CpWorker.StartRunTime > CpWorker.KeepRunTime)
+                {
+                    if (File.Exists(captchadb))
+                    {
+                        File.Delete(captchadb);
+                    }
+                    m_lgcaptcha.Clear();
+                    m_pwcaptcha.Clear();
+
+                    for (int i = 0; i < m_workers.Count; ++i)
+                    {
+                        m_workers[i].m_lgcaptcha.Clear();
+                        m_workers[i].m_pwcaptcha.Clear();
+                    }
+                    MessageBox.Show("试用到期了!!");
+                    return;
+                }
             }
 
             int num = int.Parse(tbxWorkerNumber.Text);
@@ -397,6 +421,15 @@ namespace PwcTool
 
                 try
                 {
+                    if (CpWorker.KeepRunTime != 0 && btnStop.IsEnabled)
+                    {
+                        if (System.Environment.TickCount - CpWorker.StartRunTime > CpWorker.KeepRunTime)
+                        {
+                            btnStop.IsEnabled = false;
+                            MessageBox.Show("试用时间到了!!");
+                        }
+                    }
+
                     if (btnStop.IsEnabled == true)
                     {
                         DataRow nextuidrow = IteratorNextRow(m_dataset.Tables[0], ref m_walkiterator);
