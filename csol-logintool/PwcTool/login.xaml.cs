@@ -36,7 +36,6 @@ namespace PwcTool
         const string safe_key = "0x77ffbb";
         const string loginurl = "http://121.42.148.243/captcha.php?";
         //const string loginurl = "http://172.16.3.155/captcha.php?";
-        const string captchadb = "captcha";
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
@@ -44,7 +43,7 @@ namespace PwcTool
 
             string machineinfo = UrlFunction.UrlEncode(MyDes.Encode(Computer.Instance().DiskID + ";" + Computer.Instance().CpuID + ";", safe_key));
             string computername = UrlFunction.UrlEncode(Computer.Instance().ComputerName);
-            string isneedcaptcha = File.Exists(captchadb) ? "0" : "1";
+            string isneedcaptcha = File.Exists(tbxUid.Text) ? "0" : "1";
             string url = loginurl + "username=" + tbxUid.Text + "&machineinfo=" + machineinfo + "&signature=" + m_safekey + "&cpname=" + computername + "&needcaptcha=" + isneedcaptcha;
           
             HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
