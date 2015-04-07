@@ -12,5 +12,6 @@ namespace PwcTool
     /// </summary>
     public partial class App : Application
     {
+        public static string version = "1.0.0";
     }
 }

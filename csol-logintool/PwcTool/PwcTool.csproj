@@ -82,6 +82,7 @@
     <Compile Include="MyDes.cs" />
     <Compile Include="RandomString.cs" />
     <Compile Include="CpWorker.cs" />
+    <Compile Include="SeWorker.cs" />
     <Compile Include="UidBackup.cs" />
     <Compile Include="UrlFunction.cs" />
     <Page Include="login.xaml">

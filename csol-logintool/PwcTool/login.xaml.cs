@@ -15,6 +15,7 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using CommonQ;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
 
 namespace PwcTool
 {
@@ -32,6 +33,7 @@ namespace PwcTool
         public string m_lg = "";
         public string m_pw = "";
         public string m_dbpwd = "";
+        public string deadline_date = "";
 
         const string safe_key = "0x77ffbb";
         const string loginurl = "http://121.42.148.243/captcha.php?";
@@ -44,7 +46,8 @@ namespace PwcTool
             string machineinfo = UrlFunction.UrlEncode(MyDes.Encode(Computer.Instance().DiskID + ";" + Computer.Instance().CpuID + ";", safe_key));
             string computername = UrlFunction.UrlEncode(Computer.Instance().ComputerName);
             string isneedcaptcha = File.Exists(tbxUid.Text) ? "0" : "1";
-            string url = loginurl + "username=" + tbxUid.Text + "&machineinfo=" + machineinfo + "&signature=" + m_safekey + "&cpname=" + computername + "&needcaptcha=" + isneedcaptcha;
+            string url = loginurl + "username=" + tbxUid.Text + "&machineinfo=" + machineinfo + "&signature="
+                + m_safekey + "&cpname=" + computername + "&needcaptcha=" + isneedcaptcha +"&appversion=" + App.version;
           
             HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
             request.ServicePoint.Expect100Continue = false;
@@ -62,12 +65,15 @@ namespace PwcTool
                         m_lg = jsobj["lg"].ToString();
                         m_pw = jsobj["pw"].ToString();
                         m_dbpwd = jsobj["dbpwd"].ToString();
+                        deadline_date = jsobj["deadline_date"].ToString();
                         CpWorker.KeepRunTime = int.Parse(jsobj["deadline"].ToString()) * 1000;
 
                         this.Dispatcher.BeginInvoke(new Action(() =>
                         {
                             CpWorker.Uid = tbxUid.Text;
                             CpWorker.Matchinfo = Computer.Instance().DiskID + ";" + Computer.Instance().CpuID + ";";
+                            SeWorker.Uid = tbxUid.Text;
+                            SeWorker.Matchinfo = CpWorker.Matchinfo;
                             MainWindow.captchadb = CpWorker.Uid;
                             this.Cursor = Cursors.Arrow;
                             this.Close();
@@ -87,6 +93,11 @@ namespace PwcTool
                     MessageBox.Show(ex.ToString());
                 }
             }), request);
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            webBrowser1.Navigate("http://121.42.148.243/softwareboard/board_pwctool.html?appverion="+App.version);
         }
     }
 }
