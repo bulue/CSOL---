@@ -74,6 +74,8 @@ namespace PwcTool
                             CpWorker.Matchinfo = Computer.Instance().DiskID + ";" + Computer.Instance().CpuID + ";";
                             SeWorker.Uid = tbxUid.Text;
                             SeWorker.Matchinfo = CpWorker.Matchinfo;
+                            GuessWorker.Uid = tbxUid.Text;
+                            GuessWorker.Matchinfo = CpWorker.Matchinfo;
                             MainWindow.captchadb = CpWorker.Uid;
                             this.Cursor = Cursors.Arrow;
                             this.Close();

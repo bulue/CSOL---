@@ -46,6 +46,7 @@ namespace PwcTool
         string m_safekey = "";
 
         public bool IsWorking = false;
+        public int IpToken = 0; 
 
         public CpWorker(Dictionary<string, string> lg,Dictionary<string, string> pw,string safekey)
         {
@@ -57,8 +58,9 @@ namespace PwcTool
             m_JsContext.Run(File.ReadAllText(md5js));
         }
 
-        public void BeginTaskChangePwd(string uid, string pwd, string newpwd)
+        public void BeginTaskChangePwd(string uid, string pwd, string newpwd, int iptoken)
         {
+            IpToken = iptoken;
             IsWorking = true;
             try
             {

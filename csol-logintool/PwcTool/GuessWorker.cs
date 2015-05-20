@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 
 namespace PwcTool
 {
-    class SeWorker
+    class GuessWorker
     {
 
         const string url_qrcode = "https://passport.tiancity.com/handler/getqrcodekey.ashx?";
@@ -39,7 +39,7 @@ namespace PwcTool
         public Dictionary<string, string> m_lgcaptcha;
         public Dictionary<string, string> m_pwcaptcha;
 
-        public event Action<SeWorker,string, string, string, bool, int, int> FinishTask;
+        public event Action<GuessWorker,string, string, string, bool, int, int> FinishTask;
 
         const string md5js = "cstc.js";
         string m_safekey = "";
@@ -50,7 +50,7 @@ namespace PwcTool
 
         public int IpToken = 0; 
 
-        public SeWorker(Dictionary<string, string> lg, Dictionary<string, string> pw, string safekey)
+        public GuessWorker(Dictionary<string, string> lg, Dictionary<string, string> pw, string safekey)
         {
             m_lgcaptcha = new Dictionary<string, string>(lg);
             m_pwcaptcha = new Dictionary<string, string>(pw);
@@ -60,7 +60,7 @@ namespace PwcTool
             m_JsContext.Run(File.ReadAllText(md5js));
         }
 
-        public void BeginTask(string uid, string pwd, object obj, int iptoken)
+        public void BeginTask(string uid, string pwd, object obj,int iptoken)
         {
             IsWorking = true;
             workArgument = obj;
@@ -536,7 +536,7 @@ namespace PwcTool
         }
 
 
-        void TaskFinishInvoke(SeWorker worker, string uid, string pwd, string ret,bool has_idcard = true,int yue = 0,int userpoint = 0)
+        void TaskFinishInvoke(GuessWorker worker, string uid, string pwd, string ret,bool has_idcard = true,int yue = 0,int userpoint = 0)
         {
             if (FinishTask != null)
             {

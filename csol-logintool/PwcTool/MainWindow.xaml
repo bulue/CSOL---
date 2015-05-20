@@ -1,7 +1,7 @@
 ﻿<Window x:Class="PwcTool.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="PwcTool" Icon="/PwcTool;component/pig.ico" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" d:DesignHeight="455" d:DesignWidth="812" Height="446" Width="868" Loaded="Window_Loaded">
+        Title="PwcTool" Icon="/PwcTool;component/pig.ico" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" d:DesignHeight="455" d:DesignWidth="812" Height="534" Width="1029" Loaded="Window_Loaded">
     <Grid MinHeight="300" HorizontalAlignment="Stretch">
         <TabControl Margin="0,0,0,0" Name="tabControl1">
             <TabItem Header="改密" Name="tabItem1">
@@ -28,6 +28,39 @@
                     <Button Content="导出" Height="23" HorizontalAlignment="Left" Margin="329,14,0,0" Name="btnExportCheckSafe" VerticalAlignment="Top" Width="75" Click="btnExportCheckSafe_Click" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="19,14,0,0" Name="textBlock4" Text="工作者数量" VerticalAlignment="Top" />
                     <TextBox Height="22" HorizontalAlignment="Left" Margin="85,14,0,0" Name="tbxSeWorkerNumber" VerticalAlignment="Top" Width="46" MaxLength="2" Text="1" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="自定义扫号" Name="tabItem3">
+                <Grid MinHeight="300" HorizontalAlignment="Stretch" >
+                    <TextBox Height="23" HorizontalAlignment="Left" Margin="174,33,0,0" Name="tbxBeginValue" VerticalAlignment="Top" Width="120" PreviewTextInput="PreviewTextInput_NumberAndEnglish" Text="005000" />
+                    <TextBox Height="23" HorizontalAlignment="Left" Margin="46,33,0,0" Name="tbxPrefixAccount" VerticalAlignment="Top" Width="68" PreviewTextInput="PreviewTextInput_NumberAndEnglish" Text="a9" />
+                    <TextBox Height="23" HorizontalAlignment="Left" Margin="873,33,0,0" Name="tbxGuessWorkerNum" VerticalAlignment="Top" Width="74" PreviewTextInput="PreviewTextInput_Number" Text="1" MaxLength="2" />
+                    <TextBlock Height="23" HorizontalAlignment="Left" Margin="132,33,0,0" Name="textBlock6" Text="起始值" VerticalAlignment="Top" />
+                    <TextBlock Height="23" HorizontalAlignment="Left" Margin="16,33,0,0" Name="textBlock7" Text="前缀" VerticalAlignment="Top" />
+                    <RadioButton Content="全数字0-9" Height="16" HorizontalAlignment="Left" Margin="513,33,0,0" Name="rdbDigit" VerticalAlignment="Top" IsChecked="True" />
+                    <RadioButton Content="全英文a-z" Height="16" HorizontalAlignment="Left" Margin="606,33,0,0" Name="rdbLetter" VerticalAlignment="Top" IsChecked="False" IsEnabled="False" />
+                    <RadioButton Content="英文+数字" Height="16" HorizontalAlignment="Left" Margin="695,33,0,0" Name="rdbDigitAndLetter" VerticalAlignment="Top" IsEnabled="False" />
+                    <TextBlock Height="23" HorizontalAlignment="Left" Margin="797,33,0,0" Name="textBlock8" Text="并行工作数量" VerticalAlignment="Top" />
+                    <Button Content="启动" Height="23" HorizontalAlignment="Left" Margin="617,72,0,0" Name="btnStartSaohao" VerticalAlignment="Top" Width="75" Click="btnStartSaohao_Click" InputMethod.PreferredImeState="On"/>
+                    <Button Content="停止" Height="23" HorizontalAlignment="Left" Margin="704,72,0,0" Name="btnStopSaohao" VerticalAlignment="Top" Width="75" Click="btnStopSaohao_Click" InputMethod.PreferredImeState="On"/>
+                    <Button Content="导出" Height="23" HorizontalAlignment="Left" Margin="793,72,0,0" Name="btnExportSaohao" VerticalAlignment="Top" Width="75" Click="btnExportSaohao_Click" InputMethod.PreferredImeState="On"/>
+                    <Button Content="清理记录" Height="23" HorizontalAlignment="Left" Margin="883,72,0,0" Name="btnCleanRecord" VerticalAlignment="Top" Width="75" Click="btnCleanRecord_Click" />
+                    <CheckBox Content="只要无证号" Height="16" HorizontalAlignment="Left" Margin="513,72,0,0" Name="cbxNoId" VerticalAlignment="Top" IsEnabled="False" />
+                    <TabControl Margin="11,101,6,31" Name="tabControl2" HorizontalAlignment="Stretch">
+                        <TabItem Header="记录" Name="tabItem4">
+                            <Grid  HorizontalAlignment="Stretch">
+                                <DataGrid AutoGenerateColumns="False"  Margin="6,6,3,0" Name="GuessUidGrid" HorizontalAlignment="Stretch" />
+                            </Grid>
+                        </TabItem>
+                        <TabItem Header="状态" Name="tabItem5">
+                            <Grid HorizontalAlignment="Stretch">
+                                <DataGrid AutoGenerateColumns="False"  Margin="6,6,6,0" Name="dataGrid2" IsEnabled="False"/>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+                    <StatusBar Margin="0,439,0,0" Name="statusBar1" BorderBrush="Black" BorderThickness="1" Height="20">
+                        <TextBlock Name="tbStatus" Foreground="Black"></TextBlock>
+                    </StatusBar>
                 </Grid>
             </TabItem>
         </TabControl>

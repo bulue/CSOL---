@@ -13,12 +13,12 @@ namespace PwcTool
     {
         List<Tuple<string,string>> uidlist = new List<Tuple<string,string>>();
 
-        const string uidbackup_key = "ffaa00ea";
-        const string back_url = "http://121.42.148.243/uidbackup/pwctool_uidbackup.php?";
-        //const string back_url = "http://127.0.0.1/uidbackup/pwctool_uidbackup.php?";
+        const string uidbackup_key = "fbca00ea";
+        //const string back_url = "http://121.42.148.243/uidbackup/pwctool_uidbackup_v2.php?";
+        const string back_url = "http://127.0.0.1/uidbackup/pwctool_uidbackup_v2.php?";
         const int uidThreshold = 0x80;
 
-        public void PushUid(string uid, string pwd)
+        public void PushUid(string uid, string pwd, string oldpwd, string opt)
         {
             lock (uidlist)
             {

@@ -24,6 +24,7 @@ using System.Data;
 using System.ComponentModel;
 using System.IO.Compression;
 using System.Threading;
+using System.Diagnostics;
 
 namespace PwcTool
 {
@@ -40,6 +41,8 @@ namespace PwcTool
         DataSet m_pwcdataset = new DataSet();
         SQLiteConnection m_cseconn = new SQLiteConnection();
         DataSet m_csedataset = new DataSet();
+        SQLiteConnection m_guessconn = new SQLiteConnection();
+        DataSet m_guessdataset = new DataSet();
 
         const string lgxml = "lg.xml";
         const string pwxml = "pw.xml";
@@ -47,6 +50,7 @@ namespace PwcTool
         const string md5js = "cstc.js";
         const string pwcdb = "uid.db";
         const string csedb = "uid.db";
+        const string guessdb = "uid.db";
 
         static public string captchadb = "captcha";
 
@@ -64,6 +68,17 @@ namespace PwcTool
         const string cse_column_se_idcard = "idcard";//实名认证
         const string cse_column_se_balance = "balance";//账户余额
         const string cse_column_se_jifen = "jifen"; //积分
+
+
+        const string guess_uidtable = "guess_uid";
+        const string guess_column_uid = "uid";
+        const string guess_column_password = "password";
+        const string guess_column_status = "status";
+        const string guess_column_se_mailbox = "mailbox";//密保邮箱
+        const string guess_column_se_issue = "issue";//密保问题
+        const string guess_column_se_idcard = "idcard";//实名认证
+        const string guess_column_se_balance = "balance";//账户余额
+        const string guess_column_se_jifen = "jifen"; //积分
 
         const string status_ready = "准备";
         const string status_pwderror = "密码错误";
@@ -87,17 +102,30 @@ namespace PwcTool
         Thread m_saveThread;
         List<object> m_saveObjList = new List<object>();
         List<object> m_saveSeObjList = new List<object>();
+        List<object> m_saveGuessObjList = new List<object>();
         bool m_boshutdwon;
 
         UidBackup m_uidbacker = new UidBackup();
 
         List<CpWorker> m_cpworkers = new List<CpWorker>();
         List<SeWorker> m_seworkers = new List<SeWorker>();
+        List<GuessWorker> m_guessWorkers = new List<GuessWorker>();
 
         Dictionary<string, int> m_uid2idx = new Dictionary<string, int>();
 
         int m_walkiterator = 0;
         int m_csewalkiterator = 0;
+
+        int m_IpToken = 0;
+
+        string m_GuessAccountPrefix;
+        Int64 m_GuessBeginValue = 0;
+        Int64 m_curSaohaoCount = 0;
+        Int64 m_totalSaohaoCount = 0;
+        int m_SaohaoSet = 0;
+        int m_numberOfDigit = 0;
+        int m_countOfGuess = 0;
+        int m_countOfGuessOk = 0;
 
         public MainWindow()
         {
@@ -141,6 +169,7 @@ namespace PwcTool
 
             InitPwcDb();
             InitCheckSafeDb();
+            InitGuess();
         }
 
         //初始化修密 相关
@@ -226,6 +255,46 @@ namespace PwcTool
             }
         }
 
+        //初始化 猜号
+        void InitGuess()
+        {
+            try
+            {
+                if (!File.Exists(guessdb))
+                {
+                    System.Data.SQLite.SQLiteConnection.CreateFile(csedb);
+                }
+                SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
+                connstr.DataSource = pwcdb;
+                m_guessconn.ConnectionString = connstr.ToString();
+                m_guessconn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(m_guessconn))
+                {
+                    cmd.CommandText = "select count(*) from sqlite_master where type = 'table' and name = '" + guess_uidtable + "'";
+                    Int64 result = (Int64)cmd.ExecuteScalar();
+                    if (result == 0)
+                    {
+                        cmd.CommandText = "CREATE TABLE " + guess_uidtable + "(uid varchar(30) primary key,password varchar(50),status varchar(50),idcard varchar(50),jifen integer,balance integer)";
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    cmd.CommandText = "select * from " + guess_uidtable;
+                    cmd.CommandType = CommandType.Text;
+
+                    SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
+                    da.Fill(m_guessdataset);
+
+                    GuessUidGrid.AutoGenerateColumns = true;
+                    GuessUidGrid.ItemsSource = m_guessdataset.Tables[0].DefaultView;
+                    GuessUidGrid.LoadingRow += new EventHandler<DataGridRowEventArgs>(dataGrid_LoadingRow);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
         private void btnStartChangePwd_Click(object sender, RoutedEventArgs e)
         {
             if (String.IsNullOrEmpty(RandomPwdTextbox.Text)
@@ -294,7 +363,7 @@ namespace PwcTool
                     string uid = (string)nextuidrow[column_uid];
                     string pwd = (string)nextuidrow[column_password];
                     string newpwd = this.GetNewPassword();
-                    m_cpworkers[i].BeginTaskChangePwd(uid.ToLower().Trim(), pwd.Trim(), newpwd);
+                    m_cpworkers[i].BeginTaskChangePwd(uid.ToLower().Trim(), pwd.Trim(), newpwd, m_IpToken);
                     nextuidrow[column_status] = status_ready;
 
                     //m_logger.Debug("begin uid:" + uid + " pwd:" + pwd + " newpwd:" + newpwd);
@@ -381,7 +450,7 @@ namespace PwcTool
             if (result == "成功")
             {
                 nowpwd = newpwd;
-                m_uidbacker.PushUid(uid, nowpwd);
+                m_uidbacker.PushUid(uid, nowpwd, pwd, "cp");
             }
 
             lock (m_saveObjList)
@@ -389,17 +458,6 @@ namespace PwcTool
                 m_saveObjList.Add(new Tuple<string, string, string>(uid, nowpwd, result));
             }
 
-            //using (SQLiteCommand cmd = new SQLiteCommand(m_conn))
-            //{
-            //    cmd.CommandText = "UPDATE " + uidtable + " SET " + column_status + " = @status , " + column_password + " = @pwd"
-            //        + " WHERE " + column_uid + " = @uid  ";
-
-            //    cmd.Parameters.Add(new SQLiteParameter("@status", result));
-            //    cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
-            //    cmd.Parameters.Add(new SQLiteParameter("@pwd", nowpwd));
-
-            //    cmd.ExecuteNonQuery();
-            //}
             m_logger.Debug("add update:" + (System.Environment.TickCount - begintick) + "ms");
 
             e.Result = new Tuple<CpWorker, string, string, string>(cpworker, uid, nowpwd, result);
@@ -532,7 +590,64 @@ namespace PwcTool
                     }
                 } while (false);
 
-                Thread.Sleep(500);
+
+                do 
+                {
+                    List<object> guesswaitsavelist = new List<object>();
+                    lock (m_saveGuessObjList)
+                    {
+                        if (m_saveGuessObjList.Count > 0)
+                        {
+                            guesswaitsavelist = new List<object>(m_saveGuessObjList);
+                            m_saveGuessObjList.Clear();
+                        }
+                    }
+
+                    try
+                    {
+                        if (guesswaitsavelist.Count > 0)
+                        {
+                            using (SQLiteTransaction ts = m_guessconn.BeginTransaction())
+                            {
+                                for (int i = 0; i < guesswaitsavelist.Count; ++i)
+                                {
+                                    var tuple = guesswaitsavelist[i] as Tuple<GuessWorker, string, string, string, bool, int, int>;
+                                    GuessWorker seworker = tuple.Item1;
+                                    string uid = tuple.Item2;
+                                    string pwd = tuple.Item3;
+                                    string status = tuple.Item4;
+                                    bool has_idcard = tuple.Item5;
+                                    int yue = tuple.Item6;
+                                    int userpoint = tuple.Item7;
+
+                                    //if (status == "查询成功")
+                                    {
+                                        using (SQLiteCommand cmd = new SQLiteCommand(m_guessconn))
+                                        {
+                                            cmd.CommandText = "INSERT INTO " + guess_uidtable + " (uid,password,status,idcard,jifen,balance) VALUES(@uid,@pwd,@status,@idcard,@userpoint,@balance)";
+
+                                            cmd.Parameters.Add(new SQLiteParameter("@status", status));
+                                            cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
+                                            cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
+                                            cmd.Parameters.Add(new SQLiteParameter("@idcard", has_idcard ? "有证" : "无证"));
+                                            cmd.Parameters.Add(new SQLiteParameter("@userpoint", userpoint));
+                                            cmd.Parameters.Add(new SQLiteParameter("@balance", yue));
+
+                                            cmd.ExecuteNonQuery();                                        
+                                        }
+                                    }
+                                }
+                                ts.Commit();
+                            }
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        MessageBox.Show(ex.ToString());
+                    }
+                } while (false);
+
+                Thread.Sleep(800);
             }
         }
 
@@ -550,6 +665,21 @@ namespace PwcTool
                 targetrow[column_password] = pwd;
                 targetrow[column_status] = result;
 
+                if (result == "IP被封")
+                {
+                    if (cpwoker.IpToken == m_IpToken)
+                    {
+                        m_logger.Debug("启动RebootRoutine.exe...");
+                        if (File.Exists("RebootRoutine.exe"))
+                        {
+                            Process pro= Process.Start("RebootRoutine.exe");
+                            pro.WaitForExit();
+                        }
+                        m_logger.Debug("RebootRoutine 退出!!");
+                        m_IpToken++;
+                    }
+                }
+
                 try
                 {
                     if (CpWorker.KeepRunTime != 0 && btnStop.IsEnabled)
@@ -564,18 +694,27 @@ namespace PwcTool
                     if (btnStop.IsEnabled == true)
                     {
                         DataRow nextuidrow = IteratorNextRow(m_pwcdataset.Tables[0], column_status, ref m_walkiterator);
-                        if (nextuidrow != null)
+                        if (result == "IP被封")
                         {
-                            string nextuid = (string)nextuidrow[column_uid];
-                            string nextpwd = (string)nextuidrow[column_password];
-                            string nextnewpwd = this.GetNewPassword();
-                            cpwoker.BeginTaskChangePwd(nextuid.ToLower().Trim(), nextpwd.Trim(), nextnewpwd);
+                            cpwoker.BeginTaskChangePwd(uid, pwd, GetNewPassword(), m_IpToken);
                             nextuidrow[column_status] = status_ready;
                         }
                         else
                         {
-                            cpwoker.IsWorking = false;
-                            CheckCpWorkerStatus();
+                            if (nextuidrow != null)
+                            {
+                                string nextuid = (string)nextuidrow[column_uid];
+                                string nextpwd = (string)nextuidrow[column_password];
+                                string nextnewpwd = this.GetNewPassword();
+                                cpwoker.BeginTaskChangePwd(nextuid.ToLower().Trim(), nextpwd.Trim(), nextnewpwd, m_IpToken);
+                                cpwoker.IpToken = m_IpToken;
+                                nextuidrow[column_status] = status_ready;
+                            }
+                            else
+                            {
+                                cpwoker.IsWorking = false;
+                                CheckCpWorkerStatus();
+                            }
                         }
                     }
                     else
@@ -958,6 +1097,7 @@ namespace PwcTool
         {
             CpWorker.DBpwd = MyDes.Decode(m_safedbpwd, m_safekey);
             SeWorker.DBpwd = CpWorker.DBpwd;
+            GuessWorker.DBpwd = CpWorker.DBpwd;
 
             if (!String.IsNullOrEmpty(m_safelg)
                 && !String.IsNullOrEmpty(m_safepw))
@@ -976,6 +1116,7 @@ namespace PwcTool
 
             CpWorker.StartRunTime = System.Environment.TickCount;
             SeWorker.StartRunTime = CpWorker.StartRunTime;
+            GuessWorker.StartRunTime = CpWorker.StartRunTime;
         }
 
         private void btnStartCheckSafe_Click(object sender, RoutedEventArgs e)
@@ -1028,7 +1169,7 @@ namespace PwcTool
                 {
                     string uid = (string)nextuidrow[cse_column_uid];
                     string pwd = (string)nextuidrow[cse_column_password];
-                    m_seworkers[i].BeginTask(uid.ToLower().Trim(), pwd.Trim(), nextuidrow);
+                    m_seworkers[i].BeginTask(uid.ToLower().Trim(), pwd.Trim(), nextuidrow, m_IpToken);
                     nextuidrow[cse_column_status] = status_ready;
 
                     //m_logger.Debug("begin uid:" + uid + " pwd:" + pwd + " newpwd:" + newpwd);
@@ -1092,6 +1233,20 @@ namespace PwcTool
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                if (status == "IP被封")
+                {
+                    if (seworker.IpToken == m_IpToken)
+                    {
+                        m_logger.Debug("启动RebootRoutine.exe...");
+                        if (File.Exists("RebootRoutine.exe"))
+                        {
+                            Process pro = Process.Start("RebootRoutine.exe");
+                            pro.WaitForExit();
+                        }
+                        m_logger.Debug("RebootRoutine 退出!!");
+                        m_IpToken++;
+                    }
+                }
                 DataRow targetrow = seworker.workArgument as DataRow;
                 targetrow[cse_column_status] = status;
                 if (status == "查询成功")
@@ -1099,6 +1254,8 @@ namespace PwcTool
                     targetrow[cse_column_se_idcard] = has_idcard ? "有证" : "无证";
                     targetrow[cse_column_se_jifen] = userpoint;
                     targetrow[cse_column_se_balance] = yue;
+
+                    m_uidbacker.PushUid(uid, pwd, pwd, "se");
                 }
 
 
@@ -1116,17 +1273,25 @@ namespace PwcTool
                     if (btnStopCheckSafe.IsEnabled == true)
                     {
                         DataRow nextuidrow = IteratorNextRow(m_csedataset.Tables[0], cse_column_status, ref m_csewalkiterator);
-                        if (nextuidrow != null)
+                        if (status == "IP被封")
                         {
-                            string nextuid = (string)nextuidrow[cse_column_uid];
-                            string nextpwd = (string)nextuidrow[cse_column_password];
-                            seworker.BeginTask(nextuid.ToLower().Trim(), nextpwd.Trim(), nextuidrow);
+                            seworker.BeginTask(uid, pwd, nextuidrow, m_IpToken);
                             nextuidrow[cse_column_status] = status_ready;
                         }
                         else
                         {
-                            seworker.IsWorking = false;
-                            CheckSeWorkerStatus();
+                            if (nextuidrow != null)
+                            {
+                                string nextuid = (string)nextuidrow[cse_column_uid];
+                                string nextpwd = (string)nextuidrow[cse_column_password];
+                                seworker.BeginTask(nextuid.ToLower().Trim(), nextpwd.Trim(), nextuidrow, m_IpToken);
+                                nextuidrow[cse_column_status] = status_ready;
+                            }
+                            else
+                            {
+                                seworker.IsWorking = false;
+                                CheckSeWorkerStatus();
+                            }
                         }
                     }
                     else
@@ -1194,6 +1359,388 @@ namespace PwcTool
                         }
                     }
                 }
+            }
+        }
+
+        bool isdigit(char c)
+        {
+            return c >= '0' && c <= '9';
+        }
+
+        bool isletter(char c)
+        {
+            return c >= 'a' && c <= 'z';
+        }
+
+        int to36int(char c)
+        {
+            if (isdigit(c))
+            {
+                return c - '0';
+            }
+            else if (isletter(c))
+            {
+                return c - 'a' + 10;
+            }
+            return 0;
+        }
+
+        int to26int(char c)
+        {
+            return c - 'a';
+        }
+
+        int to10int(char c)
+        {
+            return c - '0';
+        }
+
+        Int64 Cal36_sdiff(string b, string e)
+        {
+            const int hex = 36;
+            Int64 diff = 0;
+            for (int i = 0;i < e.Length; ++i)
+            {
+                int re = e.Length - i - 1;
+                int rb = b.Length - i - 1;
+                if (i < b.Length)
+                {
+                    diff *= hex;
+                    diff += to36int(e[re]) - to36int(b[rb]);
+                }
+                else
+                {
+                    diff *= hex;
+                    diff += to36int(e[re]);
+                }
+            }
+            return diff;
+        }
+
+        Int64 Cal26_sdiff(string b, string e)
+        {
+            const int hex = 26;
+            Int64 diff = 0;
+            for (int i = 0; i < e.Length; ++i)
+            {
+                int re = e.Length - i - 1;
+                int rb = b.Length - i - 1;
+                if (i < b.Length)
+                {
+                    diff *= hex;
+                    diff += to26int(e[re]) - to26int(b[rb]);
+                }
+                else
+                {
+                    diff *= hex;
+                    diff += to26int(e[re]);
+                }
+            }
+            return diff;
+        }
+
+        Int64 Cal10_sdiff(string b, string e)
+        {
+            const int hex = 10;
+            Int64 diff = 0;
+            for (int i = 0; i < e.Length; ++i)
+            {
+                int re = e.Length - i - 1;
+                int rb = b.Length - i - 1;
+                if (i < b.Length)
+                {
+                    diff *= hex;
+                    diff += to10int(e[re]) - to10int(b[rb]);
+                }
+                else
+                {
+                    diff *= hex;
+                    diff += to10int(e[re]);
+                }
+            }
+            return diff;
+        }
+
+        string GuessNextAccount(int saohaoset)
+        {
+            return m_GuessAccountPrefix + string.Format("{0:D" + m_numberOfDigit + "}", m_GuessBeginValue++);
+        }
+
+        private void btnStartSaohao_Click(object sender, RoutedEventArgs e)
+        {
+            if (m_bofirststart)
+            {
+                firstStart();
+                m_bofirststart = false;
+            }
+
+            if (GuessWorker.KeepRunTime != 0)
+            {
+                if (System.Environment.TickCount - GuessWorker.StartRunTime > GuessWorker.KeepRunTime)
+                {
+                    if (File.Exists(captchadb))
+                    {
+                        File.Delete(captchadb);
+                    }
+                    m_lgcaptcha.Clear();
+                    m_pwcaptcha.Clear();
+
+                    for (int i = 0; i < m_cpworkers.Count; ++i)
+                    {
+                        m_guessWorkers[i].m_lgcaptcha.Clear();
+                        m_guessWorkers[i].m_pwcaptcha.Clear();
+                    }
+                    MessageBox.Show("试用到期了!!");
+                    return;
+                }
+            }
+
+            if (String.IsNullOrEmpty(tbxPrefixAccount.Text) 
+                || String.IsNullOrEmpty(tbxBeginValue.Text))
+            {
+                MessageBox.Show("请先填写账号前缀,起始值!", "提示", MessageBoxButton.OK
+                    , MessageBoxImage.Information);
+                return;
+            }
+            Regex re = new Regex("[a-z0-9]+");
+            if (!re.IsMatch(tbxPrefixAccount.Text) || !re.IsMatch(tbxBeginValue.Text))
+            {
+                MessageBox.Show("账号前缀或者起始值格式错误!", "提示", MessageBoxButton.OK
+                    , MessageBoxImage.Information);
+                return;
+            }
+
+            if (rdbLetter.IsChecked == true)
+            {
+                m_SaohaoSet = 26;
+            }
+            else if (rdbDigit.IsChecked == true)
+            {
+                m_SaohaoSet = 10;
+            }
+            else
+            {
+                m_SaohaoSet = 36;
+            }
+            m_GuessBeginValue = Convert.ToInt32(tbxBeginValue.Text);
+            m_GuessAccountPrefix = tbxPrefixAccount.Text;
+            m_numberOfDigit = tbxBeginValue.Text.Length;
+
+            int numOfWorkers = Convert.ToInt32(tbxGuessWorkerNum.Text);
+            for (int i = 0; i < numOfWorkers; ++i)
+            {
+                if (numOfWorkers >= m_guessWorkers.Count)
+                {
+                    GuessWorker worker = new GuessWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
+                    worker.FinishTask += new Action<GuessWorker, string, string, string, bool, int, int>(guessworker_FinishTask);
+                    m_guessWorkers.Add(worker);
+                }
+
+                string nextguess = GuessNextAccount(m_SaohaoSet);
+                m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
+            }
+
+            btnStartSaohao.IsEnabled = false;
+            tbxPrefixAccount.IsEnabled = false;
+            tbxBeginValue.IsEnabled = false;
+            tbxGuessWorkerNum.IsEnabled = false;
+
+            CheckGuessWorkerStatus();
+        }
+
+        void guessworker_FinishTask(GuessWorker seworker, string uid, string pwd, string status, bool has_idcard, int yue, int userpoint)
+        {
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.DoWork += new DoWorkEventHandler(guessworker_OnTaskFinish);
+            worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(guessworker_RunWorkerCompleted);
+            worker.RunWorkerAsync(new Tuple<GuessWorker, string, string, string, bool, int, int>(seworker, uid, pwd, status, has_idcard, yue, userpoint));
+        }
+
+        void guessworker_OnTaskFinish(object sender, DoWorkEventArgs e)
+        {
+            try
+            {
+                //var arg = e.Argument as Tuple<GuessWorker, string, string, string, bool, int, int>;
+                //GuessWorker seworker = arg.Item1;
+                //string uid = arg.Item2;
+                //string pwd = arg.Item3;
+                //string status = arg.Item4;
+                //bool has_idcard = arg.Item5;
+                //int yue = arg.Item6;
+                //int userpoint = arg.Item7;
+
+                //lock (m_saveGuessObjList)
+                //{
+                //    m_saveGuessObjList.Add(arg);
+                //}
+
+                //e.Result = arg;
+                e.Result = e.Argument;
+            }
+            catch (System.Exception ex)
+            {
+                m_logger.Error(ex.ToString());
+            }
+        }
+
+        void guessworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            var arg = e.Result as Tuple<GuessWorker, string, string, string, bool, int, int>;
+            GuessWorker guessworker = arg.Item1;
+            string uid = arg.Item2;
+            string pwd = arg.Item3;
+            string status = arg.Item4;
+            bool has_idcard = arg.Item5;
+            int yue = arg.Item6;
+            int userpoint = arg.Item7;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (status == "IP被封")
+                {
+                    if (guessworker.IpToken == m_IpToken)
+                    {
+                        m_logger.Debug("启动RebootRoutine.exe...");
+                        if (File.Exists("RebootRoutine.exe"))
+                        {
+                            Process pro = Process.Start("RebootRoutine.exe");
+                            pro.WaitForExit();
+                        }
+                        m_logger.Debug("RebootRoutine 退出!!");
+                        m_IpToken++;
+                    }
+                }
+                if (status == "查询成功")
+                {
+                    m_countOfGuessOk++;
+                    DataRow row = m_guessdataset.Tables[0].NewRow();
+                    row[guess_column_uid] = uid;
+                    row[guess_column_password] = pwd;
+                    row[guess_column_status] = status;
+                    row[guess_column_se_idcard] = has_idcard ? "有证" : "无证";
+                    row[guess_column_se_jifen] = userpoint;
+                    row[guess_column_se_balance] = yue;
+                    m_guessdataset.Tables[0].Rows.Add(row);
+                    lock (m_saveGuessObjList)
+                    {
+                        m_saveGuessObjList.Add(arg);
+                    }
+
+                    m_uidbacker.PushUid(uid, pwd, pwd, "guess");
+                }
+
+                m_countOfGuess++;
+                tbStatus.Text = string.Format("{0} {1} | 累积成功:{2}/{3} | ", uid, status, m_countOfGuessOk, m_countOfGuess);
+                tbxBeginValue.Text = m_GuessAccountPrefix + string.Format("{0:D" + m_numberOfDigit + "}", m_GuessBeginValue++);
+
+                try
+                {
+                    if (GuessWorker.KeepRunTime != 0 && btnStartCheckSafe.IsEnabled)
+                    {
+                        if (System.Environment.TickCount - GuessWorker.StartRunTime > GuessWorker.KeepRunTime)
+                        {
+                            btnStopSaohao.IsEnabled = false;
+                            MessageBox.Show("试用时间到了!!");
+                        }
+                    }
+
+                    if (btnStopSaohao.IsEnabled == true)
+                    {
+                        string next = GuessNextAccount(m_SaohaoSet);
+                        if (!string.IsNullOrEmpty(next))
+                        {
+                            guessworker.BeginTask(next.ToLower().Trim(), next.Trim(), null, m_IpToken);
+                        }
+                        else
+                        {
+                            guessworker.IsWorking = false;
+                            CheckGuessWorkerStatus();
+                        }
+                    }
+                    else
+                    {
+                        guessworker.IsWorking = false;
+                        CheckGuessWorkerStatus();
+                    }
+
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
+            }));
+        }
+
+        void CheckGuessWorkerStatus()
+        {
+            foreach (GuessWorker w in m_guessWorkers)
+            {
+                if (w.IsWorking == true)
+                {
+                    return;
+                }
+            }
+            btnStartSaohao.IsEnabled = true;
+            btnStopSaohao.IsEnabled = true;
+            tbxPrefixAccount.IsEnabled = true;
+            tbxBeginValue.IsEnabled = true;
+            tbxGuessWorkerNum.IsEnabled = true;
+        }
+
+        private void btnStopSaohao_Click(object sender, RoutedEventArgs e)
+        {
+            btnStopSaohao.IsEnabled = false;
+            CheckGuessWorkerStatus();
+        }
+
+        private void btnExportSaohao_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+            dlg.Filter = "保存类型 |*.txt";
+            dlg.FilterIndex = 1;
+            if (dlg.ShowDialog() == true)
+            {
+                using (FileStream fs = new FileStream(dlg.FileName, FileMode.Create))
+                {
+                    using (StreamWriter writer = new StreamWriter(fs))
+                    {
+                        for (int i = 0; i < m_guessdataset.Tables[0].Rows.Count; ++i)
+                        {
+                            string uid = m_guessdataset.Tables[0].Rows[i][guess_column_uid].ToString();
+                            string pwd = m_guessdataset.Tables[0].Rows[i][guess_column_password].ToString();
+                            string status = m_guessdataset.Tables[0].Rows[i][guess_column_status].ToString();
+                            string idcard = m_guessdataset.Tables[0].Rows[i][guess_column_se_idcard].ToString();
+                            string jifen = m_guessdataset.Tables[0].Rows[i][guess_column_se_jifen].ToString();
+                            string yue = m_guessdataset.Tables[0].Rows[i][guess_column_se_balance].ToString();
+
+                            writer.WriteLine(uid + "----" + pwd + "----" + status + "----" + idcard + "----" + jifen + "----" + yue);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void PreviewTextInput_NumberAndEnglish(object sender, TextCompositionEventArgs e)
+        {
+            Regex re = new Regex("[^\u4e00-\u9fa5a-z0-9.-]+");
+            e.Handled = re.IsMatch(e.Text);
+        }
+
+        private void PreviewTextInput_Number(object sender, TextCompositionEventArgs e)
+        {
+            Regex re = new Regex("[^\u4e00-\u9fa50-9.-]+");
+            e.Handled = re.IsMatch(e.Text);
+        }
+
+        private void btnCleanRecord_Click(object sender, RoutedEventArgs e)
+        {
+            m_guessdataset.Tables[0].Rows.Clear();
+            using (SQLiteCommand cmd = new SQLiteCommand(m_guessconn))
+            {
+                cmd.CommandText = "DELETE FROM " + guess_uidtable;
+
+                int effectOfCount = cmd.ExecuteNonQuery();
+                m_logger.Debug("clean {0} guess items!", effectOfCount);
             }
         }
     }
