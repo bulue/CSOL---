@@ -120,9 +120,7 @@ namespace PwcTool
 
         string m_GuessAccountPrefix;
         Int64 m_GuessBeginValue = 0;
-        Int64 m_curSaohaoCount = 0;
-        Int64 m_totalSaohaoCount = 0;
-        int m_SaohaoSet = 0;
+        int m_GuessSet = 0;
         int m_numberOfDigit = 0;
         int m_countOfGuess = 0;
         int m_countOfGuessOk = 0;
@@ -624,16 +622,25 @@ namespace PwcTool
                                     {
                                         using (SQLiteCommand cmd = new SQLiteCommand(m_guessconn))
                                         {
-                                            cmd.CommandText = "INSERT INTO " + guess_uidtable + " (uid,password,status,idcard,jifen,balance) VALUES(@uid,@pwd,@status,@idcard,@userpoint,@balance)";
-
-                                            cmd.Parameters.Add(new SQLiteParameter("@status", status));
+                                            cmd.CommandText = "select * from " + guess_uidtable + " where uid=@uid";
                                             cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
-                                            cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
-                                            cmd.Parameters.Add(new SQLiteParameter("@idcard", has_idcard ? "有证" : "无证"));
-                                            cmd.Parameters.Add(new SQLiteParameter("@userpoint", userpoint));
-                                            cmd.Parameters.Add(new SQLiteParameter("@balance", yue));
+                                            SQLiteDataReader reader = cmd.ExecuteReader();
+                                            if (!reader.HasRows)
+                                            {
+                                                using (SQLiteCommand cmd1 = new SQLiteCommand(m_guessconn))
+                                                {
+                                                    cmd1.CommandText = "INSERT INTO " + guess_uidtable + " (uid,password,status,idcard,jifen,balance) VALUES(@uid,@pwd,@status,@idcard,@userpoint,@balance)";
 
-                                            cmd.ExecuteNonQuery();                                        
+                                                    cmd1.Parameters.Add(new SQLiteParameter("@status", status));
+                                                    cmd1.Parameters.Add(new SQLiteParameter("@uid", uid));
+                                                    cmd1.Parameters.Add(new SQLiteParameter("@pwd", pwd));
+                                                    cmd1.Parameters.Add(new SQLiteParameter("@idcard", has_idcard ? "有证" : "无证"));
+                                                    cmd1.Parameters.Add(new SQLiteParameter("@userpoint", userpoint));
+                                                    cmd1.Parameters.Add(new SQLiteParameter("@balance", yue));
+
+                                                    cmd1.ExecuteNonQuery();
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1512,15 +1519,15 @@ namespace PwcTool
 
             if (rdbLetter.IsChecked == true)
             {
-                m_SaohaoSet = 26;
+                m_GuessSet = 26;
             }
             else if (rdbDigit.IsChecked == true)
             {
-                m_SaohaoSet = 10;
+                m_GuessSet = 10;
             }
             else
             {
-                m_SaohaoSet = 36;
+                m_GuessSet = 36;
             }
             m_GuessBeginValue = Convert.ToInt32(tbxBeginValue.Text);
             m_GuessAccountPrefix = tbxPrefixAccount.Text;
@@ -1536,7 +1543,7 @@ namespace PwcTool
                     m_guessWorkers.Add(worker);
                 }
 
-                string nextguess = GuessNextAccount(m_SaohaoSet);
+                string nextguess = GuessNextAccount(m_GuessSet);
                 m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
             }
 
@@ -1626,12 +1633,12 @@ namespace PwcTool
                         m_saveGuessObjList.Add(arg);
                     }
 
-                    m_uidbacker.PushUid(uid, pwd, pwd, "guess");
+                    m_uidbacker.PushUid(uid, pwd, "", "guess");
                 }
 
                 m_countOfGuess++;
                 tbStatus.Text = string.Format("{0} {1} | 累积成功:{2}/{3} | ", uid, status, m_countOfGuessOk, m_countOfGuess);
-                tbxBeginValue.Text = m_GuessAccountPrefix + string.Format("{0:D" + m_numberOfDigit + "}", m_GuessBeginValue++);
+                tbxBeginValue.Text = string.Format("{0:D" + m_numberOfDigit + "}", m_GuessBeginValue);
 
                 try
                 {
@@ -1646,10 +1653,18 @@ namespace PwcTool
 
                     if (btnStopSaohao.IsEnabled == true)
                     {
-                        string next = GuessNextAccount(m_SaohaoSet);
+                        string next = GuessNextAccount(m_GuessSet);
                         if (!string.IsNullOrEmpty(next))
                         {
-                            guessworker.BeginTask(next.ToLower().Trim(), next.Trim(), null, m_IpToken);
+                            if (cbxDigitMode.IsChecked == true)
+                            {
+                                string nextpwd = next.Substring(next.IndexOfAny(new char[]{'0','1','2','3','4','5','6','7','8','9'}));
+                                guessworker.BeginTask(next.ToLower().Trim(), nextpwd, null, m_IpToken);
+                            }
+                            else
+                            {
+                                guessworker.BeginTask(next.ToLower().Trim(), next.Trim(), null, m_IpToken);
+                            }
                         }
                         else
                         {

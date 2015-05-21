@@ -32,7 +32,7 @@
             </TabItem>
             <TabItem Header="自定义扫号" Name="tabItem3">
                 <Grid MinHeight="300" HorizontalAlignment="Stretch" >
-                    <TextBox Height="23" HorizontalAlignment="Left" Margin="174,33,0,0" Name="tbxBeginValue" VerticalAlignment="Top" Width="120" PreviewTextInput="PreviewTextInput_NumberAndEnglish" Text="005000" />
+                    <TextBox Height="23" HorizontalAlignment="Left" Margin="174,33,0,0" Name="tbxBeginValue" VerticalAlignment="Top" Width="120" PreviewTextInput="PreviewTextInput_Number" Text="005000" />
                     <TextBox Height="23" HorizontalAlignment="Left" Margin="46,33,0,0" Name="tbxPrefixAccount" VerticalAlignment="Top" Width="68" PreviewTextInput="PreviewTextInput_NumberAndEnglish" Text="a9" />
                     <TextBox Height="23" HorizontalAlignment="Left" Margin="873,33,0,0" Name="tbxGuessWorkerNum" VerticalAlignment="Top" Width="74" PreviewTextInput="PreviewTextInput_Number" Text="1" MaxLength="2" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="132,33,0,0" Name="textBlock6" Text="起始值" VerticalAlignment="Top" />
@@ -46,6 +46,7 @@
                     <Button Content="导出" Height="23" HorizontalAlignment="Left" Margin="793,72,0,0" Name="btnExportSaohao" VerticalAlignment="Top" Width="75" Click="btnExportSaohao_Click" InputMethod.PreferredImeState="On"/>
                     <Button Content="清理记录" Height="23" HorizontalAlignment="Left" Margin="883,72,0,0" Name="btnCleanRecord" VerticalAlignment="Top" Width="75" Click="btnCleanRecord_Click" />
                     <CheckBox Content="只要无证号" Height="16" HorizontalAlignment="Left" Margin="513,72,0,0" Name="cbxNoId" VerticalAlignment="Top" IsEnabled="False" />
+                    <CheckBox Content="数字密码" Height="16" HorizontalAlignment="Left" Margin="434,72,0,0" Name="cbxDigitMode" VerticalAlignment="Top" />
                     <TabControl Margin="11,101,6,31" Name="tabControl2" HorizontalAlignment="Stretch">
                         <TabItem Header="记录" Name="tabItem4">
                             <Grid  HorizontalAlignment="Stretch">
