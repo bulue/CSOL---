@@ -64,7 +64,7 @@ namespace PwcTool
             IsWorking = true;
             try
             {
-                m_logger.Debug("====Begin uid:" + uid + "this:" + this.GetHashCode());
+                m_logger.Debug("====Begin uid: " + uid + " this:" + this.GetHashCode());
                 string url = "http://passport.tiancity.com/login/login.aspx";
 
                 HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
@@ -379,7 +379,7 @@ namespace PwcTool
 
                         if (logRet == "1")
                         {
-                            m_logger.Debug("登录OK");
+                            m_logger.Debug("uid: {0} 登录OK", uid);
 
                             string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
                             HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
@@ -394,17 +394,17 @@ namespace PwcTool
                         }
                         else if (logRet == "7")
                         {
-                            m_logger.Debug("ip被封");
+                            m_logger.Debug("uid: {0} ip被封", uid);
                             TaskFinishInvoke(this, uid, pwd, newpwd, "IP被封");
                         }
                         else if (logRet == "4")
                         {
-                            m_logger.Info("uid:" + uid + "密码错误!");
+                            m_logger.Info("uid: " + uid + " 密码错误!");
                             TaskFinishInvoke(this, uid, pwd, newpwd, "密码错误");
                         }
                         else
                         {
-                            m_logger.Info("uid:" + uid + " 登录错误:" + logRet);
+                            m_logger.Info("uid: " + uid + " 登录错误: " + logRet);
                             TaskFinishInvoke(this, uid, pwd, newpwd, "登录错误:" + logRet);
                         }
                     }
@@ -418,14 +418,13 @@ namespace PwcTool
 
         void OnTryChangePwd_GetCaptchaUrl(IAsyncResult ar)
         {
+            var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
+            HttpWebRequest request = tuple.Item1;
+            string uid = tuple.Item2;
+            string pwd = tuple.Item3;
+            string newpwd = tuple.Item4;
             try
             {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
-                HttpWebRequest request = tuple.Item1;
-                string uid = tuple.Item2;
-                string pwd = tuple.Item3;
-                string newpwd = tuple.Item4;
-
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
                 AsyncRead(response.GetResponseStream(), new Action<byte[]>((buffer) =>
                 {
