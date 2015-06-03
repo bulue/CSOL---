@@ -48,7 +48,7 @@
             this.textBox_Code = new System.Windows.Forms.TextBox();
             this.SetCodeBtn = new System.Windows.Forms.Button();
             this.SetManageIpBtn = new System.Windows.Forms.Button();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.tbxMac = new System.Windows.Forms.TextBox();
             this.statusBar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -212,21 +212,20 @@
             this.SetManageIpBtn.UseVisualStyleBackColor = true;
             this.SetManageIpBtn.Click += new System.EventHandler(this.SetManageIpBtn_Click);
             // 
-            // textBox1
+            // tbxMac
             // 
-            this.textBox1.Location = new System.Drawing.Point(415, 9);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox1.Size = new System.Drawing.Size(134, 81);
-            this.textBox1.TabIndex = 25;
+            this.tbxMac.Location = new System.Drawing.Point(21, 305);
+            this.tbxMac.Name = "tbxMac";
+            this.tbxMac.ReadOnly = true;
+            this.tbxMac.Size = new System.Drawing.Size(100, 21);
+            this.tbxMac.TabIndex = 25;
             // 
             // csLoginTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(619, 376);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.tbxMac);
             this.Controls.Add(this.SetManageIpBtn);
             this.Controls.Add(this.SetCodeBtn);
             this.Controls.Add(this.textBox_Code);
@@ -245,6 +244,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "csLoginTool";
             this.Text = "csLoginTool";
+            this.Load += new System.EventHandler(this.csLoginTool_Load);
             this.statusBar.ResumeLayout(false);
             this.statusBar.PerformLayout();
             this.ResumeLayout(false);
@@ -272,7 +272,7 @@
         private System.Windows.Forms.TextBox textBox_Code;
         private System.Windows.Forms.Button SetCodeBtn;
         private System.Windows.Forms.Button SetManageIpBtn;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox tbxMac;
 
     }
 }

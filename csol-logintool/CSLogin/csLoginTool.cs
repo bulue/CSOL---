@@ -13,6 +13,9 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Microsoft.Win32;
 using System.Net;
+using System.Xml;
+using System.Security.Cryptography;
+using CommonQ;
 
 namespace CSLogin
 {
@@ -77,8 +80,8 @@ namespace CSLogin
             UnregisterHotKey(hwnd, hotKey_id);
         }
 #endregion
-
-        static string _logFileName = string.Format("{0:yyyyMMdd_HHmmss}.txt", DateTime.Now);
+        public static string GamePath = "";
+        static public Dictionary<string, string> Lg = new Dictionary<string, string>();
 
         private void Init()
         {
@@ -131,14 +134,19 @@ namespace CSLogin
             {
                 this.autoStartCkbox.Checked = true;
             }
-            Global.logger = new CLogger("log/log",new ShowLog(ShowLogFunc));
+            else
+            {
+
+            }
+
+            Global.logger.SetShowLogFunction(ShowLogFunc);
         }
 
-        public void ShowLogFunc(CLogger.eLoggerLevel l,string s)
+        public void ShowLogFunc(eLoggerLevel l,string s)
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new ShowLog(ShowLogFunc),l,s);
+                this.BeginInvoke(new Action<eLoggerLevel,string>(ShowLogFunc),l,s);
             }
             else
             {
@@ -211,7 +219,20 @@ namespace CSLogin
 
         private void StartLogin()
         {
-
+            GamePath = this.gamePath.Text;
+            //string path = csLoginTool.GamePath.Substring(0, csLoginTool.GamePath.LastIndexOf("\\") + 1) + "capt.jpg";
+            //if (File.Exists(path))
+            //{
+            //    byte[] img_buffer = File.ReadAllBytes(path);
+            //    MD5 md5 = new MD5CryptoServiceProvider();
+            //    byte[] md5_bytes = md5.ComputeHash(img_buffer, 0, img_buffer.Length);
+            //    string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
+            //    if (Lg.ContainsKey(md5_str))
+            //    {
+            //        MessageBox.Show("找到了!!!" + Lg[md5_str]);
+            //    }
+            //    return;
+            //}
             if (_logicThread != null)
             {
                 MessageBox.Show("线程已经启动了!!");
@@ -435,8 +456,22 @@ namespace CSLogin
 
         protected override void OnClosing(CancelEventArgs e)
         {
+            try
+            {
+                if (_loginManage.thread != null)
+                    _loginManage.thread.Abort();
+                CLogger.StopAllLoggers();
+            }
+            catch (System.Exception ex)
+            {
+            	
+            }
             base.OnClosing(e);
-            Global.logger.Stop();
+        }
+
+        private void csLoginTool_Load(object sender, EventArgs e)
+        {
+            tbxMac.Text = CommonApi.GetMacAddress();
         }
     }
 

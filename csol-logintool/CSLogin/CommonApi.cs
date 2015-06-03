@@ -126,6 +126,10 @@ namespace CSLogin
                 imageResult.Dispose();
                 g.Dispose();
 
+                //if (picFileName.IndexOf("验证码") > 0)
+                //{
+                //    Global.logger.Debug("验证码 bestValue = " + bestValue);
+                //}
                 //TraceInfo("图片 [" + picFileName + "] 耗时:" + (System.Environment.TickCount - ticks) + "ms.");
                 if (bestValue > approximation)
                 {

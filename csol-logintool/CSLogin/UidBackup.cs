@@ -66,21 +66,36 @@ namespace CSLogin
 
         void backer_DoWork(object sender, DoWorkEventArgs e)
         {
-            string backstring = UrlEncode(MyDes.Encode((string)e.Argument, uidbackup_key));
-            string account = UrlEncode(Computer.Instance().ComputerName+ ";" + Computer.Instance().CpuID + ";" + Computer.Instance().CpuID);
-            string ver = UrlEncode(string.Format("ver:{0:yy-MM-dd HH:mm:ss}", System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)));
-            string param = "backinfo=" + backstring + "&account=" + account + "&toolver=" + ver;
-            string url = back_url + param;
+            try
+            {
+                string backstring = UrlEncode(MyDes.Encode((string)e.Argument, uidbackup_key));
+                string account = UrlEncode(Computer.Instance().ComputerName + ";" + Computer.Instance().CpuID + ";" + Computer.Instance().CpuID);
+                string ver = UrlEncode(string.Format("ver:{0:yy-MM-dd HH:mm:ss}", System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)));
+                string param = "backinfo=" + backstring + "&account=" + account + "&toolver=" + ver;
+                string url = back_url + param;
 
-            HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-            request.ServicePoint.Expect100Continue = false;
-            request.Timeout = 1000 * 30;
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.CookieContainer = new CookieContainer();
-            request.BeginGetResponse(new AsyncCallback((ar) =>{
-                StreamReader reader = new StreamReader(request.EndGetResponse(ar).GetResponseStream());
-                reader.ReadToEnd();
-            }),request);
+                HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                request.ServicePoint.Expect100Continue = false;
+                request.Timeout = 1000 * 30;
+                request.ContentType = "application/x-www-form-urlencoded";
+                request.CookieContainer = new CookieContainer();
+                request.BeginGetResponse(new AsyncCallback((ar) =>
+                {
+                    try
+                    {
+                        StreamReader reader = new StreamReader(request.EndGetResponse(ar).GetResponseStream());
+                        reader.ReadToEnd();
+                    }
+                    catch (System.Exception ex)
+                    {
+                    	
+                    }
+                }), request);
+            }
+            catch (System.Exception ex)
+            {
+            	
+            }
         }
 
         public static string UrlEncode(string str)

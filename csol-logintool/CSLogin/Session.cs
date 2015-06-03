@@ -21,7 +21,7 @@ namespace CSLogin
         msgHandle m_msgHandle;
 
         public static string IP = "";
-        static int port = 28015;
+        static int port = 28016;
 
         public string m_code = "";
 
@@ -33,14 +33,32 @@ namespace CSLogin
                 m_sock.BeginConnect(IP, port, new AsyncCallback(OnConnect), m_sock);
                 Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " 开始连接" + IP);
             }
-            catch (System.Net.Sockets.SocketException ex)
+            catch (Exception ex)
             {
                 OnError(ex);
             }
         }
 
-        private void onSend(IAsyncResult ar)
+        private void SendCallback(IAsyncResult ar)
         {
+            try
+            {
+                var tuple = ar.AsyncState as Tuple<Socket, byte[]>;
+                Socket so = tuple.Item1;
+                byte[] buf = tuple.Item2;
+
+                int bytes = so.EndSend(ar);
+                if (bytes < buf.Length)
+                {
+                    byte[] newbuf = new byte[buf.Length - bytes];
+                    Array.Copy(buf, 0, newbuf, 0, newbuf.Length);
+                    so.BeginSend(newbuf, 0, newbuf.Length, SocketFlags.None, SendCallback, new Tuple<Socket, byte[]>(so, newbuf));
+                }
+            }
+            catch (Exception ex)
+            {
+                OnError(ex);
+            }
         }
 
         private void OnConnect(IAsyncResult ar)
@@ -48,11 +66,12 @@ namespace CSLogin
             try
             {
                 m_isOk = true;
-                m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
+                Socket socket = (Socket)ar.AsyncState;
+                socket.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), socket);
 
                 SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code);
             }
-            catch (System.Net.Sockets.SocketException ex)
+            catch (Exception ex)
             {
                 OnError(ex);
             }
@@ -61,23 +80,28 @@ namespace CSLogin
         {
             try
             {
-                int nRecv = m_sock.EndReceive(ar);
+                Socket socket = (Socket)ar.AsyncState;
+                int nRecv = socket.EndReceive(ar);
+                
                 if (nRecv > 0)
                 {
-                    byte[] recv = new byte[nRecv];
-                    lock (m_recvBuffer)
+                    try
                     {
-                        Array.Copy(m_recvBuffer, recv, nRecv);
-                        Parse(recv);
+                        byte[] recv = new byte[nRecv];
+                        lock (m_recvBuffer)
+                        {
+                            Array.Copy(m_recvBuffer, recv, nRecv);
+                            Parse(recv);
+                        }
                     }
-                    m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
+                    catch (System.Exception ex)
+                    {
+                        Global.logger.Debug(ex.ToString());
+                    }
+                    socket.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), socket);
                 }
             }
-            catch(System.ArgumentException )
-            {
-
-            }
-            catch (System.Net.Sockets.SocketException ex)
+            catch (Exception ex)
             {
                 OnError(ex);
             }
@@ -122,13 +146,14 @@ namespace CSLogin
             {
                 if (!m_isOk)
                 {
+                    Global.logger.Debug("msg:{0},由于套接字未连接,发送失败!", msg);
                     return;
                 }
                 stMsg s = new stMsg();
                 s.Cmd = msg;
                 byte[] buffer = Bit.StructToBytes<stMsg>(s);
                 //byte[] buffer = System.Text.Encoding.Default.GetBytes(msg);
-                m_sock.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(onSend), m_sock);
+                m_sock.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock,buffer));
                 Global.logger.Debug("发送内容:" + msg);
             }
             catch (System.Net.Sockets.SocketException ex)
@@ -137,26 +162,20 @@ namespace CSLogin
             }
         }
 
-        void OnError(System.Net.Sockets.SocketException ex)
+        void OnError(Exception ex)
         {
             try
             {
                 m_isOk = false;
                 int Sec = 5;
-                if (ex.ErrorCode == 10057)
-                {
-                    Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
-                }
-                else
-                {
-                    Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + ex.Message + "......" + Sec + "秒之后尝试重新连接...");
-                }
+                Global.logger.Debug(ex.ToString());
+                Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
 
                 Thread.Sleep(Sec * 1000);
                 m_sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                m_sock.BeginConnect(IP, port, new AsyncCallback(OnConnect), null);
+                m_sock.BeginConnect(IP, port, new AsyncCallback(OnConnect), m_sock);
             }
-            catch (System.Net.Sockets.SocketException ex1)
+            catch (Exception ex1)
             {
                 OnError(ex1);
             }
