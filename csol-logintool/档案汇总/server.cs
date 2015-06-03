@@ -14,7 +14,7 @@ namespace 档案汇总
         Socket m_Acceptor;
 
         string IP = GetLocalIp();
-        int port = 28015;
+        int port = 28016;
 
         static public bool bChanged = false;
 
@@ -55,10 +55,10 @@ namespace 档案汇总
                 lock (m_Clinets)
                 {
                     m_Clinets.Add(newClient);
-                    newClient.Start();
                     bChanged = true;
                 }
-                
+
+                newClient.Start();
                 acceptor.BeginAccept(new AsyncCallback(OnAcceptSocket), acceptor);
             }
             catch (System.Net.Sockets.SocketException ex)
@@ -85,7 +85,7 @@ namespace 档案汇总
             return localaddr.ToString();
         }
 
-        private void OnClientError(System.Net.Sockets.SocketException ex,Session s)
+        private void OnClientError(Exception ex,Session s)
         {
             lock (m_Clinets)
             {
@@ -102,12 +102,9 @@ namespace 档案汇总
         byte[] m_recvBuffer;
         List<byte> m_buffer;
 
-        public string m_mac;
-        public string m_code;
+        public string m_mac = "";
+        public string m_code = "";
 
-        int m_lastCheckTime;
-
-        static public msgHandle m_msgHandle;
         static public logHandle m_logHandle;
         static public errorHanle m_errorHandle;
 
@@ -132,7 +129,7 @@ namespace 档案汇总
             {
                 m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
             }
-            catch (System.Net.Sockets.SocketException ex)
+            catch (Exception ex)
             {
                 OnError(ex);
             }
@@ -151,7 +148,7 @@ namespace 档案汇总
                     m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
                 }
             }
-            catch (System.Net.Sockets.SocketException ex)
+            catch (Exception ex)
             {
                 OnError(ex);
             }
@@ -172,8 +169,9 @@ namespace 档案汇总
                     OnMsg(s.Cmd);
                     m_buffer.RemoveRange(0, Marshal.SizeOf(typeof(stMsg)));
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Global.logger.Debug("封包解析错误 :" + ex.ToString());
                     loopBreak = true;
                 }
 
@@ -197,34 +195,44 @@ namespace 档案汇总
                 stMsg s = new stMsg();
                 s.Cmd = msg;
                 byte[] buffer = Bit.StructToBytes<stMsg>(s);
-                m_sock.BeginSend(buffer,0,buffer.Length,SocketFlags.None,new AsyncCallback(SendCallback),null);
+                m_sock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock, buffer));
             }
             catch (System.Net.Sockets.SocketException ex)
             {
-                //OnError(ex);
+                OnError(ex);
             }
         }
 
         private void SendCallback(IAsyncResult ar)
         {
+            try
+            {
+                var tuple = ar.AsyncState as Tuple<Socket, byte[]>;
+                Socket so = tuple.Item1;
+                byte[] buf = tuple.Item2;
+
+                int bytes = so.EndSend(ar);
+                if (bytes < buf.Length)
+                {
+                    byte[] newbuf = new byte[buf.Length - bytes];
+                    Array.Copy(buf, 0, newbuf, 0, newbuf.Length);
+                    so.BeginSend(newbuf, 0, newbuf.Length, SocketFlags.None, SendCallback, new Tuple<Socket, byte[]>(so, newbuf));
+                }
+            }
+            catch (Exception ex)
+            {
+                OnError(ex);
+            }
         }
 
-        private void OnError(System.Net.Sockets.SocketException ex)
+        private void OnError(Exception ex)
         {
-            if (m_logHandle != null)
-            {
-                m_logHandle(ex.ToString());
-            }
 
-            if (ex.SocketErrorCode == SocketError.ConnectionReset
-                || ex.SocketErrorCode == SocketError.ConnectionAborted)
-            {
-                m_errorHandle(ex, this);
-            }
+           Global.logger.Debug("客户连接断开:{0},mac{1},远程机代号:{2};{3}", handle.RemoteEndPoint.ToString(), m_mac, m_code, ex.ToString());
+            m_errorHandle(ex, this);
         }
     }
 
-    delegate void msgHandle(string s,Session c);
     delegate void logHandle(string s);
-    delegate void errorHanle(System.Net.Sockets.SocketException ex,Session s);
+    delegate void errorHanle(Exception ex,Session s);
 }

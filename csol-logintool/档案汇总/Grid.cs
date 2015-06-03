@@ -15,6 +15,7 @@ using System.Net;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Net.NetworkInformation;
+using CommonQ;
 
 namespace 档案汇总
 {
@@ -62,6 +63,14 @@ namespace 档案汇总
             {
                 this.cbRoutineIp.Checked = true;
             }
+            if (IniReadValue("UI", "zone1") == "1")
+            {
+                this.rbZone1.Checked = true;
+            }
+            if (IniReadValue("UI", "zone2") == "1")
+            {
+                this.rbZone2.Checked = true;
+            }
 
             textBox_IP.Text = Sever.GetLocalIp();
 
@@ -74,7 +83,8 @@ namespace 档案汇总
             dgvUserData.CellMouseDown +=new DataGridViewCellMouseEventHandler(dataGridView_CellMouseUp);
             dgvUserData.DataError +=new DataGridViewDataErrorEventHandler(dataGridView_DataError);
 
-            Global.logger = new CLogger("manage_log/log", new ShowLog(ShowLogFunc));
+            Global.logger = CLogger.FromFolder("manage_log/log");
+            Global.logger.SetShowLogFunction(new Action<eLoggerLevel, string>(ShowLogFunc));
         }
 
         void dataGridView_DataError(object sender, DataGridViewDataErrorEventArgs e){}
@@ -211,7 +221,6 @@ namespace 档案汇总
             {
                 m_userinfos.Clear();
                 m_userinfolist.Clear();
-                m_runIdx = 0;
                 string[] s = (string[])e.Data.GetData(DataFormats.FileDrop, false);
                 for (int i = 0; i < s.Length; i++)
                 {
@@ -294,6 +303,7 @@ namespace 档案汇总
 
         private void SaveData()
         {
+            int bt = System.Environment.TickCount;
             XmlDocument doc = new XmlDocument();
             XmlDeclaration dec = doc.CreateXmlDeclaration("1.0", "GB2312", null);
             XmlElement root = doc.CreateElement("Data");
@@ -351,18 +361,15 @@ namespace 档案汇总
                 root.AppendChild(item);
             }
 
+            Global.logger.Debug("存档成功!!{0}ms", (System.Environment.TickCount - bt));
             doc.Save("Data.xml");
 
-            Print("存档成功!!");
-
             m_boNeedSaveData = false;
-            _lastSaveDataTime = DateTime.Now;
         }
 
         Dictionary<string, userinfo> m_userinfos = new Dictionary<string, userinfo>();
         Dictionary<string, userinfo> m_checkuserinfos;
         List<userinfo> m_userinfolist = new List<userinfo>();
-        int m_runIdx = 0;
 
         private void LoadData()
         {
@@ -670,7 +677,6 @@ namespace 档案汇总
                 Print("开始监听...");
 
                 timer_StatusBarRefresh.Start();
-                timer_FlushTextbox.Start();
                 tmReboot.Start();
 
 
@@ -764,6 +770,9 @@ namespace 档案汇总
         }
 
         working_state _working_state = working_state.normal;
+        Dictionary<int, int> speedCheck = new Dictionary<int, int>();
+        Dictionary<string, int> macCheck = new Dictionary<string, int>();
+        int _speedCount = 0;
 
         private void OnMsg_safe(string s,Session c)
         {
@@ -790,6 +799,7 @@ namespace 档案汇总
                                 string rMac = (string)row.Cells["sMac"].Value;
                                 if (rMac == mac)
                                 {
+                                    Global.logger.Debug("mac:{0}, ip({1}->{2})", rMac, c.handle.RemoteEndPoint.ToString(), row.Cells["sIP"].Value.ToString());
                                     row.Cells["sCode"].Value = code;
                                     row.Cells["sIP"].Value = c.handle.RemoteEndPoint.ToString();
                                     x = true;
@@ -799,6 +809,11 @@ namespace 档案汇总
                             if (x == false)
                             {
                                 dgvSession.Rows.Add(c.handle.RemoteEndPoint.ToString(), code, mac, "已连接",null ,null, DateTime.Now.ToLocalTime(), "断开","重启");
+                            }
+
+                            if (!macCheck.ContainsKey(mac))
+                            {
+                                macCheck.Add(mac, 1);
                             }
                         }break;
                     case "1":
@@ -836,8 +851,10 @@ namespace 档案汇总
                                             nLoop = 0;
                                             foreach (var info in m_checkuserinfos.Values)
                                             {
-                                                if (nLoop++ > 50) break;
-                                                if (info.bocheck == 0 && info.status == "签到失败" && info.failedcount <= 1 && !m_Token.ContainsValue(info.username))
+                                                if (nLoop++ > 300) break;
+                                                if (info.bocheck == 0 && info.status == "签到失败" 
+                                                    && info.failedcount <= 1 
+                                                    && !m_Token.ContainsValue(info.username))
                                                 {
                                                     accName = info.username;
                                                     break;
@@ -850,8 +867,10 @@ namespace 档案汇总
                                             {
                                                 foreach (var info in m_checkuserinfos.Values)
                                                 {
-                                                    if (nLoop++ > 50) break;
-                                                    if (info.bocheck == 0 && (info.status == null || info.status == "") && !m_Token.ContainsValue(info.username))
+                                                    if (nLoop++ > 300) break;
+                                                    if (info.bocheck == 0 
+                                                        && (info.status == null || info.status == "") 
+                                                        && !m_Token.ContainsValue(info.username))
                                                     {
                                                         accName = info.username;
                                                         break;
@@ -865,8 +884,10 @@ namespace 档案汇总
                                             {
                                                 foreach (var info in m_checkuserinfos.Values)
                                                 {
-                                                    if (nLoop++ > 50) break;
-                                                    if (info.bocheck == 0 && info.status == "签到失败" && !m_Token.ContainsValue(info.username))
+                                                    if (nLoop++ > 300) break;
+                                                    if (info.bocheck == 0 
+                                                        && info.status == "签到失败" 
+                                                        && !m_Token.ContainsValue(info.username))
                                                     {
                                                         accName = info.username;
                                                         break;
@@ -944,7 +965,12 @@ namespace 档案汇总
                                 {
                                     m_Token.Add(token, accName);
                                 }
-                                c.Send("2$" + accName + "$" + passWord);
+                                c.Send("2$" + accName + "$" + passWord + "$" + (rbZone1.Checked?"1":"2"));
+
+                                Global.logger.Debug("socket:{0};ip:{1};({2}->{3})",c.handle.GetHashCode()
+                                    , c.handle.RemoteEndPoint.ToString()
+                                    , token
+                                    , accName);
                             }
 
                         } break;
@@ -1067,7 +1093,37 @@ namespace 档案汇总
                                 }
                             }
 
-                            sbTotalCount.Text = "进度:" + (m_userinfos.Count - m_checkuserinfos.Count) + "/" + m_userinfos.Count;
+                            int nowTick = System.Environment.TickCount / 1000;
+                            if (speedCheck.ContainsKey(nowTick))
+                            {
+                                speedCheck[nowTick]++;
+                            }
+                            else
+                            {
+                                speedCheck.Add(nowTick, 1);
+                            }
+
+                            int speed = 0;
+                            if (speedCheck.Count > 5)
+                            {
+                                int r = 0;
+                                foreach (int t in speedCheck.Keys)
+                                {
+                                    if (nowTick - t > 3)
+                                    {
+                                        r = t;
+                                    }
+                                    else{
+                                        speed += speedCheck[nowTick];
+                                    }
+                                }
+                                if (r != 0)
+                                    speedCheck.Remove(r);
+                            }
+
+                            _speedCount++;
+
+                            sbTotalCount.Text = String.Format("进度:({0})", (m_userinfos.Count - m_checkuserinfos.Count));
 
                             //SaveData();
                             m_boNeedSaveData = true;
@@ -1122,9 +1178,25 @@ namespace 档案汇总
                             {
                                 if (Environment.TickCount - lastRountineChangeTime > 60 * 1000)
                                 {
-                                    Global.logger.Debug("登陆机遇到验证码,尝试换ip");
-                                    lastRountineChangeTime = Environment.TickCount;
-                                    ChangeRoutineIp();
+                                    //Global.logger.Debug("登陆机遇到验证码,尝试换ip");
+                                    //lastRountineChangeTime = Environment.TickCount;
+                                    //ChangeRoutineIp();
+                                    string endpoint = c.handle.RemoteEndPoint.ToString();
+                                    string ip = endpoint.Substring(0,endpoint.IndexOf(":"));
+                                    if (changeiptimestamp.ContainsKey(ip))
+                                    {
+                                        if ((System.Environment.TickCount - changeiptimestamp [ip]) > 60 * 1000)
+                                        {
+                                            Global.logger.Debug("{0} 要求重启ip !", endpoint);
+                                            changeiptimestamp[ip] = System.Environment.TickCount;
+                                            c.Send("102$changeip");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        changeiptimestamp.Add(ip, System.Environment.TickCount);
+                                        c.Send("102$changeip");
+                                    }
                                 }
                             }
                         }break;
@@ -1142,21 +1214,25 @@ namespace 档案汇总
         }
 
         int lastRountineChangeTime = 0;
+        Dictionary<string, int> changeiptimestamp = new Dictionary<string,int>();
 
-        private void ShowLogFunc(CLogger.eLoggerLevel c, string s)
+        private void ShowLogFunc(eLoggerLevel c, string s)
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new ShowLog(ShowLogFunc), c, s);
+                this.BeginInvoke(new Action<eLoggerLevel,string>(ShowLogFunc), c, s);
             }
             else
             {
-                textBox.Text += s;
-                textBox.Text += "\r\n";
-                if (textBox.Text.Length > 2000)
+                if (rlog.Items.Count > 500)
                 {
-                    textBox.Text = "";
+                    rlog.Items.Clear();
                 }
+                if (s.Length > 512)
+                {
+                    s = s.Substring(0, 512) + "...";
+                }
+                rlog.Items.Add(s);
             }
         }
 
@@ -1165,77 +1241,82 @@ namespace 档案汇总
             Global.logger.Debug(s);
         }
 
-        private void FlushToTextBox()
-        {
-            lock (m_textBoxBuffer)
-            {
-                if (m_textBoxBuffer.Length < 1048 * 10)
-                {
-                    if (textBox.Text.Length > 1048 * 10)
-                    {
-                        textBox.Text = "";
-                    }
-                    textBox.Text += m_textBoxBuffer;
-                }
-                else
-                {
-                    string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} Thread:{1} {2} {3}", DateTime.Now, Thread.CurrentThread.ManagedThreadId, "Warming", "日志数量巨大...跳过打印");
-                    textBox.Text += format_msg;
-                    textBox.Text += "\r\n";
-                }
+        //private void FlushToTextBox()
+        //{
+        //    lock (m_textBoxBuffer)
+        //    {
+        //        if (m_textBoxBuffer.Length < 1048 * 10)
+        //        {
+        //            if (textBox.Text.Length > 1048 * 10)
+        //            {
+        //                textBox.Text = "";
+        //            }
+        //            textBox.Text += m_textBoxBuffer;
+        //        }
+        //        else
+        //        {
+        //            string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} Thread:{1} {2} {3}", DateTime.Now, Thread.CurrentThread.ManagedThreadId, "Warming", "日志数量巨大...跳过打印");
+        //            textBox.Text += format_msg;
+        //            textBox.Text += "\r\n";
+        //        }
 
-                textBox.SelectionStart = textBox.Text.Length;  //设定光标位置
-                textBox.ScrollToCaret();
+        //        textBox.SelectionStart = textBox.Text.Length;  //设定光标位置
+        //        textBox.ScrollToCaret();
 
 
-                const string logDir = @".\Manage_Log";
-                if (!Directory.Exists(logDir))
-                {
-                    Directory.CreateDirectory(logDir);
-                }
+        //        const string logDir = @".\Manage_Log";
+        //        if (!Directory.Exists(logDir))
+        //        {
+        //            Directory.CreateDirectory(logDir);
+        //        }
 
-                try
-                {
-                    using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
-                    {
-                        writer.Write(m_textBoxBuffer);
-                    }
-                }
-                catch
-                {
+        //        try
+        //        {
+        //            using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
+        //            {
+        //                writer.Write(m_textBoxBuffer);
+        //            }
+        //        }
+        //        catch
+        //        {
 
-                }
+        //        }
 
-                m_textBoxBuffer = "";
-            }
-        }
+        //        m_textBoxBuffer = "";
+        //    }
+        //}
 
         Dictionary<string, string> m_Token = new Dictionary<string, string>();
-        static string logFileName = String.Format("{0:yyyyMMdd_HHmmss}.txt", DateTime.Now);
-        string m_textBoxBuffer = "";
 
         private void button1_Click(object sender, EventArgs e)
         {
-            textBox.Text = "";
+            rlog.Items.Clear();
         }
 
         private DateTime _lastClearDateTime = DateTime.Now;
+        private int _lastSendCheckMsg = System.Environment.TickCount;
 
         private void timer_StatusBarRefresh_Tick(object sender, EventArgs e)
         {
             lock(Sever.m_Clinets)
             {
-                for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                if (System.Environment.TickCount - _lastSendCheckMsg > 20* 60 * 1000)
                 {
-                    Session s = Sever.m_Clinets[i];
-                    s.Send("0");
+                    for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                    {
+                        Session s = Sever.m_Clinets[i];
+                        s.Send("0");
+                    }
+                    _lastSendCheckMsg = System.Environment.TickCount;
+                    Global.logger.Debug("----------心跳检测-------");
                 }
 
                 if (Sever.bChanged)
                 {
                     Sever.bChanged = false;
 
-                    StatusLab_SessionNum.Text = "当前连接:" + Sever.m_Clinets.Count;
+                    StatusLab_SessionNum.Text = String.Format("实际连接:{0},macc:{1},speed:{2}/秒", Sever.m_Clinets.Count, macCheck.Count, ((float)_speedCount) / 3);
+                    _speedCount = 0;
 
                     foreach (DataGridViewRow row in dgvSession.Rows)
                     {
@@ -1262,7 +1343,7 @@ namespace 档案汇总
 
             if (this.cbClearData.Checked == true)
             {
-                if (DateTime.Now.Hour == 6 && DateTime.Now.Minute == 0)
+                if (DateTime.Now.Hour == 0 && DateTime.Now.Minute == 0)
                 {
                     if (_lastClearDateTime.Day != DateTime.Now.Day
                         || _lastClearDateTime.Hour != DateTime.Now.Hour
@@ -1276,22 +1357,23 @@ namespace 档案汇总
             }
 
             if (m_boNeedSaveData &&
-                (DateTime.Now - _lastSaveDataTime).Seconds > 30)
+                (System.Environment.TickCount - _lastSaveDataTime) > 120*1000)
             {
                 SaveData();
+                _lastSaveDataTime = System.Environment.TickCount;
             }
         }
 
-        private DateTime _lastSaveDataTime = DateTime.Now;
+        private int _lastSaveDataTime = System.Environment.TickCount;
         private  bool m_boNeedSaveData = false;
 
-        private void timer_FlushTextbox_Tick(object sender, EventArgs e)
-        {
-            if (m_textBoxBuffer.Length > 0)
-            {
-                FlushToTextBox();
-            }
-        }
+        //private void timer_FlushTextbox_Tick(object sender, EventArgs e)
+        //{
+            //if (m_textBoxBuffer.Length > 0)
+            //{
+            //    FlushToTextBox();
+            //}
+        //}
 
         //导出数据
         private void button5_Click(object sender, EventArgs e)
@@ -1335,40 +1417,9 @@ namespace 档案汇总
                         fileTxt = "";
                     }
 
-                    //Stream file = dlg.OpenFile();
-                    //StreamWriter write = new StreamWriter(file);
-
-                    //string fileTxt = "";
-                    //foreach (userinfo info in m_userinfos.Values)
-                    //{
-                    //    fileTxt += info.username;
-
-                    //    fileTxt += "----";
-                    //    fileTxt += info.password == null ? "(NULL)" : info.password;
-
-                    //    fileTxt += "----";
-                    //    fileTxt += info.failedcount;
-
-                    //    fileTxt += "----";
-                    //    fileTxt += info.checktime == null ? "(NULL)" : info.checktime;
-
-                    //    fileTxt += "----";
-                    //    fileTxt += info.checktime == null ? "(NULL)" : info.checktime;
-
-                    //    write.WriteLine(fileTxt);
-
-                    //    fileTxt = "";
-                    //}
-
                     write.Flush();
                     write.Close();
                     file.Close();
-
-                    //Stream file = dlg.OpenFile();
-                    //StreamWriter write = new StreamWriter(file);
-                    //byte[] bytes = System.Text.Encoding.Default.GetBytes(fileTxt);
-                    //file.Write(bytes, 0, bytes.Length);
-                    //file.Close();
                 }
             }
             catch (System.Exception ex)
@@ -1573,74 +1624,83 @@ namespace 档案汇总
         {
             if (m_boNeedSaveData)
                 SaveData();
+            CLogger.StopAllLoggers();
             base.OnClosing(e);
-            Global.logger.Stop();
         }
 
 
         private void btnRoutineIp_Click(object sender, EventArgs e)
         {
-            ChangeRoutineIp();
+            lock (Sever.m_Clinets)
+            {
+                for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                {
+                    Session s = Sever.m_Clinets[i];
+
+                    Global.logger.Debug("测试通知客户机换ip!");
+                    s.Send("102$changeip");
+                 }
+            }
         }
 
         private void ChangeRoutineIp()
         {
-            BeginInvoke(new Action(RoutineIp_1));
+            
         }
 
-        private void RoutineIp_1()
-        {
-            do
-            {
-                byte[] recv = new byte[10024];
+        //private void RoutineIp_1()
+        //{
+        //    do
+        //    {
+        //        byte[] recv = new byte[10024];
 
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect("192.168.0.1", 80);
-                socket.Send(loginData);
+        //        Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        //        socket.Connect("192.168.0.1", 80);
+        //        socket.Send(loginData);
 
-                socket.Receive(recv);
-                socket.Receive(recv);
-            } while (false);
+        //        socket.Receive(recv);
+        //        socket.Receive(recv);
+        //    } while (false);
 
-            do
-            {
-                byte[] recv = new byte[10024];
+        //    do
+        //    {
+        //        byte[] recv = new byte[10024];
 
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect("192.168.0.1", 80);
-                socket.Send(disconnectData);
+        //        Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        //        socket.Connect("192.168.0.1", 80);
+        //        socket.Send(disconnectData);
 
-                socket.Receive(recv);
-                socket.Receive(recv);
-            } while (false);
+        //        socket.Receive(recv);
+        //        socket.Receive(recv);
+        //    } while (false);
 
-            Thread.Sleep(10000);
+        //    Thread.Sleep(10000);
 
-            do
-            {
-                byte[] recv = new byte[10024];
+        //    do
+        //    {
+        //        byte[] recv = new byte[10024];
 
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect("192.168.0.1", 80);
-                socket.Send(loginData);
+        //        Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        //        socket.Connect("192.168.0.1", 80);
+        //        socket.Send(loginData);
 
-                socket.Receive(recv);
-                socket.Receive(recv);
-            } while (false);
+        //        socket.Receive(recv);
+        //        socket.Receive(recv);
+        //    } while (false);
 
-            do
-            {
-                byte[] recv = new byte[10024];
+        //    do
+        //    {
+        //        byte[] recv = new byte[10024];
 
-                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                socket.Connect("192.168.0.1", 80);
-                socket.Send(connectData);
+        //        Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        //        socket.Connect("192.168.0.1", 80);
+        //        socket.Send(connectData);
 
-                socket.Receive(recv);
-                socket.Receive(recv);
+        //        socket.Receive(recv);
+        //        socket.Receive(recv);
 
-            } while (false); 
-        }
+        //    } while (false); 
+        //}
 
 
 #region 
@@ -1877,6 +1937,16 @@ namespace 档案汇总
             refreshGridView(ShowType.NOTCHECK);
             this.Cursor = Cursors.Default;
             btnShowNotCheck.Enabled = true;
+        }
+
+        private void rbZone1_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "zone1", "1");
+        }
+
+        private void rbZone2_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "zone2", "1");
         }
     }
 }

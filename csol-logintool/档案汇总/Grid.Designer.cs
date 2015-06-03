@@ -48,7 +48,6 @@
             this.Code = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
-            this.textBox = new System.Windows.Forms.TextBox();
             this.Menu_DeleteRow = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.MenuItem_DeleteRow = new System.Windows.Forms.ToolStripMenuItem();
             this.Menu_ClearCell = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -65,7 +64,6 @@
             this.StatusLab_SessionNum = new System.Windows.Forms.ToolStripStatusLabel();
             this.sbTotalCount = new System.Windows.Forms.ToolStripStatusLabel();
             this.timer_StatusBarRefresh = new System.Windows.Forms.Timer(this.components);
-            this.timer_FlushTextbox = new System.Windows.Forms.Timer(this.components);
             this.button5 = new System.Windows.Forms.Button();
             this.cbClearData = new System.Windows.Forms.CheckBox();
             this.cbFailedFirst = new System.Windows.Forms.CheckBox();
@@ -102,6 +100,9 @@
             this.btnShowOk = new System.Windows.Forms.Button();
             this.btnShowFailed = new System.Windows.Forms.Button();
             this.btnShowNotCheck = new System.Windows.Forms.Button();
+            this.rlog = new System.Windows.Forms.ListBox();
+            this.rbZone1 = new System.Windows.Forms.RadioButton();
+            this.rbZone2 = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -238,17 +239,6 @@
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.listenBtn_Click);
             // 
-            // textBox
-            // 
-            this.textBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBox.Location = new System.Drawing.Point(4, 514);
-            this.textBox.Multiline = true;
-            this.textBox.Name = "textBox";
-            this.textBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox.Size = new System.Drawing.Size(930, 157);
-            this.textBox.TabIndex = 5;
-            // 
             // Menu_DeleteRow
             // 
             this.Menu_DeleteRow.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -366,13 +356,8 @@
             // 
             // timer_StatusBarRefresh
             // 
-            this.timer_StatusBarRefresh.Interval = 1000;
+            this.timer_StatusBarRefresh.Interval = 3000;
             this.timer_StatusBarRefresh.Tick += new System.EventHandler(this.timer_StatusBarRefresh_Tick);
-            // 
-            // timer_FlushTextbox
-            // 
-            this.timer_FlushTextbox.Interval = 300;
-            this.timer_FlushTextbox.Tick += new System.EventHandler(this.timer_FlushTextbox_Tick);
             // 
             // button5
             // 
@@ -392,7 +377,7 @@
             this.cbClearData.Name = "cbClearData";
             this.cbClearData.Size = new System.Drawing.Size(72, 16);
             this.cbClearData.TabIndex = 12;
-            this.cbClearData.Text = "六点清零";
+            this.cbClearData.Text = "12点清零";
             this.cbClearData.UseVisualStyleBackColor = true;
             this.cbClearData.CheckedChanged += new System.EventHandler(this.cbClearData_CheckedChanged);
             // 
@@ -722,12 +707,50 @@
             this.btnShowNotCheck.UseVisualStyleBackColor = true;
             this.btnShowNotCheck.Click += new System.EventHandler(this.btnShowNotCheck_Click);
             // 
+            // rlog
+            // 
+            this.rlog.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.rlog.FormattingEnabled = true;
+            this.rlog.ItemHeight = 12;
+            this.rlog.Location = new System.Drawing.Point(0, 524);
+            this.rlog.Name = "rlog";
+            this.rlog.Size = new System.Drawing.Size(935, 160);
+            this.rlog.TabIndex = 22;
+            // 
+            // rbZone1
+            // 
+            this.rbZone1.AutoSize = true;
+            this.rbZone1.Checked = true;
+            this.rbZone1.Location = new System.Drawing.Point(397, 12);
+            this.rbZone1.Name = "rbZone1";
+            this.rbZone1.Size = new System.Drawing.Size(41, 16);
+            this.rbZone1.TabIndex = 23;
+            this.rbZone1.TabStop = true;
+            this.rbZone1.Text = "1区";
+            this.rbZone1.UseVisualStyleBackColor = true;
+            this.rbZone1.CheckedChanged += new System.EventHandler(this.rbZone1_CheckedChanged);
+            // 
+            // rbZone2
+            // 
+            this.rbZone2.AutoSize = true;
+            this.rbZone2.Location = new System.Drawing.Point(453, 12);
+            this.rbZone2.Name = "rbZone2";
+            this.rbZone2.Size = new System.Drawing.Size(41, 16);
+            this.rbZone2.TabIndex = 24;
+            this.rbZone2.Text = "2区";
+            this.rbZone2.UseVisualStyleBackColor = true;
+            this.rbZone2.CheckedChanged += new System.EventHandler(this.rbZone2_CheckedChanged);
+            // 
             // Grid
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1113, 741);
+            this.Controls.Add(this.rbZone2);
+            this.Controls.Add(this.rbZone1);
+            this.Controls.Add(this.rlog);
             this.Controls.Add(this.btnShowNotCheck);
             this.Controls.Add(this.btnShowFailed);
             this.Controls.Add(this.btnShowOk);
@@ -744,7 +767,6 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.textBox_IP);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.textBox);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -772,7 +794,6 @@
         private System.Windows.Forms.DataGridView dgvUserData;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.TextBox textBox;
         private System.Windows.Forms.ContextMenuStrip Menu_DeleteRow;
         private System.Windows.Forms.ToolStripMenuItem MenuItem_DeleteRow;
         private System.Windows.Forms.ContextMenuStrip Menu_ClearCell;
@@ -797,7 +818,6 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
         private System.Windows.Forms.ToolStripStatusLabel StatusLab_SessionNum;
         private System.Windows.Forms.Timer timer_StatusBarRefresh;
-        private System.Windows.Forms.Timer timer_FlushTextbox;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.CheckBox cbClearData;
         private System.Windows.Forms.CheckBox cbFailedFirst;
@@ -835,6 +855,9 @@
         private System.Windows.Forms.Button btnShowOk;
         private System.Windows.Forms.Button btnShowFailed;
         private System.Windows.Forms.Button btnShowNotCheck;
+        private System.Windows.Forms.ListBox rlog;
+        private System.Windows.Forms.RadioButton rbZone1;
+        private System.Windows.Forms.RadioButton rbZone2;
     }
 }
 
