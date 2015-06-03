@@ -84,6 +84,8 @@ namespace PwcTool
         const string status_pwderror = "密码错误";
         const string status_ok = "成功";
 
+        string[] queryResult = new string[] { "查询异常", "有证", "无证" };
+
         string m_safekey = "";
         string m_safedbpwd = "";
         string m_safelg = "";
@@ -148,7 +150,7 @@ namespace PwcTool
                     Environment.Exit(0);
                 }
 
-                this.Title = this.Title + " v" + App.version;
+                this.Title = this.Title + " v" + App.version + "." + App.subversion;
                 if (!String.IsNullOrEmpty(dlg.deadline_date))
                 {
                     this.Title = this.Title + " 到期时间[" + dlg.deadline_date + "]";
@@ -456,7 +458,7 @@ namespace PwcTool
                 m_saveObjList.Add(new Tuple<string, string, string>(uid, nowpwd, result));
             }
 
-            m_logger.Debug("add update:" + (System.Environment.TickCount - begintick) + "ms");
+            //m_logger.Debug("add update:" + (System.Environment.TickCount - begintick) + "ms");
 
             e.Result = new Tuple<CpWorker, string, string, string>(cpworker, uid, nowpwd, result);
         }
@@ -540,12 +542,12 @@ namespace PwcTool
                         {
                             for (int i = 0; i < csewaitsavelist.Count; ++i)
                             {
-                                var tuple = csewaitsavelist[i] as Tuple<SeWorker, string, string, string, bool, int, int>;
+                                var tuple = csewaitsavelist[i] as Tuple<SeWorker, string, string, string, int, int, int>;
                                 SeWorker seworker = tuple.Item1;
                                 string uid = tuple.Item2;
                                 string pwd = tuple.Item3;
                                 string status = tuple.Item4;
-                                bool has_idcard = tuple.Item5;
+                                int has_idcard = tuple.Item5;
                                 int yue = tuple.Item6;
                                 int userpoint = tuple.Item7;
 
@@ -560,7 +562,7 @@ namespace PwcTool
                                         cmd.Parameters.Add(new SQLiteParameter("@status", status));
                                         cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
                                         cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
-                                        cmd.Parameters.Add(new SQLiteParameter("@idcard", has_idcard ? "有证" : "无证"));
+                                        cmd.Parameters.Add(new SQLiteParameter("@idcard", queryResult[has_idcard]));
                                         cmd.Parameters.Add(new SQLiteParameter("@userpoint", userpoint));
                                         cmd.Parameters.Add(new SQLiteParameter("@balance", yue));
 
@@ -676,13 +678,13 @@ namespace PwcTool
                 {
                     if (cpwoker.IpToken == m_IpToken)
                     {
-                        m_logger.Debug("启动RebootRoutine.exe...");
                         if (File.Exists("RebootRoutine.exe"))
                         {
+                            m_logger.Debug("启动RebootRoutine.exe...");
                             Process pro= Process.Start("RebootRoutine.exe");
                             pro.WaitForExit();
+                            m_logger.Debug("RebootRoutine 退出!!");
                         }
-                        m_logger.Debug("RebootRoutine 退出!!");
                         m_IpToken++;
                     }
                 }
@@ -700,21 +702,20 @@ namespace PwcTool
 
                     if (btnStop.IsEnabled == true)
                     {
-                        DataRow nextuidrow = IteratorNextRow(m_pwcdataset.Tables[0], column_status, ref m_walkiterator);
-                        if (result == "IP被封")
+                        //if (result == "IP被封")
+                        //{
+                        //    cpwoker.BeginTaskChangePwd(uid, pwd, GetNewPassword(), m_IpToken);
+                        //    targetrow[column_status] = status_ready;
+                        //}
+                        //else
                         {
-                            cpwoker.BeginTaskChangePwd(uid, pwd, GetNewPassword(), m_IpToken);
-                            nextuidrow[column_status] = status_ready;
-                        }
-                        else
-                        {
+                            DataRow nextuidrow = IteratorNextRow(m_pwcdataset.Tables[0], column_status, ref m_walkiterator);
                             if (nextuidrow != null)
                             {
                                 string nextuid = (string)nextuidrow[column_uid];
                                 string nextpwd = (string)nextuidrow[column_password];
                                 string nextnewpwd = this.GetNewPassword();
                                 cpwoker.BeginTaskChangePwd(nextuid.ToLower().Trim(), nextpwd.Trim(), nextnewpwd, m_IpToken);
-                                cpwoker.IpToken = m_IpToken;
                                 nextuidrow[column_status] = status_ready;
                             }
                             else
@@ -1167,7 +1168,7 @@ namespace PwcTool
                 if (m_seworkers.Count <= i)
                 {
                     SeWorker worker = new SeWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
-                    worker.FinishTask += new Action<SeWorker, string, string, string, bool, int, int>(seworker_FinishTask);
+                    worker.FinishTask += new Action<SeWorker, string, string, string, int, int, int>(seworker_FinishTask);
                     m_seworkers.Add(worker);
                 }
 
@@ -1193,24 +1194,24 @@ namespace PwcTool
             CheckSeWorkerStatus();
         }
 
-        void seworker_FinishTask(SeWorker seworker, string uid, string pwd, string status, bool has_idcard, int yue, int userpoint)
+        void seworker_FinishTask(SeWorker seworker, string uid, string pwd, string status, int has_idcard, int yue, int userpoint)
         {
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += new DoWorkEventHandler(seworker_OnTaskFinish);
             worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(seworker_RunWorkerCompleted);
-            worker.RunWorkerAsync(new Tuple<SeWorker, string, string, string, bool, int, int>(seworker, uid, pwd, status, has_idcard, yue, userpoint));
+            worker.RunWorkerAsync(new Tuple<SeWorker, string, string, string, int, int, int>(seworker, uid, pwd, status, has_idcard, yue, userpoint));
         }
 
         void seworker_OnTaskFinish(object sender, DoWorkEventArgs e)
         {
             try
             {
-                var arg = e.Argument as Tuple<SeWorker, string, string, string, bool, int, int>;
+                var arg = e.Argument as Tuple<SeWorker, string, string, string, int, int, int>;
                 SeWorker seworker = arg.Item1;
                 string uid = arg.Item2;
                 string pwd = arg.Item3;
                 string status = arg.Item4;
-                bool has_idcard = arg.Item5;
+                int has_idcard = arg.Item5;
                 int yue = arg.Item6;
                 int userpoint = arg.Item7;
 
@@ -1229,12 +1230,12 @@ namespace PwcTool
 
         void seworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            var arg = e.Result as Tuple<SeWorker, string, string, string, bool, int, int>;
+            var arg = e.Result as Tuple<SeWorker, string, string, string, int, int, int>;
             SeWorker seworker = arg.Item1;
             string uid = arg.Item2;
             string pwd = arg.Item3;
             string status = arg.Item4;
-            bool has_idcard = arg.Item5;
+            int has_idcard = arg.Item5;
             int yue = arg.Item6;
             int userpoint = arg.Item7;
 
@@ -1258,7 +1259,7 @@ namespace PwcTool
                 targetrow[cse_column_status] = status;
                 if (status == "查询成功")
                 {
-                    targetrow[cse_column_se_idcard] = has_idcard ? "有证" : "无证";
+                    targetrow[cse_column_se_idcard] = queryResult[has_idcard];
                     targetrow[cse_column_se_jifen] = userpoint;
                     targetrow[cse_column_se_balance] = yue;
 
@@ -1280,12 +1281,12 @@ namespace PwcTool
                     if (btnStopCheckSafe.IsEnabled == true)
                     {
                         DataRow nextuidrow = IteratorNextRow(m_csedataset.Tables[0], cse_column_status, ref m_csewalkiterator);
-                        if (status == "IP被封")
-                        {
-                            seworker.BeginTask(uid, pwd, nextuidrow, m_IpToken);
-                            nextuidrow[cse_column_status] = status_ready;
-                        }
-                        else
+                        //if (status == "IP被封")
+                        //{
+                        //   seworker.BeginTask(uid, pwd, nextuidrow, m_IpToken);
+                        //   nextuidrow[cse_column_status] = status_ready;
+                        //}
+                        //else
                         {
                             if (nextuidrow != null)
                             {
@@ -1367,105 +1368,6 @@ namespace PwcTool
                     }
                 }
             }
-        }
-
-        bool isdigit(char c)
-        {
-            return c >= '0' && c <= '9';
-        }
-
-        bool isletter(char c)
-        {
-            return c >= 'a' && c <= 'z';
-        }
-
-        int to36int(char c)
-        {
-            if (isdigit(c))
-            {
-                return c - '0';
-            }
-            else if (isletter(c))
-            {
-                return c - 'a' + 10;
-            }
-            return 0;
-        }
-
-        int to26int(char c)
-        {
-            return c - 'a';
-        }
-
-        int to10int(char c)
-        {
-            return c - '0';
-        }
-
-        Int64 Cal36_sdiff(string b, string e)
-        {
-            const int hex = 36;
-            Int64 diff = 0;
-            for (int i = 0;i < e.Length; ++i)
-            {
-                int re = e.Length - i - 1;
-                int rb = b.Length - i - 1;
-                if (i < b.Length)
-                {
-                    diff *= hex;
-                    diff += to36int(e[re]) - to36int(b[rb]);
-                }
-                else
-                {
-                    diff *= hex;
-                    diff += to36int(e[re]);
-                }
-            }
-            return diff;
-        }
-
-        Int64 Cal26_sdiff(string b, string e)
-        {
-            const int hex = 26;
-            Int64 diff = 0;
-            for (int i = 0; i < e.Length; ++i)
-            {
-                int re = e.Length - i - 1;
-                int rb = b.Length - i - 1;
-                if (i < b.Length)
-                {
-                    diff *= hex;
-                    diff += to26int(e[re]) - to26int(b[rb]);
-                }
-                else
-                {
-                    diff *= hex;
-                    diff += to26int(e[re]);
-                }
-            }
-            return diff;
-        }
-
-        Int64 Cal10_sdiff(string b, string e)
-        {
-            const int hex = 10;
-            Int64 diff = 0;
-            for (int i = 0; i < e.Length; ++i)
-            {
-                int re = e.Length - i - 1;
-                int rb = b.Length - i - 1;
-                if (i < b.Length)
-                {
-                    diff *= hex;
-                    diff += to10int(e[re]) - to10int(b[rb]);
-                }
-                else
-                {
-                    diff *= hex;
-                    diff += to10int(e[re]);
-                }
-            }
-            return diff;
         }
 
         string GuessNextAccount(int saohaoset)
@@ -1607,13 +1509,17 @@ namespace PwcTool
                 {
                     if (guessworker.IpToken == m_IpToken)
                     {
-                        m_logger.Debug("启动RebootRoutine.exe...");
                         if (File.Exists("RebootRoutine.exe"))
                         {
+                            m_logger.Debug("启动RebootRoutine.exe...");
                             Process pro = Process.Start("RebootRoutine.exe");
                             pro.WaitForExit();
+                            m_logger.Debug("RebootRoutine 退出!!");
                         }
-                        m_logger.Debug("RebootRoutine 退出!!");
+                        else
+                        {
+                            MessageBox.Show("IP被封,RebootRoutine.exe文件不存在!");
+                        }
                         m_IpToken++;
                     }
                 }

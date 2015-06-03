@@ -13,5 +13,6 @@ namespace PwcTool
     public partial class App : Application
     {
         public static string version = "1.0.1";
+        public static string subversion = "b";
     }
 }

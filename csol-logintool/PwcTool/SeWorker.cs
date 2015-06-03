@@ -39,7 +39,7 @@ namespace PwcTool
         public Dictionary<string, string> m_lgcaptcha;
         public Dictionary<string, string> m_pwcaptcha;
 
-        public event Action<SeWorker,string, string, string, bool, int, int> FinishTask;
+        public event Action<SeWorker,string, string, string, int, int, int> FinishTask;
 
         const string md5js = "cstc.js";
         string m_safekey = "";
@@ -432,7 +432,9 @@ namespace PwcTool
                 string s = reader.ReadToEnd();
                 response.Close();
                 reader.Close();
-                bool has_idcard = true;
+                int has_idcard = 0;
+
+                int bt = System.Environment.TickCount;
 
                 string pattern = "[\\s\\S]*?真实姓名[\\s\\S]*?value=\"([^\"]*)\"";
                 Match mt = Regex.Match(s, pattern);
@@ -440,17 +442,28 @@ namespace PwcTool
                 {
                     if (string.IsNullOrEmpty(mt.Groups[1].ToString()))
                     {
-                        has_idcard = false;
+                        has_idcard = 1;
+                    }
+                    else
+                    {
+                        has_idcard = 2;
                     }
                 }
+                
+                int et = System.Environment.TickCount;
+                if (et - bt > 200){
+                    m_logger.Debug("OnTryGetIsIdCardSafe 超时{0}", (et - bt));
+                }
 
-                string url = "http://pay.tiancity.com/Wallet/UserService.aspx";
-                HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                next_request.ServicePoint.Expect100Continue = false;
-                next_request.Timeout = 1000 * 60;
-                next_request.ContentType = "application/x-www-form-urlencoded";
-                next_request.CookieContainer = request.CookieContainer;
-                next_request.BeginGetResponse(new AsyncCallback(OnTryGetYuEScore), new Tuple<HttpWebRequest, string, string, bool>(next_request, uid, pwd, has_idcard));
+                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, 0, 0);
+
+                //string url = "http://pay.tiancity.com/Wallet/UserService.aspx";
+                //HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                //next_request.ServicePoint.Expect100Continue = false;
+                //next_request.Timeout = 1000 * 60;
+                //next_request.ContentType = "application/x-www-form-urlencoded";
+                //next_request.CookieContainer = request.CookieContainer;
+                //next_request.BeginGetResponse(new AsyncCallback(OnTryGetYuEScore), new Tuple<HttpWebRequest, string, string, bool>(next_request, uid, pwd, has_idcard));
             }
             catch (System.Exception ex)
             {
@@ -475,6 +488,8 @@ namespace PwcTool
                 response.Close();
                 reader.Close();
 
+                int bt = System.Environment.TickCount;
+
                 if (!String.IsNullOrEmpty(s))
                 {
                     string pattern = "[^可用余额]*可用余额[^0-9]*([0-9]+)点";
@@ -483,6 +498,12 @@ namespace PwcTool
                     {
                         YuE = int.Parse(mt.Groups[1].ToString());
                     }
+                }
+
+                int et = System.Environment.TickCount;
+                if (et - bt > 200)
+                {
+                    m_logger.Debug("OnTryGetYuEScore 超时{0}", (et - bt));
                 }
 
                 string url = "http://pay.tiancity.com/Wallet/UserPoint.aspx";
@@ -517,6 +538,8 @@ namespace PwcTool
                 response.Close();
                 reader.Close();
 
+                int bt = System.Environment.TickCount;
+
                 if (!String.IsNullOrEmpty(s))
                 {
                     string pattern = "[^可用积分]*可用积分[^0-9]*([0-9]+)积分";
@@ -527,7 +550,13 @@ namespace PwcTool
                     }
                 }
 
-                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, userpoint);
+                int et = System.Environment.TickCount;
+                if (et - bt > 200)
+                {
+                    m_logger.Debug("OnTryGetYuEScore 超时{0}", (et - bt));
+                }
+
+                //TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, userpoint);
             }
             catch (System.Exception ex)
             {
@@ -536,7 +565,7 @@ namespace PwcTool
         }
 
 
-        void TaskFinishInvoke(SeWorker worker, string uid, string pwd, string ret,bool has_idcard = true,int yue = 0,int userpoint = 0)
+        void TaskFinishInvoke(SeWorker worker, string uid, string pwd, string ret,int has_idcard = 2,int yue = 0,int userpoint = 0)
         {
             if (FinishTask != null)
             {
