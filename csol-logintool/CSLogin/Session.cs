@@ -167,6 +167,9 @@ namespace CSLogin
             try
             {
                 m_isOk = false;
+                m_recvBuffer = new Byte[1024];
+                m_buffer = new List<byte>();
+
                 int Sec = 5;
                 Global.logger.Debug(ex.ToString());
                 Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
