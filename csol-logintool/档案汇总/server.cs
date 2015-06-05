@@ -51,17 +51,16 @@ namespace 档案汇总
             {
                 Socket acceptor = (Socket)ar.AsyncState;
                 Session newClient = new Session(acceptor.EndAccept(ar));
-
+                newClient.Start();
                 lock (m_Clinets)
                 {
                     m_Clinets.Add(newClient);
                     bChanged = true;
                 }
 
-                newClient.Start();
                 acceptor.BeginAccept(new AsyncCallback(OnAcceptSocket), acceptor);
             }
-            catch (System.Net.Sockets.SocketException ex)
+            catch (System.Exception ex)
             {
                 //Print(ex.ToString());
                 OnError(ex);
@@ -69,7 +68,7 @@ namespace 档案汇总
 
         }
 
-        private void OnError(System.Net.Sockets.SocketException ex)
+        private void OnError(System.Exception ex)
         {
             if (m_logHandle != null)
             {
@@ -105,6 +104,9 @@ namespace 档案汇总
         public string m_mac = "";
         public string m_code = "";
 
+        private int m_lastactivetime = 0;
+
+        static public msgHandle m_msgHandle;
         static public logHandle m_logHandle;
         static public errorHanle m_errorHandle;
 
@@ -123,10 +125,23 @@ namespace 档案汇总
             }
         }
 
+        public bool IsActive
+        {
+            get { return (System.Environment.TickCount - m_lastactivetime < 300 * 1000); }
+        }
+
+        public void Terminate()
+        {
+            handle.Shutdown(SocketShutdown.Both);
+            handle.Disconnect(false);
+            handle.Dispose();
+        }
+
         public void Start()
         {
             try
             {
+                m_lastactivetime = System.Environment.TickCount;
                 m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
             }
             catch (Exception ex)
@@ -139,6 +154,7 @@ namespace 档案汇总
         {
             try
             {
+                m_lastactivetime = System.Environment.TickCount;
                 int nRecv = m_sock.EndReceive(ar);
                 if (nRecv > 0)
                 {
@@ -146,6 +162,17 @@ namespace 档案汇总
                     Array.Copy(m_recvBuffer, recv, nRecv);
                     Parse(recv);
                     m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
+                }
+                else
+                {
+                    lock (Sever.m_Clinets)
+                    {
+                        Sever.bChanged = true;
+                        Sever.m_Clinets.Remove(this);
+                    }
+                    m_sock.Shutdown(SocketShutdown.Both);
+                    m_sock.Disconnect(false);
+                    m_sock.Dispose();
                 }
             }
             catch (Exception ex)
@@ -192,12 +219,13 @@ namespace 档案汇总
         {
             try
             {
+                m_lastactivetime = System.Environment.TickCount;
                 stMsg s = new stMsg();
                 s.Cmd = msg;
                 byte[] buffer = Bit.StructToBytes<stMsg>(s);
                 m_sock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock, buffer));
             }
-            catch (System.Net.Sockets.SocketException ex)
+            catch (Exception ex)
             {
                 OnError(ex);
             }
@@ -227,12 +255,12 @@ namespace 档案汇总
 
         private void OnError(Exception ex)
         {
-
-           Global.logger.Debug("客户连接断开:{0},mac{1},远程机代号:{2};{3}", handle.RemoteEndPoint.ToString(), m_mac, m_code, ex.ToString());
+            Global.logger.Debug("客户连接断开:{0},mac{1},远程机代号:{2};{3}", handle.RemoteEndPoint.ToString(), m_mac, m_code, ex.ToString());
             m_errorHandle(ex, this);
         }
     }
 
+    delegate void msgHandle(string s,Session c);
     delegate void logHandle(string s);
     delegate void errorHanle(Exception ex,Session s);
 }

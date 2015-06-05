@@ -151,6 +151,7 @@
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.dgvUserData.DefaultCellStyle = dataGridViewCellStyle2;
             this.dgvUserData.Location = new System.Drawing.Point(0, 0);
+            this.dgvUserData.Margin = new System.Windows.Forms.Padding(10);
             this.dgvUserData.Name = "dgvUserData";
             dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Control;
@@ -161,7 +162,7 @@
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvUserData.RowHeadersDefaultCellStyle = dataGridViewCellStyle3;
             this.dgvUserData.RowTemplate.Height = 23;
-            this.dgvUserData.Size = new System.Drawing.Size(1093, 448);
+            this.dgvUserData.Size = new System.Drawing.Size(1107, 448);
             this.dgvUserData.TabIndex = 0;
             // 
             // Account
@@ -220,7 +221,7 @@
             // button2
             // 
             this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(960, 553);
+            this.button2.Location = new System.Drawing.Point(955, 553);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 3;
@@ -231,7 +232,7 @@
             // button3
             // 
             this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button3.Location = new System.Drawing.Point(960, 524);
+            this.button3.Location = new System.Drawing.Point(955, 524);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(75, 23);
             this.button3.TabIndex = 4;
@@ -311,7 +312,7 @@
             // button1
             // 
             this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.Location = new System.Drawing.Point(960, 582);
+            this.button1.Location = new System.Drawing.Point(955, 582);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 8;
@@ -328,7 +329,7 @@
             this.sbTotalCount});
             this.statusStrip.Location = new System.Drawing.Point(0, 719);
             this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(1113, 22);
+            this.statusStrip.Size = new System.Drawing.Size(1127, 22);
             this.statusStrip.TabIndex = 9;
             this.statusStrip.Text = "statusStrip1";
             // 
@@ -362,7 +363,7 @@
             // button5
             // 
             this.button5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button5.Location = new System.Drawing.Point(960, 611);
+            this.button5.Location = new System.Drawing.Point(955, 611);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(75, 23);
             this.button5.TabIndex = 11;
@@ -395,7 +396,7 @@
             // btnClearLoginData
             // 
             this.btnClearLoginData.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClearLoginData.Location = new System.Drawing.Point(960, 640);
+            this.btnClearLoginData.Location = new System.Drawing.Point(955, 640);
             this.btnClearLoginData.Name = "btnClearLoginData";
             this.btnClearLoginData.Size = new System.Drawing.Size(75, 23);
             this.btnClearLoginData.TabIndex = 14;
@@ -415,7 +416,7 @@
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1101, 474);
+            this.tabControl1.Size = new System.Drawing.Size(1115, 474);
             this.tabControl1.TabIndex = 15;
             // 
             // tabPage1
@@ -424,7 +425,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1093, 448);
+            this.tabPage1.Size = new System.Drawing.Size(1107, 448);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "账号";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -435,7 +436,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1093, 448);
+            this.tabPage3.Size = new System.Drawing.Size(1107, 448);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "进度";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -485,7 +486,7 @@
             dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvProgress.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
             this.dgvProgress.RowTemplate.Height = 23;
-            this.dgvProgress.Size = new System.Drawing.Size(1097, 452);
+            this.dgvProgress.Size = new System.Drawing.Size(1107, 448);
             this.dgvProgress.TabIndex = 1;
             // 
             // dataGridViewTextBoxColumn1
@@ -547,7 +548,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1093, 448);
+            this.tabPage2.Size = new System.Drawing.Size(1107, 448);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "连接";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -570,10 +571,10 @@
             this.sLoginState,
             this.sDisconnect,
             this.reboot});
-            this.dgvSession.Location = new System.Drawing.Point(-3, 0);
+            this.dgvSession.Location = new System.Drawing.Point(0, 0);
             this.dgvSession.Name = "dgvSession";
             this.dgvSession.RowTemplate.Height = 23;
-            this.dgvSession.Size = new System.Drawing.Size(1096, 448);
+            this.dgvSession.Size = new System.Drawing.Size(1107, 448);
             this.dgvSession.TabIndex = 0;
             this.dgvSession.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSession_CellContentClick);
             // 
@@ -644,7 +645,7 @@
             // btnRoutineIp
             // 
             this.btnRoutineIp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRoutineIp.Location = new System.Drawing.Point(960, 669);
+            this.btnRoutineIp.Location = new System.Drawing.Point(955, 669);
             this.btnRoutineIp.Name = "btnRoutineIp";
             this.btnRoutineIp.Size = new System.Drawing.Size(75, 23);
             this.btnRoutineIp.TabIndex = 17;
@@ -666,7 +667,7 @@
             // btnRefreshGrid
             // 
             this.btnRefreshGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRefreshGrid.Location = new System.Drawing.Point(1038, 524);
+            this.btnRefreshGrid.Location = new System.Drawing.Point(1040, 524);
             this.btnRefreshGrid.Name = "btnRefreshGrid";
             this.btnRefreshGrid.Size = new System.Drawing.Size(75, 23);
             this.btnRefreshGrid.TabIndex = 1;
@@ -677,7 +678,7 @@
             // btnShowOk
             // 
             this.btnShowOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnShowOk.Location = new System.Drawing.Point(1041, 553);
+            this.btnShowOk.Location = new System.Drawing.Point(1040, 553);
             this.btnShowOk.Name = "btnShowOk";
             this.btnShowOk.Size = new System.Drawing.Size(75, 23);
             this.btnShowOk.TabIndex = 19;
@@ -688,7 +689,7 @@
             // btnShowFailed
             // 
             this.btnShowFailed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnShowFailed.Location = new System.Drawing.Point(1041, 582);
+            this.btnShowFailed.Location = new System.Drawing.Point(1040, 582);
             this.btnShowFailed.Name = "btnShowFailed";
             this.btnShowFailed.Size = new System.Drawing.Size(75, 23);
             this.btnShowFailed.TabIndex = 20;
@@ -699,7 +700,7 @@
             // btnShowNotCheck
             // 
             this.btnShowNotCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnShowNotCheck.Location = new System.Drawing.Point(1041, 611);
+            this.btnShowNotCheck.Location = new System.Drawing.Point(1040, 611);
             this.btnShowNotCheck.Name = "btnShowNotCheck";
             this.btnShowNotCheck.Size = new System.Drawing.Size(75, 23);
             this.btnShowNotCheck.TabIndex = 21;
@@ -715,7 +716,7 @@
             this.rlog.ItemHeight = 12;
             this.rlog.Location = new System.Drawing.Point(0, 524);
             this.rlog.Name = "rlog";
-            this.rlog.Size = new System.Drawing.Size(935, 160);
+            this.rlog.Size = new System.Drawing.Size(949, 160);
             this.rlog.TabIndex = 22;
             // 
             // rbZone1
@@ -747,7 +748,7 @@
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1113, 741);
+            this.ClientSize = new System.Drawing.Size(1127, 741);
             this.Controls.Add(this.rbZone2);
             this.Controls.Add(this.rbZone1);
             this.Controls.Add(this.rlog);

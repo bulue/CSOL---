@@ -63,11 +63,11 @@ namespace 档案汇总
             {
                 this.cbRoutineIp.Checked = true;
             }
-            if (IniReadValue("UI", "zone1") == "1")
+            if (IniReadValue("UI", "zone") == "1")
             {
                 this.rbZone1.Checked = true;
             }
-            if (IniReadValue("UI", "zone2") == "1")
+            else if (IniReadValue("UI", "zone") == "2")
             {
                 this.rbZone2.Checked = true;
             }
@@ -770,7 +770,6 @@ namespace 档案汇总
         }
 
         working_state _working_state = working_state.normal;
-        Dictionary<int, int> speedCheck = new Dictionary<int, int>();
         Dictionary<string, int> macCheck = new Dictionary<string, int>();
         int _speedCount = 0;
 
@@ -1092,38 +1091,8 @@ namespace 档案汇总
                                         info.logincode);
                                 }
                             }
-
-                            int nowTick = System.Environment.TickCount / 1000;
-                            if (speedCheck.ContainsKey(nowTick))
-                            {
-                                speedCheck[nowTick]++;
-                            }
-                            else
-                            {
-                                speedCheck.Add(nowTick, 1);
-                            }
-
-                            int speed = 0;
-                            if (speedCheck.Count > 5)
-                            {
-                                int r = 0;
-                                foreach (int t in speedCheck.Keys)
-                                {
-                                    if (nowTick - t > 3)
-                                    {
-                                        r = t;
-                                    }
-                                    else{
-                                        speed += speedCheck[nowTick];
-                                    }
-                                }
-                                if (r != 0)
-                                    speedCheck.Remove(r);
-                            }
-
                             _speedCount++;
-
-                            sbTotalCount.Text = String.Format("进度:({0})", (m_userinfos.Count - m_checkuserinfos.Count));
+                            sbTotalCount.Text = String.Format("进度:({0}/{1})", (m_userinfos.Count - m_checkuserinfos.Count), m_userinfos.Count);
 
                             //SaveData();
                             m_boNeedSaveData = true;
@@ -1200,7 +1169,18 @@ namespace 档案汇总
                                 }
                             }
                         }break;
-
+                     default:
+                        {
+                            Global.logger.Debug("收到异常消息:{0}", String.IsNullOrEmpty(s) ? "" : s);
+                            c.handle.Shutdown(SocketShutdown.Both);
+                            c.handle.Disconnect(false);
+                            c.handle.Dispose();
+                            lock(Sever.m_Clinets)
+                            {
+                                Sever.bChanged = true;
+                                Sever.m_Clinets.Remove(c);
+                            }
+                        }break;
                 }
             }
             catch (System.InvalidCastException)
@@ -1209,7 +1189,7 @@ namespace 档案汇总
             }
             catch (System.Exception ex)
             {
-                Print(ex.ToString());
+                Global.logger.Debug("DoCmdError:" + ex.ToString());
             }
         }
 
@@ -1295,44 +1275,46 @@ namespace 档案汇总
 
         private DateTime _lastClearDateTime = DateTime.Now;
         private int _lastSendCheckMsg = System.Environment.TickCount;
+        private int _lastCheckSessionConnect = System.Environment.TickCount;
+        private int _lastCheckSessionActive = System.Environment.TickCount;
 
         private void timer_StatusBarRefresh_Tick(object sender, EventArgs e)
         {
-            lock(Sever.m_Clinets)
-            {
-                if (System.Environment.TickCount - _lastSendCheckMsg > 20* 60 * 1000)
-                {
-                    for (int i = 0; i < Sever.m_Clinets.Count; ++i)
-                    {
-                        Session s = Sever.m_Clinets[i];
-                        s.Send("0");
-                    }
-                    _lastSendCheckMsg = System.Environment.TickCount;
-                    Global.logger.Debug("----------心跳检测-------");
-                }
 
+                //if (System.Environment.TickCount - _lastSendCheckMsg > 20* 60 * 1000)
+                //{
+                //    for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                //    {
+                //        Session s = Sever.m_Clinets[i];
+                //        s.Send("0");
+                //    }
+                //    _lastSendCheckMsg = System.Environment.TickCount;
+                //    Global.logger.Debug("----------心跳检测-------");
+                //}
+            if (System.Environment.TickCount - _lastCheckSessionConnect > 3 * 1000)
+            {
+                _lastCheckSessionConnect = System.Environment.TickCount;
                 if (Sever.bChanged)
                 {
                     Sever.bChanged = false;
-
-                    StatusLab_SessionNum.Text = String.Format("实际连接:{0},macc:{1},speed:{2}/秒", Sever.m_Clinets.Count, macCheck.Count, ((float)_speedCount) / 3);
-                    _speedCount = 0;
-
                     foreach (DataGridViewRow row in dgvSession.Rows)
                     {
-                        if (row.IsNewRow) 
+                        if (row.IsNewRow)
                             continue;
 
                         bool x = false;
-                        for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+
+                        lock (Sever.m_Clinets)
                         {
-                            if (Sever.m_Clinets[i].m_mac == row.Cells["sMac"].Value.ToString())
+                            for (int i = 0; i < Sever.m_Clinets.Count; ++i)
                             {
-                                row.Cells["sState"].Value = "良好";
-                                x = true;
+                                if (Sever.m_Clinets[i].m_mac == row.Cells["sMac"].Value.ToString())
+                                {
+                                    row.Cells["sState"].Value = "良好";
+                                    x = true;
+                                }
                             }
                         }
-
                         if (x == false)
                         {
                             row.Cells["sState"].Value = "已断开";
@@ -1340,6 +1322,36 @@ namespace 档案汇总
                     }
                 }
             }
+
+            if (System.Environment.TickCount - _lastCheckSessionActive > 60 * 1000)
+            {
+                _lastCheckSessionActive = System.Environment.TickCount;
+                lock (Sever.m_Clinets)
+                {
+                    Sever.m_Clinets.RemoveAll(delegate(Session s)
+                    {
+                        if (!s.IsActive)
+                        {
+                            Global.logger.Debug("session:{0},mac:{1},code:{2} 长时间不活动,主动断开连接"
+                                , s.handle.RemoteEndPoint.ToString(), s.m_mac, s.m_code);
+                            try
+                            {
+                                s.handle.Shutdown(SocketShutdown.Both);
+                            }
+                            catch (System.Exception ex)
+                            {
+                                Global.logger.Debug("Terminate Error:{0}", ex.ToString());
+                            }
+                            return true;
+                        }
+                        return false;
+                    });
+                }
+            }
+
+            StatusLab_SessionNum.Text = String.Format("实际连接:{0},macc:{1},speed:{2}/秒", 
+                Sever.m_Clinets.Count, macCheck.Count, ((float)_speedCount) / 3);
+            _speedCount = 0;
 
             if (this.cbClearData.Checked == true)
             {
@@ -1623,7 +1635,10 @@ namespace 档案汇总
         protected override void OnClosing(CancelEventArgs e)
         {
             if (m_boNeedSaveData)
+            {
                 SaveData();
+                Thread.Sleep(3000);
+            }
             CLogger.StopAllLoggers();
             base.OnClosing(e);
         }
@@ -1941,12 +1956,12 @@ namespace 档案汇总
 
         private void rbZone1_CheckedChanged(object sender, EventArgs e)
         {
-            IniWriteValue("UI", "zone1", "1");
+            IniWriteValue("UI", "zone", "1");
         }
 
         private void rbZone2_CheckedChanged(object sender, EventArgs e)
         {
-            IniWriteValue("UI", "zone2", "1");
+            IniWriteValue("UI", "zone", "2");
         }
     }
 }
