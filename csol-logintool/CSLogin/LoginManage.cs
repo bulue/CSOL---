@@ -766,48 +766,118 @@ namespace CSLogin
                                         //&& CheckInterLastTime(ref yanzhengma_Lastime, 2000 + _Rand(2000)) 
                                         && CommonApi.FindPic(sX + 352, sY + 255, 100, 50, @".\BMP\验证码.bmp", 0.97, out dx, out dy))
                                     {
-                                        m_client.SendMsg("6$" + "changeip$验证码");
-                                        Sleep(60 * 1000, "遇到验证码");
+                                        //m_client.SendMsg("6$" + "changeip$验证码");
+                                        //Sleep(60 * 1000, "遇到验证码");
 
-                                        SendLogFailed(_curAccInfo);
-                                        CommonApi.CloseWindow(hwnd);
+                                        //SendLogFailed(_curAccInfo);
+                                        //CommonApi.CloseWindow(hwnd);
 
-                                        _NextState = State.JieShu;
-                                        Sleep(1000, "关闭游戏");
+                                        //_NextState = State.JieShu;
+                                        //Sleep(1000, "关闭游戏");
 
-                                        //Global.logger.Debug("遇到验证码");
-                                        //string path = csLoginTool.GamePath.Substring(0, csLoginTool.GamePath.LastIndexOf("\\") + 1) + "capt.jpg";
-                                        //if (File.Exists(path))
-                                        //{
-                                        //    while (true)
-                                        //    {
-                                        //        Sleep(1000);
-                                        //        byte[] img_buffer = File.ReadAllBytes(path);
-                                        //        MD5 md5 = new MD5CryptoServiceProvider();
-                                        //        byte[] md5_bytes = md5.ComputeHash(img_buffer, 0, img_buffer.Length);
-                                        //        string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
-                                        //        if (csLoginTool.Lg.ContainsKey(md5_str))
-                                        //        {
-                                        //            CommonApi.Left_Click(dx + 125, dy + 200);
-                                        //            Sleep(200);
-                                        //            CommonApi.Left_Click(dx + 125, dy + 200);
-                                        //            Sleep(200);
-                                        //            SendKeys.SendWait("{Delete}");
-                                        //            Sleep(200);
-                                        //            SendKeys.SendWait(csLoginTool.Lg[md5_str]);
-                                        //            Sleep(1000);
-                                        //            CommonApi.Left_Click(dx + 144, dy + 265);
-                                        //            Sleep(200);
-                                        //            CommonApi.Left_Click(dx + 144, dy + 265);
-                                        //            Sleep(500);
-                                        //            break;
-                                        //        }
-                                        //        else
-                                        //        {
-                                        //            CommonApi.Left_Click(dx + 207, dy + 118);
-                                        //        }
-                                        //    }
-                                        //}
+                                        Global.logger.Debug("遇到验证码");
+                                        string path = csLoginTool.GamePath.Substring(0, csLoginTool.GamePath.LastIndexOf("\\") + 1) + "capt.jpg";
+                                        if (File.Exists(path))
+                                        {
+                                            while (true)
+                                            {
+                                                Sleep(1000);
+                                                byte[] img_buffer = File.ReadAllBytes(path);
+                                                MD5 md5 = new MD5CryptoServiceProvider();
+                                                byte[] md5_bytes = md5.ComputeHash(img_buffer, 0, img_buffer.Length);
+                                                string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
+                                                if (csLoginTool.Lg.ContainsKey(md5_str))
+                                                {
+                                                    CommonApi.Left_Click(dx + 125, dy + 200);
+                                                    Sleep(200);
+                                                    CommonApi.Left_Click(dx + 125, dy + 200);
+                                                    Sleep(200);
+                                                    SendKeys.SendWait("{Delete}");
+                                                    Sleep(200);
+                                                    SendKeys.SendWait(csLoginTool.Lg[md5_str]);
+                                                    Sleep(1000);
+                                                    CommonApi.Left_Click(dx + 144, dy + 265);
+                                                    Sleep(200);
+                                                    CommonApi.Left_Click(dx + 144, dy + 265);
+                                                    Sleep(500);
+
+                                                    int nowTick = System.Environment.TickCount;
+                                                    do 
+                                                    {
+                                                        if (!CommonApi.FindPic(sX + 352, sY + 255, 100, 50, @".\BMP\验证码.bmp", 0.97, out dx, out dy))
+                                                        {
+                                                            if (CommonApi.FindPic(x, y, w, h - 30, @".\BMP\密码错误.bmp", 0.99, out dx, out dy))
+                                                            {
+                                                                CommonApi.CloseWindow(hwnd);
+
+                                                                SendLogPasswordError(_curAccInfo);
+                                                                _NextState = State.JieShu;
+
+                                                                Sleep(3000, "密码错误,关闭游戏");
+
+                                                            }
+                                                            else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\密码有误停封.bmp", 0.99, out dx, out dy))
+                                                            {
+                                                                CommonApi.CloseWindow(hwnd);
+
+                                                                SendLogForbidden(_curAccInfo);
+                                                                _NextState = State.JieShu;
+
+                                                                Sleep(1000, "账号停封,关闭游戏");
+                                                            }
+                                                            else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\连续输入错误.bmp", 0.99, out dx, out dy))
+                                                            {
+                                                                CommonApi.CloseWindow(hwnd);
+
+                                                                m_client.SendMsg("6$" + "changeip$连续输入错误");
+                                                                Sleep(60 * 1000, "连续输入错误");
+
+                                                                SendLogFailed(_curAccInfo);
+
+                                                                _NextState = State.JieShu;
+                                                                Sleep(3000, "连续输入错误,关闭游戏");
+                                                            }
+                                                            else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\服务器连接中断.bmp", 0.99, out dx, out dy))
+                                                            {
+                                                                CommonApi.CloseWindow(hwnd);
+
+                                                                SendLogFailed(_curAccInfo);
+                                                                _NextState = State.JieShu;
+
+                                                                Sleep(3000, "服务器连接中断,关闭游戏");
+
+                                                            }
+                                                            else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\管理员中断.bmp", 0.97, out dx, out dy))
+                                                            {
+                                                                CommonApi.CloseWindow(hwnd);
+                                                                SendLogForbidden(_curAccInfo);
+                                                                _NextState = State.JieShu;
+
+                                                                Sleep(3000, "服务器连接中断,关闭游戏");
+                                                            }
+
+                                                            yanzhengma_Lastime = System.Environment.TickCount;
+                                                            xinbinbaodao_Lasttime = System.Environment.TickCount;
+                                                            wujuese_Lasttime = System.Environment.TickCount;
+                                                            queren_Lasttime = System.Environment.TickCount;
+                                                            quxiao_Lasttime = System.Environment.TickCount;
+                                                            mimacuowu_Lasttime = System.Environment.TickCount;
+                                                            tingfeng_Lasttime = System.Environment.TickCount;
+                                                            close_Lasttime = System.Environment.TickCount;
+                                                            wjdc_Lasttime = System.Environment.TickCount;
+
+                                                            break;
+                                                        }
+                                                        Sleep(2000);
+                                                    } while (System.Environment.TickCount - nowTick < 5 * 1000);
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    CommonApi.Left_Click(dx + 207, dy + 118);
+                                                }
+                                            }
+                                        }
                                         break;
                                     }
 

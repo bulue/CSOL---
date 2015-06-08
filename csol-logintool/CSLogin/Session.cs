@@ -69,7 +69,11 @@ namespace CSLogin
                 Socket socket = (Socket)ar.AsyncState;
                 socket.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), socket);
 
-                SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code);
+                SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
+                    , System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)
+                    , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
+                    , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
+                    , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build));
             }
             catch (Exception ex)
             {

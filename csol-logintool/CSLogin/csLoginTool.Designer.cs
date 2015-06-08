@@ -214,10 +214,10 @@
             // 
             // tbxMac
             // 
-            this.tbxMac.Location = new System.Drawing.Point(21, 305);
+            this.tbxMac.Location = new System.Drawing.Point(50, 305);
             this.tbxMac.Name = "tbxMac";
             this.tbxMac.ReadOnly = true;
-            this.tbxMac.Size = new System.Drawing.Size(100, 21);
+            this.tbxMac.Size = new System.Drawing.Size(124, 21);
             this.tbxMac.TabIndex = 25;
             // 
             // csLoginTool

@@ -22,7 +22,6 @@ namespace CSLogin
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-                Global.logger = CLogger.FromFolder("log/cslog");
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
                 if (args.Length >= 1 && args[0] == "-autostart")
