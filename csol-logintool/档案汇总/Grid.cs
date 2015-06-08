@@ -787,6 +787,11 @@ namespace 档案汇总
                         {
                             string mac = split[1];
                             string code = split[2];
+                            string ver = "";
+                            if (split.Length == 4)
+                            {
+                                ver = split[3];
+                            }
 
                             c.m_code = code;
                             c.m_mac = mac;
@@ -801,13 +806,14 @@ namespace 档案汇总
                                     Global.logger.Debug("mac:{0}, ip({1}->{2})", rMac, c.handle.RemoteEndPoint.ToString(), row.Cells["sIP"].Value.ToString());
                                     row.Cells["sCode"].Value = code;
                                     row.Cells["sIP"].Value = c.handle.RemoteEndPoint.ToString();
+                                    row.Cells["sVer"].Value = ver;
                                     x = true;
                                 }
                             }
 
                             if (x == false)
                             {
-                                dgvSession.Rows.Add(c.handle.RemoteEndPoint.ToString(), code, mac, "已连接",null ,null, DateTime.Now.ToLocalTime(), "断开","重启");
+                                dgvSession.Rows.Add(c.handle.RemoteEndPoint.ToString(), code, mac, "已连接",null ,null, DateTime.Now.ToLocalTime(), ver,"断开","重启");
                             }
 
                             if (!macCheck.ContainsKey(mac))
@@ -1145,27 +1151,26 @@ namespace 档案汇总
 
                             if (cbRoutineIp.Checked)
                             {
-                                if (Environment.TickCount - lastRountineChangeTime > 60 * 1000)
+                                Global.logger.Debug("IP:{0} code:{1} mac{2} 请求换ip"
+                                    , c.handle.RemoteEndPoint.ToString()
+                                    , c.m_code
+                                    , c.m_mac);
+                                string endpoint = c.handle.RemoteEndPoint.ToString();
+                                string ip = endpoint.Substring(0,endpoint.IndexOf(":"));
+                                if (changeiptimestamp.ContainsKey(ip))
                                 {
-                                    //Global.logger.Debug("登陆机遇到验证码,尝试换ip");
-                                    //lastRountineChangeTime = Environment.TickCount;
-                                    //ChangeRoutineIp();
-                                    string endpoint = c.handle.RemoteEndPoint.ToString();
-                                    string ip = endpoint.Substring(0,endpoint.IndexOf(":"));
-                                    if (changeiptimestamp.ContainsKey(ip))
+                                    if ((System.Environment.TickCount - changeiptimestamp [ip]) > 5 * 60 * 1000)
                                     {
-                                        if ((System.Environment.TickCount - changeiptimestamp [ip]) > 60 * 1000)
-                                        {
-                                            Global.logger.Debug("{0} 要求重启ip !", endpoint);
-                                            changeiptimestamp[ip] = System.Environment.TickCount;
-                                            c.Send("102$changeip");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        changeiptimestamp.Add(ip, System.Environment.TickCount);
+                                        Global.logger.Debug("(1)发送换ip命令 {0}!", endpoint);
+                                        changeiptimestamp[ip] = System.Environment.TickCount;
                                         c.Send("102$changeip");
                                     }
+                                }
+                                else
+                                {
+                                    Global.logger.Debug("(2)发送换ip命令 {0}!", endpoint);
+                                    changeiptimestamp.Add(ip, System.Environment.TickCount);
+                                    c.Send("102$changeip");
                                 }
                             }
                         }break;
@@ -1193,7 +1198,6 @@ namespace 档案汇总
             }
         }
 
-        int lastRountineChangeTime = 0;
         Dictionary<string, int> changeiptimestamp = new Dictionary<string,int>();
 
         private void ShowLogFunc(eLoggerLevel c, string s)
@@ -1328,6 +1332,7 @@ namespace 档案汇总
                 _lastCheckSessionActive = System.Environment.TickCount;
                 lock (Sever.m_Clinets)
                 {
+                    Global.logger.Debug("校验连接活跃度前:{0}", Sever.m_Clinets.Count);
                     Sever.m_Clinets.RemoveAll(delegate(Session s)
                     {
                         if (!s.IsActive)
@@ -1346,6 +1351,8 @@ namespace 档案汇总
                         }
                         return false;
                     });
+                    Sever.bChanged = true;
+                    Global.logger.Debug("校验连接活跃度后:{0}", Sever.m_Clinets.Count);
                 }
             }
 
