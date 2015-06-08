@@ -38,7 +38,6 @@
             this.textBox = new System.Windows.Forms.TextBox();
             this.autoStartCkbox = new System.Windows.Forms.CheckBox();
             this.autostartTimer = new System.Windows.Forms.Timer(this.components);
-            this.button2 = new System.Windows.Forms.Button();
             this.rebootTimer = new System.Windows.Forms.Timer(this.components);
             this.statusBar = new System.Windows.Forms.StatusStrip();
             this.CountdownTime = new System.Windows.Forms.ToolStripStatusLabel();
@@ -118,7 +117,7 @@
             // 
             this.autoStartCkbox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.autoStartCkbox.AutoSize = true;
-            this.autoStartCkbox.Location = new System.Drawing.Point(87, 277);
+            this.autoStartCkbox.Location = new System.Drawing.Point(21, 277);
             this.autoStartCkbox.Name = "autoStartCkbox";
             this.autoStartCkbox.Size = new System.Drawing.Size(96, 16);
             this.autoStartCkbox.TabIndex = 15;
@@ -129,21 +128,6 @@
             // autostartTimer
             // 
             this.autostartTimer.Tick += new System.EventHandler(this.autostartTime);
-            // 
-            // button2
-            // 
-            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button2.Location = new System.Drawing.Point(21, 277);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(44, 22);
-            this.button2.TabIndex = 17;
-            this.button2.Text = "重启";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
-            // 
-            // rebootTimer
-            // 
-            this.rebootTimer.Tick += new System.EventHandler(this.rebootTimer_Tick);
             // 
             // statusBar
             // 
@@ -214,7 +198,7 @@
             // 
             // tbxMac
             // 
-            this.tbxMac.Location = new System.Drawing.Point(50, 305);
+            this.tbxMac.Location = new System.Drawing.Point(21, 299);
             this.tbxMac.Name = "tbxMac";
             this.tbxMac.ReadOnly = true;
             this.tbxMac.Size = new System.Drawing.Size(124, 21);
@@ -233,7 +217,6 @@
             this.Controls.Add(this.textBox_IP);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.statusBar);
-            this.Controls.Add(this.button2);
             this.Controls.Add(this.autoStartCkbox);
             this.Controls.Add(this.textBox);
             this.Controls.Add(this.PauseBtn);
@@ -262,7 +245,6 @@
         private System.Windows.Forms.TextBox textBox;
         private System.Windows.Forms.CheckBox autoStartCkbox;
         private System.Windows.Forms.Timer autostartTimer;
-        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Timer rebootTimer;
         private System.Windows.Forms.StatusStrip statusBar;
         private System.Windows.Forms.ToolStripStatusLabel CountdownTime;

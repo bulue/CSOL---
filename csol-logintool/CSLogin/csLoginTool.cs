@@ -29,7 +29,6 @@ namespace CSLogin
         public IniFile _iniFile = new IniFile(@".\config.ini");
         private LoginManage _loginManage = null;
         bool _bAutoStart = false;
-        int _rebootTime = 0;
 #endregion
 
 #region API
@@ -362,65 +361,6 @@ namespace CSLogin
             this.autostartTimer.Stop();
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            countDownReboot dialog = new countDownReboot();
-
-            try
-            {
-                DialogResult dlgRet = dialog.ShowDialog();
-                if (dlgRet == DialogResult.OK)
-                {
-                    int hour = int.Parse(dialog.hour.Text);
-                    int min = int.Parse(dialog.min.Text);
-                    int sec = int.Parse(dialog.sec.Text);
-
-                    _rebootTime = hour * 3600 + min * 60 + sec;
-                    if (rebootTimer.Enabled == false)
-                    {
-                        rebootTimer.Start();
-                    }
-                }
-                else if (dlgRet == DialogResult.Abort)
-                {
-                    if (rebootTimer.Enabled == true)
-                    {
-                        rebootTimer.Stop();
-                    }
-                }
-                else if (dlgRet == DialogResult.Cancel)
-                {
-                    _rebootTime = 0;
-                    if (rebootTimer.Enabled == true)
-                    {
-                        rebootTimer.Stop();
-                    }
-                    CountdownTime.Text = "重启已经取消";
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "提示");
-            }
-        }
-
-        private void rebootTimer_Tick(object sender, EventArgs e)
-        {
-            if (_rebootTime > 0)
-            {
-                _rebootTime--;
-                int h = _rebootTime / 3600;
-                int m = (_rebootTime - h * 3600) / 60;
-                int s = _rebootTime - h * 3600 - m * 60;
-                CountdownTime.Text = string.Format("重启倒计时 {0:D2}:{1:D2}:{2:D2}", h, m, s);
-            }
-            else
-            {
-                rebootTimer.Stop();
-                System.Diagnostics.Process.Start("shutdown", @"/r");
-            }
-        }
-
         private void SetCodeBtn_Click(object sender, EventArgs e)
         {
             string s = textBox_Code.Text;
@@ -464,13 +404,9 @@ namespace CSLogin
         private void csLoginTool_Load(object sender, EventArgs e)
         {
             tbxMac.Text = CommonApi.GetMacAddress();
-            //if (File.Exists("lg.xml"))
-            //{
-            //    File.WriteAllBytes("conf",Encode(File.ReadAllText("lg.xml")));
-            //}
             if (File.Exists("conf"))
             {
-               string s = Decode(File.ReadAllBytes("conf"));
+               string s = ByteDes.Decode(File.ReadAllBytes("conf"));
                XmlDocument doc = new XmlDocument();
                doc.LoadXml(s);
 
@@ -500,52 +436,10 @@ namespace CSLogin
                 }
                 catch (System.Exception ex)
                 {
-                    Global.logger.Debug("启动连接错误:" + ex.ToString());
+                    Global.logger.Debug("启动腾达路由重连接:" + ex.ToString());
                 }
             }));
             m_RoutieThread.Start();
-        }
-
-
-        public static byte[] Encode(string data)
-        {
-            byte[] byKey = new byte[]{0x12,0x01,0xff,0x15,0x87,0x60,0x80,0xf1};
-            byte[] byIV = new byte[] { 0x12, 0x01, 0xff, 0x15, 0x87, 0x60, 0x80, 0xf1 };
-            DESCryptoServiceProvider cryptoProvider = new DESCryptoServiceProvider();
-            int i = cryptoProvider.KeySize;
-            MemoryStream ms = new MemoryStream();
-            CryptoStream cst = new CryptoStream(ms, cryptoProvider.CreateEncryptor(byKey, byIV), CryptoStreamMode.Write);
-            StreamWriter sw = new StreamWriter(cst);
-            sw.Write(data);
-            sw.Flush();
-            cst.FlushFinalBlock();
-            sw.Flush();
-            //return Convert.ToBase64String(ms.GetBuffer(), 0, (int)ms.Length);
-            byte[] retbuf = new byte[ms.Length];
-            Array.Copy(ms.GetBuffer(), retbuf, ms.Length);
-            return retbuf;
-        }
-        //解密
-        public static string Decode(byte[] data)
-        {
-            byte[] byKey = new byte[] { 0x12, 0x01, 0xff, 0x15, 0x87, 0x60, 0x80, 0xf1 };
-            byte[] byIV = new byte[] { 0x12, 0x01, 0xff, 0x15, 0x87, 0x60, 0x80, 0xf1 };
-            byte[] byEnc;
-            try
-            {
-                //byEnc = Convert.FromBase64String(data);
-                byEnc = new byte[data.Length];
-                Array.Copy(data, byEnc, data.Length);
-            }
-            catch
-            {
-                return null;
-            }
-            DESCryptoServiceProvider cryptoProvider = new DESCryptoServiceProvider();
-            MemoryStream ms = new MemoryStream(byEnc);
-            CryptoStream cst = new CryptoStream(ms, cryptoProvider.CreateDecryptor(byKey, byIV), CryptoStreamMode.Read);
-            StreamReader sr = new StreamReader(cst);
-            return sr.ReadToEnd();
         }
 
         #region

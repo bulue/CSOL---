@@ -65,4 +65,39 @@ namespace CommonQ
             }
         }
     }
+
+    class ByteDes
+    {
+        public static byte[] Encode(string data)
+        {
+            byte[] byKey = new byte[] { 0x12, 0x01, 0xff, 0x15, 0x87, 0x60, 0x80, 0xf1 };
+            byte[] byIV = new byte[] { 0x12, 0x01, 0xff, 0x15, 0x87, 0x60, 0x80, 0xf1 };
+            DESCryptoServiceProvider cryptoProvider = new DESCryptoServiceProvider();
+            int i = cryptoProvider.KeySize;
+            MemoryStream ms = new MemoryStream();
+            CryptoStream cst = new CryptoStream(ms, cryptoProvider.CreateEncryptor(byKey, byIV), CryptoStreamMode.Write);
+            StreamWriter sw = new StreamWriter(cst);
+            sw.Write(data);
+            sw.Flush();
+            cst.FlushFinalBlock();
+            sw.Flush();
+            //return Convert.ToBase64String(ms.GetBuffer(), 0, (int)ms.Length);
+            byte[] retbuf = new byte[ms.Length];
+            Array.Copy(ms.GetBuffer(), retbuf, ms.Length);
+            return retbuf;
+        }
+
+        public static string Decode(byte[] data)
+        {
+            byte[] byKey = new byte[] { 0x12, 0x01, 0xff, 0x15, 0x87, 0x60, 0x80, 0xf1 };
+            byte[] byIV = new byte[] { 0x12, 0x01, 0xff, 0x15, 0x87, 0x60, 0x80, 0xf1 };
+            byte[] byEnc = new byte[data.Length];
+            Array.Copy(data, byEnc, data.Length);
+            DESCryptoServiceProvider cryptoProvider = new DESCryptoServiceProvider();
+            MemoryStream ms = new MemoryStream(byEnc);
+            CryptoStream cst = new CryptoStream(ms, cryptoProvider.CreateDecryptor(byKey, byIV), CryptoStreamMode.Read);
+            StreamReader sr = new StreamReader(cst);
+            return sr.ReadToEnd();
+        }
+    }
 }
