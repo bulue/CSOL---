@@ -34,6 +34,7 @@ namespace PwcTool
         public string m_pw = "";
         public string m_dbpwd = "";
         public string deadline_date = "";
+        public int userlvl = 0;
 
         const string safe_key = "0x77ffbb";
         const string loginurl = "http://121.42.148.243/captcha.php?";
@@ -47,7 +48,8 @@ namespace PwcTool
             string computername = UrlFunction.UrlEncode(Computer.Instance().ComputerName);
             string isneedcaptcha = File.Exists(tbxUid.Text) ? "0" : "1";
             string url = loginurl + "username=" + tbxUid.Text + "&machineinfo=" + machineinfo + "&signature="
-                + m_safekey + "&cpname=" + computername + "&needcaptcha=" + isneedcaptcha +"&appversion=" + App.version;
+                + m_safekey + "&cpname=" + computername + "&needcaptcha=" + isneedcaptcha + "&appversion=" + App.version
+                + "&apptime=" + UrlFunction.UrlEncode(string.Format("{0:yy-MM-dd HH:mm:ss}", System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)));
           
             HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
             request.ServicePoint.Expect100Continue = false;
@@ -58,14 +60,49 @@ namespace PwcTool
             {
                 try
                 {
-                    StreamReader reader = new StreamReader(request.EndGetResponse(ar).GetResponseStream());
-                    JObject jsobj = JObject.Parse(reader.ReadToEnd());
+                    WebResponse response = request.EndGetResponse(ar);
+                    string con = response.Headers.Get("ContentSize");
+                    string html_str = "";
+                    if (!String.IsNullOrEmpty(response.Headers.Get("ContentSize")))
+                    {
+                        this.Dispatcher.BeginInvoke(new Action(() => {
+                            this.pbInit.Visibility = Visibility.Visible;
+                        }));
+                        int content_size = Convert.ToInt32(response.Headers.Get("ContentSize"));
+                        if (content_size > 0)
+                        {
+                            Stream stm = response.GetResponseStream();
+                            byte[] buf = new byte[content_size];
+                            int offset = 0;
+                            do
+                            {
+                                int bytes = stm.Read(buf, offset, Math.Min(buf.Length - offset,1024));
+                                offset += bytes;
+                                this.Dispatcher.BeginInvoke(new Action<double>((o) =>
+                                {
+                                    pbInit.Value = ((double)o) / content_size * 100.0;
+                                }), offset);
+
+                                if (bytes == 0) {
+                                    html_str = Encoding.GetEncoding("GB2312").GetString(buf);
+                                    break;
+                                }
+                            }while(true);
+                        }
+                    }
+                    else
+                    {
+                        StreamReader reader = new StreamReader(response.GetResponseStream());
+                        html_str = reader.ReadToEnd();
+                    }
+                    JObject jsobj = JObject.Parse(html_str);
                     if (jsobj["R"].ToString() == "登录成功")
                     {
                         m_lg = jsobj["lg"].ToString();
                         m_pw = jsobj["pw"].ToString();
                         m_dbpwd = jsobj["dbpwd"].ToString();
                         deadline_date = jsobj["deadline_date"].ToString();
+                        userlvl = Convert.ToInt32(jsobj["lvl"].ToString());
                         CpWorker.KeepRunTime = int.Parse(jsobj["deadline"].ToString()) * 1000;
 
                         this.Dispatcher.BeginInvoke(new Action(() =>
@@ -100,6 +137,8 @@ namespace PwcTool
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             webBrowser1.Navigate("http://121.42.148.243/softwareboard/board_pwctool.html?appverion="+App.version);
+            this.Title += " " + App.version + "." + App.subversion;
+            this.pbInit.Visibility = Visibility.Collapsed;
         }
     }
 }

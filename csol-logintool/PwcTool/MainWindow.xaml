@@ -30,11 +30,12 @@
                     <TextBox Height="22" HorizontalAlignment="Left" Margin="85,14,0,0" Name="tbxSeWorkerNumber" VerticalAlignment="Top" Width="46" MaxLength="2" Text="1" />
                 </Grid>
             </TabItem>
-            <TabItem Header="自定义扫号" Name="tabItem3">
+            <TabItem Header="账号寻回" Name="tabItem3">
                 <Grid MinHeight="300" HorizontalAlignment="Stretch" >
+                    <TextBlock Height="23" Text="警告:此功能只能用于寻回属于自己的账号,做其他用途的后果自负!" Margin="16,72,620,0" VerticalAlignment="Top"/>
                     <TextBox Height="23" HorizontalAlignment="Left" Margin="174,33,0,0" Name="tbxBeginValue" VerticalAlignment="Top" Width="120" PreviewTextInput="PreviewTextInput_Number" Text="005000" />
                     <TextBox Height="23" HorizontalAlignment="Left" Margin="46,33,0,0" Name="tbxPrefixAccount" VerticalAlignment="Top" Width="68" PreviewTextInput="PreviewTextInput_NumberAndEnglish" Text="a9" />
-                    <TextBox Height="23" HorizontalAlignment="Left" Margin="873,33,0,0" Name="tbxGuessWorkerNum" VerticalAlignment="Top" Width="74" PreviewTextInput="PreviewTextInput_Number" Text="1" MaxLength="2" />
+                    <TextBox Height="23" HorizontalAlignment="Left" Margin="873,33,0,0" Name="tbxGuessWorkerNum" VerticalAlignment="Top" Width="74" PreviewTextInput="PreviewTextInput_Number" Text="1" MaxLength="1" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="132,33,0,0" Name="textBlock6" Text="起始值" VerticalAlignment="Top" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="16,33,0,0" Name="textBlock7" Text="前缀" VerticalAlignment="Top" />
                     <RadioButton Content="全数字0-9" Height="16" HorizontalAlignment="Left" Margin="513,33,0,0" Name="rdbDigit" VerticalAlignment="Top" IsChecked="True" />

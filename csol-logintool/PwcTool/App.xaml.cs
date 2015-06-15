@@ -12,7 +12,11 @@ namespace PwcTool
     /// </summary>
     public partial class App : Application
     {
-        public static string version = "1.0.1";
-        public static string subversion = "b";
+        public static string version =string.Format("{1}.{2}.{3}"
+                , System.IO.File.GetLastWriteTime(System.Reflection.Assembly.GetExecutingAssembly().Location)
+                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
+                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
+                , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build);
+        public static string subversion = "c";
     }
 }

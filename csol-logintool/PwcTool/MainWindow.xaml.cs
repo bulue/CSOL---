@@ -92,6 +92,8 @@ namespace PwcTool
         string m_safepw = "";
         string m_constkey = "0xab3aff";
 
+        int m_userlvl = 0;
+
         Dictionary<string, string> m_lgcaptcha = new Dictionary<string, string>();
         Dictionary<string, string> m_pwcaptcha = new Dictionary<string, string>();
 
@@ -144,6 +146,7 @@ namespace PwcTool
                 m_safelg = dlg.m_lg;
                 m_safepw = dlg.m_pw;
                 m_safedbpwd = dlg.m_dbpwd;
+                m_userlvl = dlg.userlvl;
                 if (String.IsNullOrEmpty(account)
                     || String.IsNullOrEmpty(m_safedbpwd))
                 {
@@ -1085,6 +1088,11 @@ namespace PwcTool
             int completePortsThreads = 0;
             ThreadPool.GetMaxThreads(out workerThreads, out completePortsThreads);
             ThreadPool.SetMaxThreads(workerThreads*10, completePortsThreads*10);
+
+            if (m_userlvl == 0)
+            {
+                tabItem3.Visibility = Visibility.Collapsed;
+            }
         }
 
         void CheckUidSafeGrid_Drop(object sender, DragEventArgs e)

@@ -505,7 +505,7 @@ namespace PwcTool
                     string old_md5_str = md5_str;
                     md5_str = cs_md5(md5_str + Uid);
                     md5_str = cs_md5(md5_str + Matchinfo + old_md5_str);
-                    md5_str = cs_md5(md5_str + DBpwd + old_md5_str);
+                    md5_str = cs_md5(md5_str + DBpwd + old_md5_str + "c");
                     if (m_pwcaptcha.ContainsKey(md5_str))
                     {
                         string cap = m_pwcaptcha[md5_str];
