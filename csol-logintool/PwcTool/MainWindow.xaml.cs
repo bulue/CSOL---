@@ -1093,7 +1093,7 @@ namespace PwcTool
             {
                 tabItem3.Visibility = Visibility.Collapsed;
             }
-            if (m_userlvl == 2)
+            if (m_userlvl >= 2)
             {
                 tbxGuessWorkerNum.MaxLength = 2;
             }
