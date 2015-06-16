@@ -455,15 +455,15 @@ namespace PwcTool
                     m_logger.Debug("OnTryGetIsIdCardSafe 超时{0}", (et - bt));
                 }
 
-                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, 0, 0);
+                //TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, 0, 0);
 
-                //string url = "http://pay.tiancity.com/Wallet/UserService.aspx";
-                //HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                //next_request.ServicePoint.Expect100Continue = false;
-                //next_request.Timeout = 1000 * 60;
-                //next_request.ContentType = "application/x-www-form-urlencoded";
-                //next_request.CookieContainer = request.CookieContainer;
-                //next_request.BeginGetResponse(new AsyncCallback(OnTryGetYuEScore), new Tuple<HttpWebRequest, string, string, bool>(next_request, uid, pwd, has_idcard));
+                string url = "http://pay.tiancity.com/Wallet/UserService.aspx";
+                HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                next_request.ServicePoint.Expect100Continue = false;
+                next_request.Timeout = 1000 * 60;
+                next_request.ContentType = "application/x-www-form-urlencoded";
+                next_request.CookieContainer = request.CookieContainer;
+                next_request.BeginGetResponse(new AsyncCallback(OnTryGetYuEScore), new Tuple<HttpWebRequest, string, string, int>(next_request, uid, pwd, has_idcard));
             }
             catch (System.Exception ex)
             {
@@ -475,11 +475,11 @@ namespace PwcTool
         {
             try
             {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, bool>;
+                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, int>;
                 HttpWebRequest request = tuple.Item1;
                 string uid = tuple.Item2;
                 string pwd = tuple.Item3;
-                bool has_idcard = tuple.Item4;
+                int has_idcard = tuple.Item4;
                 int YuE = -1;
 
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
@@ -492,7 +492,7 @@ namespace PwcTool
 
                 if (!String.IsNullOrEmpty(s))
                 {
-                    string pattern = "[^可用余额]*可用余额[^0-9]*([0-9]+)点";
+                    string pattern = "可用余额[^0-9]*?([0-9]+)点";
                     Match mt = Regex.Match(s, pattern);
                     if (mt.Groups.Count == 2)
                     {
@@ -506,13 +506,15 @@ namespace PwcTool
                     m_logger.Debug("OnTryGetYuEScore 超时{0}", (et - bt));
                 }
 
-                string url = "http://pay.tiancity.com/Wallet/UserPoint.aspx";
-                HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                next_request.ServicePoint.Expect100Continue = false;
-                next_request.Timeout = 1000 * 60;
-                next_request.ContentType = "application/x-www-form-urlencoded";
-                next_request.CookieContainer = request.CookieContainer;
-                next_request.BeginGetResponse(new AsyncCallback(OnTryGetUserPoint), new Tuple<HttpWebRequest, string, string, bool, int>(next_request, uid, pwd, has_idcard, YuE));
+                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, -1);
+
+                //string url = "http://pay.tiancity.com/Wallet/UserPoint.aspx";
+                //HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                //next_request.ServicePoint.Expect100Continue = false;
+                //next_request.Timeout = 1000 * 60;
+                //next_request.ContentType = "application/x-www-form-urlencoded";
+                //next_request.CookieContainer = request.CookieContainer;
+                //next_request.BeginGetResponse(new AsyncCallback(OnTryGetUserPoint), new Tuple<HttpWebRequest, string, string, int, int>(next_request, uid, pwd, has_idcard, YuE));
             }
             catch (System.Exception ex)
             {
@@ -524,11 +526,11 @@ namespace PwcTool
         {
             try
             {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, bool, int>;
+                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, int, int>;
                 HttpWebRequest request = tuple.Item1;
                 string uid = tuple.Item2;
                 string pwd = tuple.Item3;
-                bool has_idcard = tuple.Item4;
+                int has_idcard = tuple.Item4;
                 int YuE = tuple.Item5;
                 int userpoint = -1;
 

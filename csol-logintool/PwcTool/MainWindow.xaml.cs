@@ -84,7 +84,7 @@ namespace PwcTool
         const string status_pwderror = "密码错误";
         const string status_ok = "成功";
 
-        string[] queryResult = new string[] { "查询异常", "有证", "无证" };
+        string[] queryResult = new string[] { "查询异常", "无证", "有证" };
 
         string m_safekey = "";
         string m_safedbpwd = "";
@@ -614,12 +614,12 @@ namespace PwcTool
                             {
                                 for (int i = 0; i < guesswaitsavelist.Count; ++i)
                                 {
-                                    var tuple = guesswaitsavelist[i] as Tuple<GuessWorker, string, string, string, bool, int, int>;
+                                    var tuple = guesswaitsavelist[i] as Tuple<GuessWorker, string, string, string, int, int, int>;
                                     GuessWorker seworker = tuple.Item1;
                                     string uid = tuple.Item2;
                                     string pwd = tuple.Item3;
                                     string status = tuple.Item4;
-                                    bool has_idcard = tuple.Item5;
+                                    int has_idcard = tuple.Item5;
                                     int yue = tuple.Item6;
                                     int userpoint = tuple.Item7;
 
@@ -639,7 +639,7 @@ namespace PwcTool
                                                     cmd1.Parameters.Add(new SQLiteParameter("@status", status));
                                                     cmd1.Parameters.Add(new SQLiteParameter("@uid", uid));
                                                     cmd1.Parameters.Add(new SQLiteParameter("@pwd", pwd));
-                                                    cmd1.Parameters.Add(new SQLiteParameter("@idcard", has_idcard ? "有证" : "无证"));
+                                                    cmd1.Parameters.Add(new SQLiteParameter("@idcard", queryResult[has_idcard]));
                                                     cmd1.Parameters.Add(new SQLiteParameter("@userpoint", userpoint));
                                                     cmd1.Parameters.Add(new SQLiteParameter("@balance", yue));
 
@@ -1093,6 +1093,10 @@ namespace PwcTool
             {
                 tabItem3.Visibility = Visibility.Collapsed;
             }
+            if (m_userlvl == 2)
+            {
+                tbxGuessWorkerNum.MaxLength = 2;
+            }
         }
 
         void CheckUidSafeGrid_Drop(object sender, DragEventArgs e)
@@ -1449,7 +1453,7 @@ namespace PwcTool
                 if (numOfWorkers >= m_guessWorkers.Count)
                 {
                     GuessWorker worker = new GuessWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
-                    worker.FinishTask += new Action<GuessWorker, string, string, string, bool, int, int>(guessworker_FinishTask);
+                    worker.FinishTask += new Action<GuessWorker, string, string, string, int, int, int>(guessworker_FinishTask);
                     m_guessWorkers.Add(worker);
                 }
 
@@ -1465,12 +1469,12 @@ namespace PwcTool
             CheckGuessWorkerStatus();
         }
 
-        void guessworker_FinishTask(GuessWorker seworker, string uid, string pwd, string status, bool has_idcard, int yue, int userpoint)
+        void guessworker_FinishTask(GuessWorker seworker, string uid, string pwd, string status, int has_idcard, int yue, int userpoint)
         {
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += new DoWorkEventHandler(guessworker_OnTaskFinish);
             worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(guessworker_RunWorkerCompleted);
-            worker.RunWorkerAsync(new Tuple<GuessWorker, string, string, string, bool, int, int>(seworker, uid, pwd, status, has_idcard, yue, userpoint));
+            worker.RunWorkerAsync(new Tuple<GuessWorker, string, string, string, int, int, int>(seworker, uid, pwd, status, has_idcard, yue, userpoint));
         }
 
         void guessworker_OnTaskFinish(object sender, DoWorkEventArgs e)
@@ -1502,12 +1506,12 @@ namespace PwcTool
 
         void guessworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            var arg = e.Result as Tuple<GuessWorker, string, string, string, bool, int, int>;
+            var arg = e.Result as Tuple<GuessWorker, string, string, string, int, int, int>;
             GuessWorker guessworker = arg.Item1;
             string uid = arg.Item2;
             string pwd = arg.Item3;
             string status = arg.Item4;
-            bool has_idcard = arg.Item5;
+            int has_idcard = arg.Item5;
             int yue = arg.Item6;
             int userpoint = arg.Item7;
 
@@ -1538,7 +1542,7 @@ namespace PwcTool
                     row[guess_column_uid] = uid;
                     row[guess_column_password] = pwd;
                     row[guess_column_status] = status;
-                    row[guess_column_se_idcard] = has_idcard ? "有证" : "无证";
+                    row[guess_column_se_idcard] = queryResult[has_idcard];
                     row[guess_column_se_jifen] = userpoint;
                     row[guess_column_se_balance] = yue;
                     m_guessdataset.Tables[0].Rows.Add(row);

