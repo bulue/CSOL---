@@ -45,10 +45,9 @@ namespace PwcTool
         string m_safekey = "";
 
         public bool IsWorking = false;
-
         public object workArgument;
-
-        public int IpToken = 0; 
+        public int IpToken = 0;
+        public bool QuerySafePoint = false;
 
         public SeWorker(Dictionary<string, string> lg, Dictionary<string, string> pw, string safekey)
         {
@@ -506,15 +505,21 @@ namespace PwcTool
                     m_logger.Debug("OnTryGetYuEScore 超时{0}", (et - bt));
                 }
 
-                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, -1);
-
-                //string url = "http://pay.tiancity.com/Wallet/UserPoint.aspx";
-                //HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                //next_request.ServicePoint.Expect100Continue = false;
-                //next_request.Timeout = 1000 * 60;
-                //next_request.ContentType = "application/x-www-form-urlencoded";
-                //next_request.CookieContainer = request.CookieContainer;
-                //next_request.BeginGetResponse(new AsyncCallback(OnTryGetUserPoint), new Tuple<HttpWebRequest, string, string, int, int>(next_request, uid, pwd, has_idcard, YuE));
+                if (!QuerySafePoint)
+                {
+                    TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, -1);
+                }
+                else
+                {
+                    string url = "http://aq.tiancity.com/";
+                    HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                    next_request.ServicePoint.Expect100Continue = false;
+                    next_request.Timeout = 1000 * 60;
+                    next_request.ContentType = "application/x-www-form-urlencoded";
+                    next_request.CookieContainer = request.CookieContainer;
+                    next_request.CookieContainer.Add(new Cookie("lx_user_guide", "1918551305", "/", "aq.tiancity.com"));
+                    next_request.BeginGetResponse(new AsyncCallback(OnTryGetUserSafePoint), new Tuple<HttpWebRequest, string, string, int, int>(next_request, uid, pwd, has_idcard, YuE));
+                }
             }
             catch (System.Exception ex)
             {
@@ -522,7 +527,7 @@ namespace PwcTool
             }
         }
 
-        void OnTryGetUserPoint(IAsyncResult ar)
+        void OnTryGetUserSafePoint(IAsyncResult ar)         //安全评分
         {
             try
             {
@@ -532,10 +537,10 @@ namespace PwcTool
                 string pwd = tuple.Item3;
                 int has_idcard = tuple.Item4;
                 int YuE = tuple.Item5;
-                int userpoint = -1;
+                int usersafepoint = -1;
 
                 HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(ar);
-                StreamReader reader = new StreamReader(response.GetResponseStream(),Encoding.GetEncoding("GB2312"));
+                StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.GetEncoding("utf-8"));
                 string s = reader.ReadToEnd();
                 response.Close();
                 reader.Close();
@@ -544,21 +549,21 @@ namespace PwcTool
 
                 if (!String.IsNullOrEmpty(s))
                 {
-                    string pattern = "[^可用积分]*可用积分[^0-9]*([0-9]+)积分";
+                    string pattern = "账号安全评分：</strong><strong class=\"fred2 f18 fyah mr1\">[^0-9]*?([0-9]+)";
                     Match mt = Regex.Match(s, pattern);
                     if (mt.Groups.Count == 2)
                     {
-                        userpoint = int.Parse(mt.Groups[1].ToString());
+                        usersafepoint = int.Parse(mt.Groups[1].ToString());
                     }
                 }
 
                 int et = System.Environment.TickCount;
                 if (et - bt > 200)
                 {
-                    m_logger.Debug("OnTryGetYuEScore 超时{0}", (et - bt));
+                    m_logger.Debug("OnTryGetUserSafePoint 超时{0}", (et - bt));
                 }
 
-                //TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, userpoint);
+                TaskFinishInvoke(this, uid, pwd, "查询成功", has_idcard, YuE, usersafepoint);
             }
             catch (System.Exception ex)
             {
@@ -567,11 +572,11 @@ namespace PwcTool
         }
 
 
-        void TaskFinishInvoke(SeWorker worker, string uid, string pwd, string ret,int has_idcard = 2,int yue = 0,int userpoint = 0)
+        void TaskFinishInvoke(SeWorker worker, string uid, string pwd, string ret,int has_idcard = 2,int yue = 0, int safepoint = 0)
         {
             if (FinishTask != null)
             {
-                FinishTask.Invoke(worker, uid, pwd, ret, has_idcard, yue, userpoint);
+                FinishTask.Invoke(worker, uid, pwd, ret, has_idcard, yue, safepoint);
             }
         }
 

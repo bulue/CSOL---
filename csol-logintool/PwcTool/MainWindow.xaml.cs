@@ -67,7 +67,8 @@ namespace PwcTool
         const string cse_column_se_issue = "issue";//密保问题
         const string cse_column_se_idcard = "idcard";//实名认证
         const string cse_column_se_balance = "balance";//账户余额
-        const string cse_column_se_jifen = "jifen"; //积分
+        //const string cse_column_se_jifen = "jifen"; //积分
+        const string cse_column_se_safepoint = "safepoint";
 
 
         const string guess_uidtable = "guess_uid";
@@ -239,7 +240,7 @@ namespace PwcTool
                     Int64 result = (Int64)cmd.ExecuteScalar();
                     if (result == 0)
                     {
-                        cmd.CommandText = "CREATE TABLE " + cse_uidtable + "(uid varchar(30) primary key,password varchar(50),status varchar(50),idcard varchar(50),jifen integer,balance integer)";
+                        cmd.CommandText = "CREATE TABLE " + cse_uidtable + "(uid varchar(30) primary key,password varchar(50),status varchar(50),idcard varchar(50),safepoint integer,balance integer)";
                         cmd.ExecuteNonQuery();
                     }
 
@@ -552,21 +553,21 @@ namespace PwcTool
                                 string status = tuple.Item4;
                                 int has_idcard = tuple.Item5;
                                 int yue = tuple.Item6;
-                                int userpoint = tuple.Item7;
+                                int safepoint = tuple.Item7;
 
                                 if (status == "查询成功")
                                 {
                                     using (SQLiteCommand cmd = new SQLiteCommand(m_cseconn))
                                     {
                                         cmd.CommandText = "UPDATE " + cse_uidtable + " SET " + cse_column_status + " = @status , " + cse_column_password + " = @pwd ,"
-                                            + cse_column_se_idcard + " = @idcard, " + cse_column_se_jifen + " = @userpoint," + cse_column_se_balance + " =@balance "
+                                            + cse_column_se_idcard + " = @idcard, " + cse_column_se_safepoint + " = @safepoint," + cse_column_se_balance + " =@balance "
                                             + " WHERE " + column_uid + " = @uid  ";
 
                                         cmd.Parameters.Add(new SQLiteParameter("@status", status));
                                         cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
                                         cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
                                         cmd.Parameters.Add(new SQLiteParameter("@idcard", queryResult[has_idcard]));
-                                        cmd.Parameters.Add(new SQLiteParameter("@userpoint", userpoint));
+                                        cmd.Parameters.Add(new SQLiteParameter("@safepoint", safepoint));
                                         cmd.Parameters.Add(new SQLiteParameter("@balance", yue));
 
                                         cmd.ExecuteNonQuery();
@@ -659,7 +660,7 @@ namespace PwcTool
                     }
                 } while (false);
 
-                Thread.Sleep(800);
+                Thread.Sleep(1000);
             }
         }
 
@@ -1093,7 +1094,7 @@ namespace PwcTool
             {
                 tabItem3.Visibility = Visibility.Collapsed;
             }
-            if (m_userlvl >= 2)
+            if (m_userlvl >= 100)
             {
                 tbxGuessWorkerNum.MaxLength = 2;
             }
@@ -1180,6 +1181,10 @@ namespace PwcTool
                 if (m_seworkers.Count <= i)
                 {
                     SeWorker worker = new SeWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
+                    if (m_userlvl >= 2)
+                    {
+                        worker.QuerySafePoint = true;
+                    }
                     worker.FinishTask += new Action<SeWorker, string, string, string, int, int, int>(seworker_FinishTask);
                     m_seworkers.Add(worker);
                 }
@@ -1206,33 +1211,33 @@ namespace PwcTool
             CheckSeWorkerStatus();
         }
 
-        void seworker_FinishTask(SeWorker seworker, string uid, string pwd, string status, int has_idcard, int yue, int userpoint)
+        void seworker_FinishTask(SeWorker seworker, string uid, string pwd, string status, int has_idcard, int yue, int safepoint)
         {
             BackgroundWorker worker = new BackgroundWorker();
             worker.DoWork += new DoWorkEventHandler(seworker_OnTaskFinish);
             worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(seworker_RunWorkerCompleted);
-            worker.RunWorkerAsync(new Tuple<SeWorker, string, string, string, int, int, int>(seworker, uid, pwd, status, has_idcard, yue, userpoint));
+            worker.RunWorkerAsync(new Tuple<SeWorker, string, string, string, int, int, int>(seworker, uid, pwd, status, has_idcard, yue, safepoint));
         }
 
         void seworker_OnTaskFinish(object sender, DoWorkEventArgs e)
         {
             try
             {
-                var arg = e.Argument as Tuple<SeWorker, string, string, string, int, int, int>;
-                SeWorker seworker = arg.Item1;
-                string uid = arg.Item2;
-                string pwd = arg.Item3;
-                string status = arg.Item4;
-                int has_idcard = arg.Item5;
-                int yue = arg.Item6;
-                int userpoint = arg.Item7;
+                //var arg = e.Argument as Tuple<SeWorker, string, string, string, int, int, int, int>;
+                //SeWorker seworker = arg.Item1;
+                //string uid = arg.Item2;
+                //string pwd = arg.Item3;
+                //string status = arg.Item4;
+                //int has_idcard = arg.Item5;
+                //int yue = arg.Item6;
+                //int safepoint = arg.Item7;
 
                 lock (m_saveSeObjList)
                 {
-                    m_saveSeObjList.Add(arg);
+                    m_saveSeObjList.Add(e.Argument);
                 }
 
-                e.Result = arg;
+                e.Result = e.Argument;
             }
             catch (System.Exception ex)
             {
@@ -1249,7 +1254,7 @@ namespace PwcTool
             string status = arg.Item4;
             int has_idcard = arg.Item5;
             int yue = arg.Item6;
-            int userpoint = arg.Item7;
+            int safepoint = arg.Item7;
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
@@ -1272,7 +1277,7 @@ namespace PwcTool
                 if (status == "查询成功")
                 {
                     targetrow[cse_column_se_idcard] = queryResult[has_idcard];
-                    targetrow[cse_column_se_jifen] = userpoint;
+                    targetrow[cse_column_se_safepoint] = safepoint;
                     targetrow[cse_column_se_balance] = yue;
 
                     m_uidbacker.PushUid(uid, pwd, pwd, "se");
@@ -1372,10 +1377,10 @@ namespace PwcTool
                             string pwd = m_csedataset.Tables[0].Rows[i][cse_column_password].ToString();
                             string status = m_csedataset.Tables[0].Rows[i][cse_column_status].ToString();
                             string idcard = m_csedataset.Tables[0].Rows[i][cse_column_se_idcard].ToString();
-                            string jifen = m_csedataset.Tables[0].Rows[i][cse_column_se_jifen].ToString();
+                            string safepoint = m_csedataset.Tables[0].Rows[i][cse_column_se_safepoint].ToString();
                             string yue = m_csedataset.Tables[0].Rows[i][cse_column_se_balance].ToString();
 
-                            writer.WriteLine(uid + "----" + pwd + "----" + status + "----" + idcard + "----" + jifen + "----" + yue);
+                            writer.WriteLine(uid + "----" + pwd + "----" + status + "----" + idcard + "----" + safepoint + "----" + yue);
                         }
                     }
                 }
