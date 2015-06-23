@@ -29,6 +29,7 @@ namespace CSLogin
         public IniFile _iniFile = new IniFile(@".\config.ini");
         private LoginManage _loginManage = null;
         bool _bAutoStart = false;
+        bool _bUpdate = true;
 #endregion
 
 #region API
@@ -166,7 +167,7 @@ namespace CSLogin
             base.OnLoad(e);
         }
 
-        public csLoginTool(bool bAutoStart)
+        public csLoginTool(bool bAutoStart, bool boUpdate)
         {
             InitializeComponent();
             Init();
@@ -176,6 +177,7 @@ namespace CSLogin
             {
                 this.WindowState = FormWindowState.Minimized;
             }
+            _bUpdate = boUpdate;
 
             instance = this;
         }
@@ -401,8 +403,22 @@ namespace CSLogin
             base.OnClosing(e);
         }
 
+        const string update_app = "update_v1.exe";
+
         private void csLoginTool_Load(object sender, EventArgs e)
         {
+            if (_bUpdate)
+            {
+                if (File.Exists(update_app))
+                {
+                    Process.Start(update_app, "-autostart -autoclose");
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    Global.logger.Debug("update 不存在,不执行更新");
+                }
+            }
             tbxMac.Text = CommonApi.GetMacAddress();
             if (File.Exists("conf"))
             {

@@ -7,6 +7,8 @@ using System.Net;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.IO;
+using System.IO.Compression;
 
 namespace CSLogin
 {
@@ -21,9 +23,11 @@ namespace CSLogin
         msgHandle m_msgHandle;
 
         public static string IP = "";
-        static int port = 28016;
+        static int port = 723;
 
         public string m_code = "";
+
+        public Action<Exception, Session> OnException;
 
         public Session()
         {
@@ -35,7 +39,7 @@ namespace CSLogin
             }
             catch (Exception ex)
             {
-                OnError(ex);
+                OnError(ex, this);
             }
         }
 
@@ -57,7 +61,7 @@ namespace CSLogin
             }
             catch (Exception ex)
             {
-                OnError(ex);
+                OnError(ex, this);
             }
         }
 
@@ -77,7 +81,7 @@ namespace CSLogin
             }
             catch (Exception ex)
             {
-                OnError(ex);
+                OnError(ex, this);
             }
         }
         private void OnReceive(IAsyncResult ar)
@@ -107,7 +111,7 @@ namespace CSLogin
             }
             catch (Exception ex)
             {
-                OnError(ex);
+                OnError(ex, this);
             }
         }
 
@@ -116,23 +120,34 @@ namespace CSLogin
             m_buffer.AddRange(ba);
             do
             {
-                bool loopBreak = true;
-
-                byte[] buffer = m_buffer.ToArray();
-
                 try
                 {
-                    stMsg s = Bit.BytesToStruct<stMsg>(buffer, 0);
-                    OnMsg(s.Cmd);
-                    m_buffer.RemoveRange(0, Marshal.SizeOf(typeof(stMsg)));
+                    byte[] buffer = m_buffer.ToArray();
+                    MsgHeader head = Bit.BytesToStruct<MsgHeader>(buffer, 0);
+                    int head_len = Marshal.SizeOf(typeof(MsgHeader));
+
+                    if (head.wMsgLen + head_len <= buffer.Length)
+                    {
+                        string s = null;
+                        if (head.btRar == 1)
+                        {
+                            byte[] raw = Decompress(buffer, head_len, head.wMsgLen);
+                            s = Encoding.Default.GetString(buffer, head_len, head.wMsgLen);
+                        }
+                        else
+                            s = Encoding.Default.GetString(buffer, head_len, head.wMsgLen);
+                        OnMsg(s);
+                        m_buffer.RemoveRange(0, head.wMsgLen + head_len);
+                        if (m_buffer.Count == 0)
+                            break;
+                    }
+                    else
+                        break;
                 }
                 catch
                 {
-                    loopBreak = true;
-                }
-
-                if (loopBreak)
                     break;
+                }
             } while (true);
         }
 
@@ -144,47 +159,102 @@ namespace CSLogin
             }
         }
 
-        public void SendMsg(string msg)
+        public bool SendMsg(string msg)
         {
             try
             {
                 if (!m_isOk)
                 {
                     Global.logger.Debug("msg:{0},由于套接字未连接,发送失败!", msg);
-                    return;
+                    return false;
                 }
-                stMsg s = new stMsg();
-                s.Cmd = msg;
-                byte[] buffer = Bit.StructToBytes<stMsg>(s);
-                //byte[] buffer = System.Text.Encoding.Default.GetBytes(msg);
-                m_sock.BeginSend(buffer, 0, buffer.Length, 0, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock,buffer));
+                MsgHeader head = new MsgHeader();
+                byte[] msg_buffer = System.Text.Encoding.Default.GetBytes(msg);
+                if (msg_buffer.Length > 300)
+                {
+                    head.btRar = 1;
+                    msg_buffer = Compress(msg_buffer);
+                }
+                else
+                {
+                    head.btRar = 0;
+                }
+                head.wMsgLen = msg_buffer.Length;
+                byte[] head_buffer = Bit.StructToBytes<MsgHeader>(head);
+
+                List<byte> send_buffer = new List<byte>();
+                send_buffer.AddRange(head_buffer);
+                send_buffer.AddRange(msg_buffer);
+                m_sock.BeginSend(send_buffer.ToArray(), 0, send_buffer.Count, 0, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock, send_buffer.ToArray()));
                 Global.logger.Debug("发送内容:" + msg);
+                return true;
             }
             catch (System.Net.Sockets.SocketException ex)
             {
-                OnError(ex);
+                OnError(ex, this);
             }
+            return false;
         }
 
-        void OnError(Exception ex)
+        void OnError(Exception ex , Session s)
         {
-            try
+            if (OnException != null)
             {
-                m_isOk = false;
-                m_recvBuffer = new Byte[1024];
-                m_buffer = new List<byte>();
-
-                int Sec = 5;
-                Global.logger.Debug(ex.ToString());
-                Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
-
-                Thread.Sleep(Sec * 1000);
-                m_sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                m_sock.BeginConnect(IP, port, new AsyncCallback(OnConnect), m_sock);
+                OnException.Invoke(ex, s);
             }
-            catch (Exception ex1)
+            //try
+            //{
+            //    m_isOk = false;
+            //    m_recvBuffer = new Byte[1024];
+            //    m_buffer = new List<byte>();
+
+            //    int Sec = 3;
+            //    Global.logger.Debug(ex.ToString());
+            //    Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
+
+            //    Thread.Sleep(Sec * 1000);
+            //    m_sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            //    m_sock.BeginConnect(IP, port, new AsyncCallback(OnConnect), m_sock);
+            //}
+            //catch (Exception ex1)
+            //{
+            //    OnError(ex1);
+            //}
+        }
+
+        public static byte[] Compress(byte[] raw)
+        {
+            using (MemoryStream memory = new MemoryStream())
             {
-                OnError(ex1);
+                using (GZipStream gzip = new GZipStream(memory, CompressionMode.Compress, true))
+                {
+                    gzip.Write(raw, 0, raw.Length);
+                }
+                return memory.ToArray();
+            }
+        }
+        static byte[] Decompress(byte[] gzip, int idx, int len)
+        {
+            // Create a GZIP stream with decompression mode.
+            // ... Then create a buffer and write into while reading from the GZIP stream.
+            using (GZipStream stream = new GZipStream(new MemoryStream(gzip, idx, len), CompressionMode.Decompress))
+            {
+                const int size = 4096;
+                byte[] buffer = new byte[size];
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    int count = 0;
+                    do
+                    {
+                        count = stream.Read(buffer, 0, size);
+                        if (count > 0)
+                        {
+                            memory.Write(buffer, 0, count);
+                        }
+                    }
+                    while (count > 0);
+                    return memory.ToArray();
+                }
             }
         }
 

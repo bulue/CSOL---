@@ -63,7 +63,8 @@ namespace CSLogin
     [StructLayout(LayoutKind.Sequential, Pack = 1)]  //变量在内存中的对齐方式 
     public struct MsgHeader
     {
-        public ushort wMsgLen;
+        public int wMsgLen;
+        public byte btRar;
     };
 
     [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]

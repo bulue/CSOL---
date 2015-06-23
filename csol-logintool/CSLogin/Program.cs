@@ -24,15 +24,22 @@ namespace CSLogin
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                if (args.Length >= 1 && args[0] == "-autostart")
+
+
+                bool autostart = false;
+                bool update = true;
+                for (int i = 0; i < args.Length; ++i)
                 {
-                    System.Environment.CurrentDirectory = System.Windows.Forms.Application.StartupPath;
-                    Application.Run(new csLoginTool(true));
+                    if (args[i] == "-autostart")
+                    {
+                        autostart = true;
+                    }else if (args[i] == "-noupdate")
+                    {
+                        update = false;
+                    }
                 }
-                else
-                {
-                    Application.Run(new csLoginTool(false));
-                }
+                System.Environment.CurrentDirectory = System.Windows.Forms.Application.StartupPath;
+                Application.Run(new csLoginTool(autostart, update));
             }
             catch(Exception ex)
             {

@@ -36,7 +36,7 @@ namespace CSLogin
         public string m_Code = "";
         public string m_ManageIp = "";
 
-        Session m_session;
+        static public Session m_session;
         string MacId;       //物理地址
 
         public Thread thread;
@@ -110,6 +110,23 @@ namespace CSLogin
             }
         }
 
+        void OnSessionException(Exception ex, Session s)
+        {
+            lock (m_session)
+            {
+                Global.logger.Debug(ex.ToString());
+                if (m_session == s)
+                {
+                    m_session = null;
+                    Global.logger.Debug("连接断开,3秒之后尝试重新连接...");
+                    m_session = new Session();
+                    m_session.m_code = m_Code;
+                    m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
+                    m_session.OnException = OnSessionException;
+                }
+            }
+        }
+
         public void Run()
         {
             try
@@ -117,19 +134,20 @@ namespace CSLogin
                 Random r = new Random();
                 thread = new Thread(new ThreadStart(RunReboot));
                 thread.Start();
+
+                if (m_session == null)
+                {
+                    Session.IP = m_ManageIp;
+                    m_session = new Session();
+                    m_session.m_code = m_Code;
+                    m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
+                    m_session.OnException = OnSessionException;
+                }
  
                 long nLastQueryTime = 0;
                 do
                 {
-                    Thread.Sleep(3000);
-
-                    if (m_session == null)
-                    {
-                        Session.IP = m_ManageIp;
-                        m_session = new Session();
-                        m_session.m_code = m_Code;
-                        m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
-                    }
+                    Thread.Sleep(1000);
 
                     lock (this)
                     {
@@ -137,8 +155,10 @@ namespace CSLogin
                         {
                             if (System.Environment.TickCount - nLastQueryTime > 10 * 1000)
                             {
-                                m_session.SendMsg("1$" + MacId + "$" + m_Code);
-                                nLastQueryTime = System.Environment.TickCount;
+                                if (m_session.SendMsg("1$" + MacId + "$" + m_Code))
+                                {
+                                    nLastQueryTime = System.Environment.TickCount;
+                                }
                             }
                         }
                         else
@@ -168,11 +188,11 @@ namespace CSLogin
         {
             do 
             {
-                Thread.Sleep(10 * 1000);
-                Global.logger.Debug("自检测检测 {0} ms", (System.Environment.TickCount - _lastCheckRebootTick));
-                if (System.Environment.TickCount - _lastCheckRebootTick > 3 * 60 * 1000)
+                Thread.Sleep(20 * 1000);
+                Global.logger.Debug("自检测检测 {0} sec", (System.Environment.TickCount - _lastCheckRebootTick)/1000);
+                if (System.Environment.TickCount - _lastCheckRebootTick > 5 * 60 * 1000)
                 {
-                    Global.logger.Info("自检测登陆超时,执行重启");
+                    Global.logger.Error("自检测登陆超时,执行重启");
                     csLoginTool.RegAutoStart(true);
                     System.Diagnostics.Process.Start("shutdown", @"/r");
                     System.Environment.Exit(0);
@@ -198,12 +218,13 @@ namespace CSLogin
             {
                 _curAccInfo = info;
                 _currentState = State.Kaishi;
-                m_client = s;
+                //m_client = s;
 
                 Global.logger.Info("");
                 Global.logger.Info("=====账号:" + _curAccInfo.account + "开始=====");
                 do
                 {
+                    Global.logger.Debug("State:" + _currentState);
                     Sleep(1);
                     ClearOtherWnd();
                     RunNextStation();
@@ -213,6 +234,26 @@ namespace CSLogin
                     {
                         WaitEnd();
                         Sleep(1000);
+                        for (; ; )
+                        {
+                            if (breportok)
+                            {
+                                break;
+                            }
+                            Global.logger.Info("=====账号:{0} 检测到结果上报失败，等待结果上报中...");
+                            lock (LoginManage.m_session)
+                            {
+                                if (LoginManage.m_session != null)
+                                {
+                                    breportok = LoginManage.m_session.SendMsg(report + "$" + "reportagain");
+                                }
+                                else
+                                {
+                                    Global.logger.Info("Session还没有连接上");
+                                }
+                            }
+                            Sleep(1000);
+                        }
                         Global.logger.Info("=====账号:" + _curAccInfo.account + "结束=====");
                         Global.logger.Info("");
                         break;
@@ -448,7 +489,7 @@ namespace CSLogin
                              || sW <= 800 || sH <= 600)
                             {
                                 Global.logger.Debug("在这里卡死了????");
-                                _currentState = State.Counter_Strike;
+                                //_NextState = State.JieShu;
                                 break;
                             }
 
@@ -536,23 +577,23 @@ namespace CSLogin
                                     {
                                         bInputPwd = true;
 
-                                        CommonApi.Left_Click(dx + 135, dy - 97);
-                                        Sleep(200);
-                                        CommonApi.Left_Click(dx + 135, dy - 97);
-                                        Sleep(500);
-                                        SendKeys.SendWait("{Delete}");
-                                        Sleep(100);
-                                        SendKeys.SendWait(_curAccInfo.account);
-                                        Sleep(500);
-                                        CommonApi.Left_Click(dx + 135, dy - 64);
-                                        Sleep(200);
-                                        CommonApi.Left_Click(dx + 135, dy - 64);
-                                        Sleep(500);
-                                        SendKeys.SendWait("{Delete}");
-                                        Sleep(100);
-                                        SendKeys.SendWait(_curAccInfo.pwd);
-                                        Sleep(200);
-                                        CommonApi.Left_Click(dx, dy);
+                                         CommonApi.Left_Click(dx + 135, dy - 97);
+                                         Sleep(200);
+                                         CommonApi.Left_Click(dx + 135, dy - 97);
+                                         Sleep(500);
+                                         SendKeys.SendWait("{Delete}");
+                                         Sleep(500);
+                                         SendKeys.SendWait(_curAccInfo.account);
+                                         Sleep(500);
+                                         CommonApi.Left_Click(dx + 135, dy - 64);
+                                         Sleep(200);
+                                         CommonApi.Left_Click(dx + 135, dy - 64);
+                                         Sleep(500);
+                                         SendKeys.SendWait("{Delete}");
+                                         Sleep(100);
+                                         SendKeys.SendWait(_curAccInfo.pwd);
+                                         Sleep(200);
+                                         CommonApi.Left_Click(dx, dy);
 
                                         Global.logger.Info("等待登陆完成..");
                                         //Sleep(5000, "点击登陆");
@@ -585,10 +626,11 @@ namespace CSLogin
                                                 {
                                                     CommonApi.CloseWindow(hwnd);
 
-                                                    m_client.SendMsg("6$" + "changeip$连续输入错误");
-                                                    Sleep(60 * 1000, "连续输入错误");
-
                                                     SendLogFailed(_curAccInfo);
+                                                    SendMsg("6$" + "changeip$连续输入错误", true);
+                                                    //Global.logger.Debug("连续输入错误,执行重启操作");
+                                                    //csLoginTool.RegAutoStart(true);
+                                                    //System.Diagnostics.Process.Start("shutdown", @"/r");
 
                                                     _NextState = State.JieShu;
                                                     Sleep(3000, "连续输入错误,关闭游戏");
@@ -779,6 +821,7 @@ namespace CSLogin
                                         string path = csLoginTool.GamePath.Substring(0, csLoginTool.GamePath.LastIndexOf("\\") + 1) + "capt.jpg";
                                         if (File.Exists(path))
                                         {
+                                            string old_md5 = "";
                                             while (true)
                                             {
                                                 Sleep(1000);
@@ -829,8 +872,8 @@ namespace CSLogin
                                                             {
                                                                 CommonApi.CloseWindow(hwnd);
 
-                                                                m_client.SendMsg("6$" + "changeip$连续输入错误");
-                                                                Sleep(60 * 1000, "连续输入错误");
+                                                                SendMsg("6$" + "changeip$连续输入错误", true);
+                                                                //Sleep(60 * 1000, "连续输入错误");
 
                                                                 SendLogFailed(_curAccInfo);
 
@@ -875,6 +918,11 @@ namespace CSLogin
                                                 else
                                                 {
                                                     CommonApi.Left_Click(dx + 207, dy + 118);
+                                                    if (md5_str != old_md5)
+                                                    {
+                                                        SendMsg("7$" + md5_str + "$" + Convert.ToBase64String(img_buffer));
+                                                    }
+                                                    old_md5 = md5_str;
                                                 }
                                             }
                                         }
@@ -1085,12 +1133,38 @@ namespace CSLogin
             }
         }
 
+        private bool SendMsg(string msg, bool waitsucess = false)
+        {
+            do 
+            {
+                lock (LoginManage.m_session)
+                {
+                    if (LoginManage.m_session != null)
+                    {
+                        if (LoginManage.m_session.SendMsg(msg))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                if (!waitsucess)
+                    break;
+                Sleep(1000);
+                Global.logger.Debug("发送失败, 等待发送:" + msg);
+            } while (true);
+            return false;
+        }
+
         private void SendLogSucess(userInfo account)
         {
             if (!bSendRet)
             {
                 bSendRet = true;
-                m_client.SendMsg("3$" + account.account + "$" + "OK");
+                breportok = SendMsg("3$" + account.account + "$" + "OK");
+                if (!breportok)
+                {
+                    report = "3$" + account.account + "$" + "OK";
+                }
             }
         }
 
@@ -1099,7 +1173,11 @@ namespace CSLogin
             if (!bSendRet)
             {
                 bSendRet = true;
-                m_client.SendMsg("3$" + account.account + "$" + "Failed");
+                breportok = SendMsg("3$" + account.account + "$" + "Failed");
+                if (!breportok)
+                {
+                    report = "3$" + account.account + "$" + "Failed";
+                }
             }
         }
 
@@ -1108,7 +1186,11 @@ namespace CSLogin
             if (!bSendRet)
             {
                 bSendRet = true;
-                m_client.SendMsg("3$" + account.account + "$" + "PasswordError");
+                breportok = SendMsg("3$" + account.account + "$" + "PasswordError");
+                if (!breportok)
+                {
+                    report = "3$" + account.account + "$" + "PasswordError";
+                }
             }
         }
 
@@ -1117,7 +1199,11 @@ namespace CSLogin
             if (!bSendRet)
             {
                 bSendRet = true;
-                m_client.SendMsg("3$" + account.account + "$" + "Forbidden");
+                breportok = SendMsg("3$" + account.account + "$" + "Forbidden");
+                if (!breportok)
+                {
+                    report = "3$" + account.account + "$" + "Forbidden";
+                }
             }
         }
 
@@ -1137,9 +1223,12 @@ namespace CSLogin
         State _NextState;
 
         userInfo _AccInfo;
-        Session m_client;
+        //Session m_client;
 
         bool bSendRet = false;
+
+        bool breportok = false;
+        string report = "";
 
         public csLoginTool _loginTool = csLoginTool.Instance;
 
