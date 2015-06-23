@@ -136,7 +136,7 @@ namespace PwcTool
 
             try
             {
-                System.Net.ServicePointManager.DefaultConnectionLimit = 512;
+                System.Net.ServicePointManager.DefaultConnectionLimit = 512 * 8;
 
                 m_safekey = RandomString.Next(8, "1-9A-Za-z");
 
@@ -1452,18 +1452,25 @@ namespace PwcTool
             m_GuessAccountPrefix = tbxPrefixAccount.Text;
             m_numberOfDigit = tbxBeginValue.Text.Length;
 
-            int numOfWorkers = Convert.ToInt32(tbxGuessWorkerNum.Text);
-            for (int i = 0; i < numOfWorkers; ++i)
+            try
             {
-                if (numOfWorkers >= m_guessWorkers.Count)
+                int numOfWorkers = Convert.ToInt32(tbxGuessWorkerNum.Text);
+                for (int i = 0; i < numOfWorkers; ++i)
                 {
-                    GuessWorker worker = new GuessWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
-                    worker.FinishTask += new Action<GuessWorker, string, string, string, int, int, int>(guessworker_FinishTask);
-                    m_guessWorkers.Add(worker);
-                }
+                    if (numOfWorkers >= m_guessWorkers.Count)
+                    {
+                        GuessWorker worker = new GuessWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
+                        worker.FinishTask += new Action<GuessWorker, string, string, string, int, int, int>(guessworker_FinishTask);
+                        m_guessWorkers.Add(worker);
+                    }
 
-                string nextguess = GuessNextAccount(m_GuessSet);
-                m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
+                    string nextguess = GuessNextAccount(m_GuessSet);
+                    m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
             }
 
             btnStartSaohao.IsEnabled = false;

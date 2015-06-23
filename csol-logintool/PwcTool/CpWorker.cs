@@ -28,7 +28,8 @@ namespace PwcTool
         const string url_aqjf = "http://aq.tiancity.com/Protect/ReopenedAccount";
 
         static Random m_rgen = new Random(System.Environment.TickCount);
-        JavascriptContext m_JsContext = new JavascriptContext();
+        static JavascriptContext m_JsContext = new JavascriptContext();
+        static bool initJavascript = false;
         CLogger m_logger;
 
         public static string Uid = "";
@@ -55,7 +56,11 @@ namespace PwcTool
 
             m_safekey = safekey;
             m_logger = CLogger.FromFolder("pwclog");
-            m_JsContext.Run(File.ReadAllText(md5js));
+            if (!initJavascript)
+            {
+                m_JsContext.Run(File.ReadAllText(md5js));
+                initJavascript = true;
+            }
         }
 
         public void BeginTaskChangePwd(string uid, string pwd, string newpwd, int iptoken)
@@ -324,13 +329,16 @@ namespace PwcTool
                         if (code == "199" && rsa == "True")
                         {
                             string ei = "id=" + uid + "&pw=" + pwd + "&mt=" + mt + "&lt=" + 0;
-                            m_JsContext.SetParameter("ei", ei);
-                            m_JsContext.SetParameter("pk", pk);
-                            m_JsContext.SetParameter("pm", pm);
-                            FCQ = (string)m_JsContext.Run("JiaMi(ei,pk,pm)");
+                            lock (m_JsContext)
+                            {
+                                m_JsContext.SetParameter("ei", ei);
+                                m_JsContext.SetParameter("pk", pk);
+                                m_JsContext.SetParameter("pm", pm);
+                                FCQ = (string)m_JsContext.Run("JiaMi(ei,pk,pm)");
 
-                            m_JsContext.SetParameter("cp", cp);
-                            cp = (string)m_JsContext.Run("encodeURIComponent(cp)");
+                                m_JsContext.SetParameter("cp", cp);
+                                cp = (string)m_JsContext.Run("encodeURIComponent(cp)");
+                            }
                             string url = url_log + "&FCQ=" + FCQ + "&cp=" + cp + "&fl=" + fl + "&st=" + st;
 
                             HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
@@ -632,8 +640,11 @@ namespace PwcTool
 
         public string Encrypt(string strPwd)
         {
-            m_JsContext.SetParameter("src", strPwd);
-            return (string)m_JsContext.Run("encry(src)");
+            lock (m_JsContext)
+            {
+                m_JsContext.SetParameter("src", strPwd);
+                return (string)m_JsContext.Run("encry(src)");
+            }
         }
 
         public string cs_md5(string src)
