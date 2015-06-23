@@ -436,7 +436,7 @@ namespace 档案汇总
                         info.checktime = item.Attributes["签到时间"].Value;
                     }
 
-                    if (item.Attributes["状态"] != null)
+                    if (item.Attributes["状态"] != null && item.Attributes["状态"].Value != "已经分配")
                     {
                         info.status = item.Attributes["状态"].Value;
                     }
@@ -555,7 +555,7 @@ namespace 档案汇总
                         dgvUserData.Rows[newidx].Cells["Password"].Value = info.password;
                     }
 
-                    if (info.failedcount != null)
+                    if (info.failedcount != 0)
                     {
                         dgvUserData.Rows[newidx].Cells["FailedCount"].Value = info.failedcount;
                     }
@@ -655,6 +655,8 @@ namespace 档案汇总
                         tmpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                         tmpSocket.Connect(ips[i], 7626);
                         authentication_ip = ips[i];
+                        tmpSocket.Shutdown(SocketShutdown.Both);
+                        tmpSocket.Disconnect(false);
                         tmpSocket.Close();
                         break;
                     }
@@ -781,126 +783,140 @@ namespace 档案汇总
                 Print("Recv:" + s);
 
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
-                switch (split[0])
+                if (split[0] == "100")
                 {
-                    case "100":
+                    string mac = split[1];
+                    string code = split[2];
+                    string ver = "";
+                    if (split.Length == 4)
+                    {
+                        ver = split[3];
+                    }
+
+                    c.m_code = code;
+                    c.m_mac = mac;
+
+                    bool x = false;
+                    foreach (DataGridViewRow row in dgvSession.Rows)
+                    {
+                        if (row.IsNewRow) continue;
+                        string rMac = (string)row.Cells["sMac"].Value;
+                        if (rMac == mac)
                         {
-                            string mac = split[1];
-                            string code = split[2];
-                            string ver = "";
-                            if (split.Length == 4)
-                            {
-                                ver = split[3];
-                            }
+                            Global.logger.Debug("mac:{0}, ip({1}->{2})", rMac, c.handle.RemoteEndPoint.ToString(), row.Cells["sIP"].Value.ToString());
+                            row.Cells["sCode"].Value = code;
+                            row.Cells["sIP"].Value = c.handle.RemoteEndPoint.ToString();
+                            row.Cells["sVer"].Value = ver;
+                            x = true;
+                        }
+                    }
 
-                            c.m_code = code;
-                            c.m_mac = mac;
+                    if (x == false)
+                    {
+                        dgvSession.Rows.Add(c.handle.RemoteEndPoint.ToString(), code, mac, "已连接", null, null, DateTime.Now.ToLocalTime(), ver, "断开", "重启");
+                    }
 
-                            bool x = false;
-                            foreach (DataGridViewRow row  in dgvSession.Rows)
+                    if (!macCheck.ContainsKey(mac))
+                    {
+                        macCheck.Add(mac, 1);
+                    }
+                }
+                else if (!string.IsNullOrEmpty(c.m_code) && !string.IsNullOrEmpty(c.m_mac)) 
+                {
+                    switch (split[0])
+                    {
+                        case "1":
                             {
-                                if (row.IsNewRow) continue;
-                                string rMac = (string)row.Cells["sMac"].Value;
-                                if (rMac == mac)
+                                string token = split[1];
+                                string code = split[2];
+
+                                string accName = "";
+                                string passWord = "";
+
+                                if (m_Token.ContainsKey(token))
                                 {
-                                    Global.logger.Debug("mac:{0}, ip({1}->{2})", rMac, c.handle.RemoteEndPoint.ToString(), row.Cells["sIP"].Value.ToString());
-                                    row.Cells["sCode"].Value = code;
-                                    row.Cells["sIP"].Value = c.handle.RemoteEndPoint.ToString();
-                                    row.Cells["sVer"].Value = ver;
-                                    x = true;
+                                    accName = m_Token[token];
+                                    if (m_checkuserinfos.ContainsKey(accName))
+                                    {
+                                        passWord = m_checkuserinfos[accName].password;
+                                    }
+                                    else
+                                    {
+                                        Print("异常提示>>>" + "待分配的账号已经剔除!!!!!");
+                                        accName = "";
+                                        m_Token.Remove(token);
+                                    }
                                 }
-                            }
 
-                            if (x == false)
-                            {
-                                dgvSession.Rows.Add(c.handle.RemoteEndPoint.ToString(), code, mac, "已连接",null ,null, DateTime.Now.ToLocalTime(), ver,"断开","重启");
-                            }
-
-                            if (!macCheck.ContainsKey(mac))
-                            {
-                                macCheck.Add(mac, 1);
-                            }
-                        }break;
-                    case "1":
-                        {
-                            string token = split[1];
-                            string code = split[2];
-
-                            string accName = "";
-                            string passWord = "";
-
-                            if (m_Token.ContainsKey(token))
-                            {
-                                accName = m_Token[token];
-                                if (m_checkuserinfos.ContainsKey(accName))
+                                if (accName == "" && passWord == "")
                                 {
-                                    passWord = m_checkuserinfos[accName].password;
-                                }
-                                else
-                                {
-                                    Print("异常提示>>>" + "待分配的账号已经剔除!!!!!");
-                                    accName = "";
-                                    m_Token.Remove(token);
-                                }
-                            }
-
-                            if (accName == "" && passWord == "")
-                            {
-                                switch(_working_state)
-                                {
-                                    case working_state.normal:
-                                        {
-                                            int nLoop;
-
-                                            // 根据选项优先分配失败1次的的账号
-                                            nLoop = 0;
-                                            foreach (var info in m_checkuserinfos.Values)
+                                    switch (_working_state)
+                                    {
+                                        case working_state.normal:
                                             {
-                                                if (nLoop++ > 300) break;
-                                                if (info.bocheck == 0 && info.status == "签到失败" 
-                                                    && info.failedcount <= 1 
-                                                    && !m_Token.ContainsValue(info.username))
-                                                {
-                                                    accName = info.username;
-                                                    break;
-                                                }
-                                            }
+                                                int nLoop;
 
-                                            //优先分配,未分配过的账号
-                                            nLoop = 0;
-                                            if (accName == "")
-                                            {
+                                                // 根据选项优先分配失败1次的的账号
+                                                nLoop = 0;
                                                 foreach (var info in m_checkuserinfos.Values)
                                                 {
                                                     if (nLoop++ > 300) break;
-                                                    if (info.bocheck == 0 
-                                                        && (info.status == null || info.status == "") 
+                                                    if (info.bocheck == 0 && info.status == "签到失败"
+                                                        && info.failedcount <= 1
                                                         && !m_Token.ContainsValue(info.username))
                                                     {
                                                         accName = info.username;
                                                         break;
                                                     }
                                                 }
-                                            }
 
-                                            //其次分配，签到失败账号
-                                            nLoop = 0;
-                                            if (accName == "")
-                                            {
-                                                foreach (var info in m_checkuserinfos.Values)
+                                                //优先分配,未分配过的账号
+                                                nLoop = 0;
+                                                if (accName == "")
                                                 {
-                                                    if (nLoop++ > 300) break;
-                                                    if (info.bocheck == 0 
-                                                        && info.status == "签到失败" 
-                                                        && !m_Token.ContainsValue(info.username))
+                                                    foreach (var info in m_checkuserinfos.Values)
                                                     {
-                                                        accName = info.username;
-                                                        break;
+                                                        if (nLoop++ > 300) break;
+                                                        if (info.bocheck == 0
+                                                            && (info.status == null || info.status == "")
+                                                            && !m_Token.ContainsValue(info.username))
+                                                        {
+                                                            accName = info.username;
+                                                            break;
+                                                        }
                                                     }
                                                 }
-                                            }
 
-                                            if (accName == "")
+                                                //其次分配，签到失败账号
+                                                nLoop = 0;
+                                                if (accName == "")
+                                                {
+                                                    foreach (var info in m_checkuserinfos.Values)
+                                                    {
+                                                        if (nLoop++ > 300) break;
+                                                        if (info.bocheck == 0
+                                                            && info.status == "签到失败"
+                                                            && !m_Token.ContainsValue(info.username))
+                                                        {
+                                                            accName = info.username;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+
+                                                if (accName == "")
+                                                {
+                                                    foreach (var info in m_checkuserinfos.Values)
+                                                    {
+                                                        if (info.bocheck == 0 && !m_Token.ContainsValue(info.username))
+                                                        {
+                                                            accName = info.username;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            } break;
+                                        case working_state.advanced:
                                             {
                                                 foreach (var info in m_checkuserinfos.Values)
                                                 {
@@ -910,282 +926,319 @@ namespace 档案汇总
                                                         break;
                                                     }
                                                 }
-                                            }
-                                        }break;
-                                    case working_state.advanced:
+                                            } break;
+                                    }
+
+                                    if (m_checkuserinfos.ContainsKey(accName))
+                                    {
+                                        userinfo info = m_checkuserinfos[accName];
+                                        passWord = info.password;
+                                        m_Token.Add(token, accName);
+
+                                        info.status = "已经分配";
+                                        info.logincode = code;
+                                        info.loginip = c.handle.RemoteEndPoint.ToString();
+
+                                        m_checkuserinfos[accName] = info;
+                                        m_userinfos[accName] = info;
+                                    }
+
+                                }
+
+                                if (accName == "" || passWord == "")
+                                {
+                                    if (_working_state == working_state.finish
+                                        || _working_state == working_state.advanced)
+                                    {
+                                        Print("所有账号已经登陆完毕>>>>>>");
+                                    }
+                                    else if (_working_state == working_state.normal)
+                                    {
+                                        m_checkuserinfos.Clear();
+                                        foreach (userinfo info in m_userinfos.Values)
                                         {
-                                            foreach (var info in m_checkuserinfos.Values)
+                                            if (info.bocheck == 0
+                                                && info.status != "密码错误"
+                                                && info.status != "封停"
+                                                && info.status != "签到完成")
                                             {
-                                                if (info.bocheck == 0 && !m_Token.ContainsValue(info.username))
-                                                {
-                                                    accName = info.username;
-                                                    break;
-                                                }
+                                                m_checkuserinfos.Add(info.username, info);
                                             }
-                                        }break;
-                                }
-
-                                if (m_checkuserinfos.ContainsKey(accName))
-                                {
-                                    userinfo info = m_checkuserinfos[accName];
-                                    passWord = info.password;
-                                    m_Token.Add(token, accName);
-
-                                    info.status = "已经分配";
-                                    info.logincode = code;
-                                    info.loginip = c.handle.RemoteEndPoint.ToString();
-
-                                    m_checkuserinfos[accName] = info;
-                                    m_userinfos[accName] = info;
-                                }
-
-                            }
-
-                            if (accName == "" || passWord == "")
-                            {
-                                if (_working_state == working_state.finish
-                                    || _working_state == working_state.advanced)
-                                {
-                                    Print("所有账号已经登陆完毕>>>>>>");
-                                }
-                                else if (_working_state == working_state.normal)
-                                {
-                                    m_checkuserinfos.Clear();
-                                    foreach (userinfo info in m_userinfos.Values)
-                                    {
-                                        if (info.bocheck == 0
-                                            && info.status != "密码错误"
-                                            && info.status != "封停"
-                                            && info.status != "签到完成")
-                                        {
-                                            m_checkuserinfos.Add(info.username, info);
                                         }
-                                    }
-                                    _working_state = working_state.advanced;
-                                }
-                            }
-                            else
-                            {
-                                if (!m_Token.ContainsKey(token))
-                                {
-                                    m_Token.Add(token, accName);
-                                }
-                                c.Send("2$" + accName + "$" + passWord + "$" + (rbZone1.Checked?"1":"2"));
-
-                                Global.logger.Debug("socket:{0};ip:{1};({2}->{3})",c.handle.GetHashCode()
-                                    , c.handle.RemoteEndPoint.ToString()
-                                    , token
-                                    , accName);
-                            }
-
-                        } break;
-                    case "3":
-                        {
-                            string accName = split[1];
-                            string isOk = split[2];
-
-                            if (m_accountRecord.ContainsKey(accName))
-                            {
-                                long recordTime = m_accountRecord[accName];
-                                if (DateTime.Now.Ticks - recordTime < 10)
-                                {
-                                    return;
-                                }
-                            }
-
-                            m_accountRecord[accName]=DateTime.Now.Ticks;
-
-                            if (isOk == "OK")
-                            {
-                                if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
-                                {
-                                    userinfo info = m_checkuserinfos[accName];
-                                    info.bocheck = 1;
-                                    info.checktime = DateTime.Now.ToString();
-                                    info.failedcount = 0;
-                                    info.status = "签到完成";
-
-                                    m_userinfos[accName] = info;
-                                    m_checkuserinfos.Remove(accName);
-                                }
-                            }
-                            else if (isOk == "Failed")
-                            {
-                                if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
-                                {
-                                    userinfo info = m_checkuserinfos[accName];
-                                    info.bocheck = 0;
-                                    info.checktime = DateTime.Now.ToString();
-                                    info.failedcount = info.failedcount + 1;
-                                    info.status = "签到失败";
-
-                                    m_userinfos[accName] = info;
-                                    m_checkuserinfos[accName] = info;
-
-                                    if (info.failedcount >= 2)
-                                    {
-                                        if (_working_state == working_state.normal)
-                                        {
-                                            m_checkuserinfos.Remove(accName);
-                                        }
-                                    }
-                                }
-                            }
-                            else if (isOk == "PasswordError")
-                            {
-                                if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
-                                {
-                                    userinfo info = m_checkuserinfos[accName];
-                                    info.bocheck = 0;
-                                    info.checktime = DateTime.Now.ToString();
-                                    info.failedcount = info.failedcount + 1;
-                                    info.status = "密码错误";
-
-                                    m_userinfos[accName] = info;
-                                    m_checkuserinfos.Remove(accName);
-                                }
-                            }
-                            else if (isOk == "Forbidden")
-                            {
-                                if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
-                                {
-                                    userinfo info = m_checkuserinfos[accName];
-                                    info.bocheck = 0;
-                                    info.checktime = DateTime.Now.ToString();
-                                    info.failedcount = info.failedcount + 1;
-                                    info.status = "封停";
-
-                                    m_userinfos[accName] = info;
-                                    m_checkuserinfos.Remove(accName);
-                                }
-                            }
-
-                            if (m_userinfos.ContainsKey(accName))
-                            {
-                                userinfo info = m_userinfos[accName];
-
-                                bool has_add = false;
-                                //foreach (DataGridViewRow row in dgvProgress.Rows)
-                                //{
-                                //    if (row.IsNewRow)
-                                //        continue;
-
-                                //    if (row.Cells[0] != null && row.Cells[0].Value == accName)
-                                //    {
-                                //        row.Cells[2].Value = info.failedcount;
-                                //        row.Cells[3].Value = info.checktime;
-                                //        row.Cells[4].Value = info.status;
-                                //        row.Cells[5].Value = info.bocheck;
-
-                                //        has_add = true;
-                                //    }
-                                //}
-
-                                if (!has_add)
-                                {
-                                    if (dgvProgress.Rows.Count > 2000)
-                                        dgvProgress.Rows.Clear();
-
-                                    dgvProgress.Rows.Add(info.username,
-                                        info.password,
-                                        info.failedcount,
-                                        info.checktime,
-                                        info.status,
-                                        info.bocheck,
-                                        info.checkedday,
-                                        info.loginip,
-                                        info.logincode);
-                                }
-                            }
-                            _speedCount++;
-                            sbTotalCount.Text = String.Format("进度:({0}/{1})", (m_userinfos.Count - m_checkuserinfos.Count), m_userinfos.Count);
-
-                            //SaveData();
-                            m_boNeedSaveData = true;
-
-                            foreach (DataGridViewRow row in dgvSession.Rows)
-                            {
-                                if (row.IsNewRow) continue;
-                                if (row.Cells["sMac"].Value.ToString() == c.m_mac)
-                                {
-                                    row.Cells["sLoginState"].Value = DateTime.Now.ToLocalTime();
-                                    row.Cells["sFinishedNum"].Value = row.Cells["sFinishedNum"].Value == null ? 1 : (int)row.Cells["sFinishedNum"].Value + 1;
-
-                                    if (isOk != "OK")
-                                    {
-                                        row.Cells["sFailedCount"].Value = row.Cells["sFailedCount"].Value == null ? 1 : (int)row.Cells["sFailedCount"].Value + 1;
-                                    }
-                                }
-                            }
-                        } break;
-                    case "4":
-                        {
-                            string token = split[1];
-                            if (m_Token.ContainsKey(token))
-                            {
-                                m_Token.Remove(token);
-                            }
-                        }break;
-                    case "5":
-                        {
-                            string accName = split[1];
-                            string Day = split[2];
-                            if (m_checkuserinfos.ContainsKey(accName))
-                            {
-                                userinfo info = m_checkuserinfos[accName];
-                                info.checkedday = Convert.ToInt32(Day);
-                                m_checkuserinfos[accName] = info;
-                            }
-
-                            if (m_userinfos.ContainsKey(accName))
-                            {
-                                userinfo info = m_userinfos[accName];
-                                info.checkedday = Convert.ToInt32(Day);
-                                m_userinfos[accName] = info;
-                            }                 
-                        }break; 
-                    case "6":
-                        {
-                            //遇到验证码
-                            //给路由发送命令重启
-
-                            if (cbRoutineIp.Checked)
-                            {
-                                Global.logger.Debug("IP:{0} code:{1} mac{2} 请求换ip"
-                                    , c.handle.RemoteEndPoint.ToString()
-                                    , c.m_code
-                                    , c.m_mac);
-                                string endpoint = c.handle.RemoteEndPoint.ToString();
-                                string ip = endpoint.Substring(0,endpoint.IndexOf(":"));
-                                if (changeiptimestamp.ContainsKey(ip))
-                                {
-                                    if ((System.Environment.TickCount - changeiptimestamp [ip]) > 5 * 60 * 1000)
-                                    {
-                                        Global.logger.Debug("(1)发送换ip命令 {0}!", endpoint);
-                                        changeiptimestamp[ip] = System.Environment.TickCount;
-                                        c.Send("102$changeip");
+                                        _working_state = working_state.advanced;
                                     }
                                 }
                                 else
                                 {
-                                    Global.logger.Debug("(2)发送换ip命令 {0}!", endpoint);
-                                    changeiptimestamp.Add(ip, System.Environment.TickCount);
-                                    c.Send("102$changeip");
+                                    if (!m_Token.ContainsKey(token))
+                                    {
+                                        m_Token.Add(token, accName);
+                                    }
+                                    c.Send("2$" + accName + "$" + passWord + "$" + (rbZone1.Checked ? "1" : "2"));
+
+                                    Global.logger.Debug("socket:{0};ip:{1};({2}->{3})", c.handle.GetHashCode()
+                                        , c.handle.RemoteEndPoint.ToString()
+                                        , token
+                                        , accName);
                                 }
-                            }
-                        }break;
-                     default:
-                        {
-                            Global.logger.Debug("收到异常消息:{0}", String.IsNullOrEmpty(s) ? "" : s);
-                            c.handle.Shutdown(SocketShutdown.Both);
-                            c.handle.Disconnect(false);
-                            c.handle.Dispose();
-                            lock(Sever.m_Clinets)
+
+                            } break;
+                        case "3":
                             {
-                                Sever.bChanged = true;
-                                Sever.m_Clinets.Remove(c);
-                            }
-                        }break;
+                                string accName = split[1];
+                                string isOk = split[2];
+
+                                if (m_accountRecord.ContainsKey(accName))
+                                {
+                                    long recordTime = m_accountRecord[accName];
+                                    if (DateTime.Now.Ticks - recordTime < 10)
+                                    {
+                                        return;
+                                    }
+                                }
+
+                                m_accountRecord[accName] = DateTime.Now.Ticks;
+
+                                if (isOk == "OK")
+                                {
+                                    if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
+                                    {
+                                        userinfo info = m_checkuserinfos[accName];
+                                        info.bocheck = 1;
+                                        info.checktime = DateTime.Now.ToString();
+                                        info.failedcount = 0;
+                                        info.status = "签到完成";
+
+                                        m_userinfos[accName] = info;
+                                        m_checkuserinfos.Remove(accName);
+                                    }
+                                }
+                                else if (isOk == "Failed")
+                                {
+                                    if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
+                                    {
+                                        userinfo info = m_checkuserinfos[accName];
+                                        info.bocheck = 0;
+                                        info.checktime = DateTime.Now.ToString();
+                                        info.failedcount = info.failedcount + 1;
+                                        info.status = "签到失败";
+
+                                        m_userinfos[accName] = info;
+                                        m_checkuserinfos[accName] = info;
+
+                                        if (info.failedcount >= 2)
+                                        {
+                                            if (_working_state == working_state.normal)
+                                            {
+                                                m_checkuserinfos.Remove(accName);
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (isOk == "PasswordError")
+                                {
+                                    if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
+                                    {
+                                        userinfo info = m_checkuserinfos[accName];
+                                        info.bocheck = 0;
+                                        info.checktime = DateTime.Now.ToString();
+                                        info.failedcount = info.failedcount + 1;
+                                        info.status = "密码错误";
+
+                                        m_userinfos[accName] = info;
+                                        m_checkuserinfos.Remove(accName);
+                                    }
+                                }
+                                else if (isOk == "Forbidden")
+                                {
+                                    if (m_checkuserinfos.ContainsKey(accName) && m_userinfos.ContainsKey(accName))
+                                    {
+                                        userinfo info = m_checkuserinfos[accName];
+                                        info.bocheck = 0;
+                                        info.checktime = DateTime.Now.ToString();
+                                        info.failedcount = info.failedcount + 1;
+                                        info.status = "封停";
+
+                                        m_userinfos[accName] = info;
+                                        m_checkuserinfos.Remove(accName);
+                                    }
+                                }
+
+                                if (m_userinfos.ContainsKey(accName))
+                                {
+                                    userinfo info = m_userinfos[accName];
+
+                                    bool has_add = false;
+                                    //foreach (DataGridViewRow row in dgvProgress.Rows)
+                                    //{
+                                    //    if (row.IsNewRow)
+                                    //        continue;
+
+                                    //    if (row.Cells[0] != null && row.Cells[0].Value == accName)
+                                    //    {
+                                    //        row.Cells[2].Value = info.failedcount;
+                                    //        row.Cells[3].Value = info.checktime;
+                                    //        row.Cells[4].Value = info.status;
+                                    //        row.Cells[5].Value = info.bocheck;
+
+                                    //        has_add = true;
+                                    //    }
+                                    //}
+
+                                    if (!has_add)
+                                    {
+                                        if (dgvProgress.Rows.Count > 2000)
+                                            dgvProgress.Rows.Clear();
+
+                                        dgvProgress.Rows.Add(info.username,
+                                            info.password,
+                                            info.failedcount,
+                                            info.checktime,
+                                            info.status,
+                                            info.bocheck,
+                                            info.checkedday,
+                                            info.loginip,
+                                            info.logincode);
+                                    }
+                                }
+                                _speedCount++;
+                                sbTotalCount.Text = String.Format("进度:({0}/{1})", (m_userinfos.Count - m_checkuserinfos.Count), m_userinfos.Count);
+
+                                //SaveData();
+                                m_boNeedSaveData = true;
+
+                                foreach (DataGridViewRow row in dgvSession.Rows)
+                                {
+                                    if (row.IsNewRow) continue;
+                                    if (row.Cells["sMac"].Value.ToString() == c.m_mac)
+                                    {
+                                        row.Cells["sLoginState"].Value = DateTime.Now.ToLocalTime();
+                                        row.Cells["sFinishedNum"].Value = row.Cells["sFinishedNum"].Value == null ? 1 : (int)row.Cells["sFinishedNum"].Value + 1;
+
+                                        if (isOk != "OK")
+                                        {
+                                            row.Cells["sFailedCount"].Value = row.Cells["sFailedCount"].Value == null ? 1 : (int)row.Cells["sFailedCount"].Value + 1;
+                                        }
+                                    }
+                                }
+                            } break;
+                        case "4":
+                            {
+                                string token = split[1];
+                                if (m_Token.ContainsKey(token))
+                                {
+                                    m_Token.Remove(token);
+                                }
+                            } break;
+                        case "5":
+                            {
+                                string accName = split[1];
+                                string Day = split[2];
+                                if (m_checkuserinfos.ContainsKey(accName))
+                                {
+                                    userinfo info = m_checkuserinfos[accName];
+                                    info.checkedday = Convert.ToInt32(Day);
+                                    m_checkuserinfos[accName] = info;
+                                }
+
+                                if (m_userinfos.ContainsKey(accName))
+                                {
+                                    userinfo info = m_userinfos[accName];
+                                    info.checkedday = Convert.ToInt32(Day);
+                                    m_userinfos[accName] = info;
+                                }
+                            } break;
+                        case "6":
+                            {
+                                //遇到验证码
+                                //给路由发送命令重启
+
+                                if (cbRoutineIp.Checked)
+                                {
+                                    c.Send("102$changeip");
+                                    //Global.logger.Debug("IP:{0} code:{1} mac{2} 请求换ip"
+                                    //    , c.handle.RemoteEndPoint.ToString()
+                                    //    , c.m_code
+                                    //    , c.m_mac);
+                                    //string endpoint = c.handle.RemoteEndPoint.ToString();
+                                    //string ip = endpoint.Substring(0, endpoint.IndexOf(":"));
+                                    //if (changeiptimestamp.ContainsKey(ip))
+                                    //{
+                                    //    changeiptimestamp[ip]++;
+                                    //    Global.logger.Debug("IP:({0})累积收到换ip请求次数:{1}", ip, changeiptimestamp[ip]);
+                                    //    if (changeiptimestamp[ip] > 10)
+                                    //    {
+                                    //        changeiptimestamp[ip] = 0;
+                                    //        Global.logger.Debug("(1)发送换ip命令 {0}!", endpoint);
+                                    //        c.Send("102$changeip");
+
+                                    //        lock (Sever.m_Clinets)
+                                    //        {
+                                    //            int sendCount = 0;
+                                    //            for (int i = 0; i < Sever.m_Clinets.Count; ++i)
+                                    //            {
+                                    //                string et = Sever.m_Clinets[i].handle.RemoteEndPoint.ToString();
+                                    //                string cip = et.Substring(0, et.IndexOf(":"));
+                                    //                if (Sever.m_Clinets[i].IsActive && cip == ip)
+                                    //                {
+                                    //                    if (System.Environment.TickCount % 3 == 0)
+                                    //                    {
+                                    //                        Sever.m_Clinets[i].Send("102$changeip");
+                                    //                        sendCount++;
+                                    //                    }
+                                    //                    if (sendCount > 2)
+                                    //                    {
+                                    //                        break;
+                                    //                    }
+                                    //                }
+                                    //            }
+                                    //        }
+
+                                    //    }
+                                    //}
+                                    //else
+                                    //{
+                                    //    //Global.logger.Debug("(2)发送换ip命令 {0}!", endpoint);
+                                    //    changeiptimestamp.Add(ip, 1);
+                                    //    Global.logger.Debug("IP:({0})累积收到换ip请求次数:{1}", ip, changeiptimestamp[ip]);
+                                    //    //c.Send("102$changeip");
+                                    //}
+                                }
+                            } break;
+                        case "7":
+                            {
+                                string md5 = split[1];
+                                string imgstr = split[2];
+                                byte[] img_buf = Convert.FromBase64String(imgstr);
+                                if (captcha.ContainsKey(md5))
+                                {
+                                    //MessageBox.Show("出现相同的图片:" + md5);
+                                    sameCount++;
+                                }
+                                else
+                                {
+                                    captcha.Add(md5, 1);
+                                    File.WriteAllBytes("captcha/" + md5 + ".bmp", img_buf);
+                                }
+                            }break;
+                        default:
+                            {
+                                Global.logger.Debug("收到异常消息:{0}", String.IsNullOrEmpty(s) ? "" : s);
+                                c.handle.Shutdown(SocketShutdown.Both);
+                                c.handle.Disconnect(false);
+                                c.handle.Dispose();
+                                lock (Sever.m_Clinets)
+                                {
+                                    Sever.bChanged = true;
+                                    Sever.m_Clinets.Remove(c);
+                                }
+                            } break;
+                    }
+                }
+                else
+                {
+                    Global.logger.Debug("没有设置mac和code,管理器主动断开连接");
+                    c.handle.Shutdown(SocketShutdown.Both);
                 }
             }
             catch (System.InvalidCastException)
@@ -1198,6 +1251,8 @@ namespace 档案汇总
             }
         }
 
+        int sameCount = 0;
+        Dictionary<string, int> captcha = new Dictionary<string, int>();
         Dictionary<string, int> changeiptimestamp = new Dictionary<string,int>();
 
         private void ShowLogFunc(eLoggerLevel c, string s)
@@ -1327,7 +1382,7 @@ namespace 档案汇总
                 }
             }
 
-            if (System.Environment.TickCount - _lastCheckSessionActive > 60 * 1000)
+            if (System.Environment.TickCount - _lastCheckSessionActive > 5 * 60 * 1000)
             {
                 _lastCheckSessionActive = System.Environment.TickCount;
                 lock (Sever.m_Clinets)
@@ -1341,7 +1396,7 @@ namespace 档案汇总
                                 , s.handle.RemoteEndPoint.ToString(), s.m_mac, s.m_code);
                             try
                             {
-                                s.handle.Shutdown(SocketShutdown.Both);
+                                s.Send("0");
                             }
                             catch (System.Exception ex)
                             {
@@ -1356,8 +1411,8 @@ namespace 档案汇总
                 }
             }
 
-            StatusLab_SessionNum.Text = String.Format("实际连接:{0},macc:{1},speed:{2}/秒", 
-                Sever.m_Clinets.Count, macCheck.Count, ((float)_speedCount) / 3);
+            StatusLab_SessionNum.Text = String.Format("实际连接:{0},macc:{1},speed:{2}/秒, captcha:{3}/{4}",
+                Sever.m_Clinets.Count, macCheck.Count, ((float)_speedCount) / 3, sameCount, captcha.Count);
             _speedCount = 0;
 
             if (this.cbClearData.Checked == true)
@@ -1969,6 +2024,23 @@ namespace 档案汇总
         private void rbZone2_CheckedChanged(object sender, EventArgs e)
         {
             IniWriteValue("UI", "zone", "2");
+        }
+
+        private void Grid_Load(object sender, EventArgs e)
+        {
+            if (!Directory.Exists("captcha"))
+            {
+                Directory.CreateDirectory("captcha");
+            }
+            string[] filenames= Directory.GetFiles("captcha");
+            for (int i = 0; i < filenames.Length; ++i)
+            {
+                int bi = filenames[i].LastIndexOf("\\") + 1;
+                int ei = filenames[i].LastIndexOf(".");
+                string md5 = filenames[i].Substring(bi, ei - bi);
+                captcha.Add(md5, 1);
+            }
+            Global.logger.Debug("captcha :{0}", captcha.Count);
         }
     }
 }

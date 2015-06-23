@@ -83,6 +83,16 @@
             this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.dgvSession = new System.Windows.Forms.DataGridView();
+            this.sIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sMac = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sState = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sFinishedNum = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sFailedCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sLoginState = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sVer = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.sDisconnect = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.reboot = new System.Windows.Forms.DataGridViewButtonColumn();
             this.cbRemoteReboot = new System.Windows.Forms.CheckBox();
             this.tmReboot = new System.Windows.Forms.Timer(this.components);
             this.btnRoutineIp = new System.Windows.Forms.Button();
@@ -94,16 +104,6 @@
             this.rlog = new System.Windows.Forms.ListBox();
             this.rbZone1 = new System.Windows.Forms.RadioButton();
             this.rbZone2 = new System.Windows.Forms.RadioButton();
-            this.sIP = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sCode = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sMac = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sState = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sFinishedNum = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sFailedCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sLoginState = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sVer = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.sDisconnect = new System.Windows.Forms.DataGridViewButtonColumn();
-            this.reboot = new System.Windows.Forms.DataGridViewButtonColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -580,6 +580,59 @@
             this.dgvSession.TabIndex = 0;
             this.dgvSession.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvSession_CellContentClick);
             // 
+            // sIP
+            // 
+            this.sIP.HeaderText = "IP";
+            this.sIP.Name = "sIP";
+            // 
+            // sCode
+            // 
+            this.sCode.HeaderText = "登陆机代号";
+            this.sCode.Name = "sCode";
+            // 
+            // sMac
+            // 
+            this.sMac.HeaderText = "Mac";
+            this.sMac.Name = "sMac";
+            // 
+            // sState
+            // 
+            this.sState.HeaderText = "连接状态";
+            this.sState.Name = "sState";
+            // 
+            // sFinishedNum
+            // 
+            this.sFinishedNum.HeaderText = "总共签到次数";
+            this.sFinishedNum.Name = "sFinishedNum";
+            // 
+            // sFailedCount
+            // 
+            this.sFailedCount.HeaderText = "总共签到失败次数";
+            this.sFailedCount.Name = "sFailedCount";
+            // 
+            // sLoginState
+            // 
+            this.sLoginState.HeaderText = "登陆情况";
+            this.sLoginState.Name = "sLoginState";
+            // 
+            // sVer
+            // 
+            this.sVer.HeaderText = "登录机版本";
+            this.sVer.Name = "sVer";
+            // 
+            // sDisconnect
+            // 
+            this.sDisconnect.HeaderText = "断开连接";
+            this.sDisconnect.Name = "sDisconnect";
+            this.sDisconnect.Text = "";
+            // 
+            // reboot
+            // 
+            this.reboot.HeaderText = "重启登陆机";
+            this.reboot.Name = "reboot";
+            this.reboot.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+            this.reboot.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
+            // 
             // cbRemoteReboot
             // 
             this.cbRemoteReboot.AutoSize = true;
@@ -697,59 +750,6 @@
             this.rbZone2.UseVisualStyleBackColor = true;
             this.rbZone2.CheckedChanged += new System.EventHandler(this.rbZone2_CheckedChanged);
             // 
-            // sIP
-            // 
-            this.sIP.HeaderText = "IP";
-            this.sIP.Name = "sIP";
-            // 
-            // sCode
-            // 
-            this.sCode.HeaderText = "登陆机代号";
-            this.sCode.Name = "sCode";
-            // 
-            // sMac
-            // 
-            this.sMac.HeaderText = "Mac";
-            this.sMac.Name = "sMac";
-            // 
-            // sState
-            // 
-            this.sState.HeaderText = "连接状态";
-            this.sState.Name = "sState";
-            // 
-            // sFinishedNum
-            // 
-            this.sFinishedNum.HeaderText = "总共签到次数";
-            this.sFinishedNum.Name = "sFinishedNum";
-            // 
-            // sFailedCount
-            // 
-            this.sFailedCount.HeaderText = "总共签到失败次数";
-            this.sFailedCount.Name = "sFailedCount";
-            // 
-            // sLoginState
-            // 
-            this.sLoginState.HeaderText = "登陆情况";
-            this.sLoginState.Name = "sLoginState";
-            // 
-            // sVer
-            // 
-            this.sVer.HeaderText = "登录机版本";
-            this.sVer.Name = "sVer";
-            // 
-            // sDisconnect
-            // 
-            this.sDisconnect.HeaderText = "断开连接";
-            this.sDisconnect.Name = "sDisconnect";
-            this.sDisconnect.Text = "";
-            // 
-            // reboot
-            // 
-            this.reboot.HeaderText = "重启登陆机";
-            this.reboot.Name = "reboot";
-            this.reboot.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-            this.reboot.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            // 
             // Grid
             // 
             this.AllowDrop = true;
@@ -780,6 +780,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Grid";
             this.Text = "账号管理";
+            this.Load += new System.EventHandler(this.Grid_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).EndInit();
             this.Menu_DeleteRow.ResumeLayout(false);
             this.Menu_ClearCell.ResumeLayout(false);

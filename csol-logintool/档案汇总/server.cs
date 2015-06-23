@@ -6,6 +6,8 @@ using System.Net.Sockets;
 using System.Net;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.IO;
+using System.IO.Compression;
 
 namespace 档案汇总
 {
@@ -14,7 +16,7 @@ namespace 档案汇总
         Socket m_Acceptor;
 
         string IP = GetLocalIp();
-        int port = 28016;
+        int port = 723;
 
         static public bool bChanged = false;
 
@@ -163,17 +165,17 @@ namespace 档案汇总
                     Parse(recv);
                     m_sock.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), null);
                 }
-                else
-                {
-                    lock (Sever.m_Clinets)
-                    {
-                        Sever.bChanged = true;
-                        Sever.m_Clinets.Remove(this);
-                    }
-                    m_sock.Shutdown(SocketShutdown.Both);
-                    m_sock.Disconnect(false);
-                    m_sock.Dispose();
-                }
+                //else
+                //{
+                //    lock (Sever.m_Clinets)
+                //    {
+                //        Sever.bChanged = true;
+                //        Sever.m_Clinets.Remove(this);
+                //    }
+                //    m_sock.Shutdown(SocketShutdown.Both);
+                //    m_sock.Disconnect(false);
+                //    m_sock.Dispose();
+                //}
             }
             catch (Exception ex)
             {
@@ -186,25 +188,35 @@ namespace 档案汇总
             m_buffer.AddRange(ba);
             do
             {
-                bool loopBreak = true;
-
-                byte[] buffer = m_buffer.ToArray();
-
                 try
                 {
-                    stMsg s = Bit.BytesToStruct<stMsg>(buffer, 0);
-                    OnMsg(s.Cmd);
-                    m_buffer.RemoveRange(0, Marshal.SizeOf(typeof(stMsg)));
-                }
-                catch (Exception ex)
-                {
-                    Global.logger.Debug("封包解析错误 :" + ex.ToString());
-                    loopBreak = true;
-                }
+                    byte[] buffer = m_buffer.ToArray();
+                    MsgHeader head = Bit.BytesToStruct<MsgHeader>(buffer, 0);
+                    int head_len = Marshal.SizeOf(typeof(MsgHeader));
 
-                if (loopBreak)
+                    if (head.wMsgLen + head_len <= buffer.Length)
+                    {
+                        string s = null;
+                        if (head.btRar == 1)
+                        {
+                            byte[] raw = Decompress(buffer, head_len, head.wMsgLen);
+                            s = Encoding.Default.GetString(raw);
+                        }
+                        else
+                            s = Encoding.Default.GetString(buffer, head_len, head.wMsgLen);
+                        OnMsg(s);
+                        m_buffer.RemoveRange(0, head.wMsgLen + head_len);
+                        if (m_buffer.Count == 0)
+                            break;
+                    }
+                    else
+                        break;
+                }
+                catch
+                {
                     break;
-            } while (true);           
+                }
+            } while (true);          
         }
 
         private void OnMsg(string s)
@@ -220,10 +232,24 @@ namespace 档案汇总
             try
             {
                 m_lastactivetime = System.Environment.TickCount;
-                stMsg s = new stMsg();
-                s.Cmd = msg;
-                byte[] buffer = Bit.StructToBytes<stMsg>(s);
-                m_sock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock, buffer));
+                MsgHeader head = new MsgHeader();
+                byte[] msg_buffer = System.Text.Encoding.Default.GetBytes(msg);
+                if (msg_buffer.Length > 300)
+                {
+                    head.btRar = 1;
+                    msg_buffer = Compress(msg_buffer);
+                }
+                else
+                {
+                    head.btRar = 0;
+                }
+                head.wMsgLen = msg_buffer.Length;
+                byte[] head_buffer = Bit.StructToBytes<MsgHeader>(head);
+
+                List<byte> send_buffer = new List<byte>();
+                send_buffer.AddRange(head_buffer);
+                send_buffer.AddRange(msg_buffer);
+                m_sock.BeginSend(send_buffer.ToArray(), 0, send_buffer.Count, 0, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock, send_buffer.ToArray()));
             }
             catch (Exception ex)
             {
@@ -253,9 +279,46 @@ namespace 档案汇总
             }
         }
 
+        public static byte[] Compress(byte[] raw)
+        {
+            using (MemoryStream memory = new MemoryStream())
+            {
+                using (GZipStream gzip = new GZipStream(memory, CompressionMode.Compress, true))
+                {
+                    gzip.Write(raw, 0, raw.Length);
+                }
+                return memory.ToArray();
+            }
+        }
+        static byte[] Decompress(byte[] gzip, int idx, int len)
+        {
+            // Create a GZIP stream with decompression mode.
+            // ... Then create a buffer and write into while reading from the GZIP stream.
+            using (GZipStream stream = new GZipStream(new MemoryStream(gzip, idx, len), CompressionMode.Decompress))
+            {
+                const int size = 4096;
+                byte[] buffer = new byte[size];
+                using (MemoryStream memory = new MemoryStream())
+                {
+                    int count = 0;
+                    do
+                    {
+                        count = stream.Read(buffer, 0, size);
+                        if (count > 0)
+                        {
+                            memory.Write(buffer, 0, count);
+                        }
+                    }
+                    while (count > 0);
+                    return memory.ToArray();
+                }
+            }
+        }
+
         private void OnError(Exception ex)
         {
-            Global.logger.Debug("客户连接断开:{0},mac{1},远程机代号:{2};{3}", handle.RemoteEndPoint.ToString(), m_mac, m_code, ex.ToString());
+            //Global.logger.Debug("客户连接断开:{0},mac{1},远程机代号:{2};{3}", handle.RemoteEndPoint.ToString(), m_mac, m_code, ex.ToString());
+            Global.logger.Debug(ex.ToString());
             m_errorHandle(ex, this);
         }
     }

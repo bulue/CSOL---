@@ -63,7 +63,8 @@ namespace 档案汇总
     [StructLayout(LayoutKind.Sequential, Pack = 1)]  //变量在内存中的对齐方式 
     public struct MsgHeader
     {
-        public ushort wMsgLen;
+        public int wMsgLen;
+        public byte btRar;
     };
 
 
@@ -73,12 +74,4 @@ namespace 档案汇总
         public int wMsgLen;
         public byte btRar;
     };
-
-    [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
-    struct stMsg
-    {
-        //字符串，SizeConst为字符串的最大长度
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1024)]
-        public string Cmd;
-    }
 }
