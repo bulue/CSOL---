@@ -1435,19 +1435,8 @@ namespace PwcTool
                     , MessageBoxImage.Information);
                 return;
             }
-
-            if (rdbLetter.IsChecked == true)
-            {
-                m_GuessSet = 26;
-            }
-            else if (rdbDigit.IsChecked == true)
-            {
-                m_GuessSet = 10;
-            }
-            else
-            {
-                m_GuessSet = 36;
-            }
+            
+            m_GuessSet = 10;
             m_GuessBeginValue = Convert.ToInt32(tbxBeginValue.Text);
             m_GuessAccountPrefix = tbxPrefixAccount.Text;
             m_numberOfDigit = tbxBeginValue.Text.Length;
@@ -1465,7 +1454,20 @@ namespace PwcTool
                     }
 
                     string nextguess = GuessNextAccount(m_GuessSet);
-                    m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
+                    //m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
+                    if (rdbNumberSame.IsChecked == true)
+                    {
+                        string nextpwd = nextguess.Substring(nextguess.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }));
+                        m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), nextpwd, null, m_IpToken);
+                    }
+                    else if (rdbFixpwd.IsChecked == true)
+                    {
+                        m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), tbxFixpwd.Text, null, m_IpToken);
+                    }
+                    else
+                    {
+                        m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), nextguess.Trim(), null, m_IpToken);
+                    }
                 }
             }
             catch (Exception ex)
@@ -1586,10 +1588,14 @@ namespace PwcTool
                         string next = GuessNextAccount(m_GuessSet);
                         if (!string.IsNullOrEmpty(next))
                         {
-                            if (cbxDigitMode.IsChecked == true)
+                            if (rdbNumberSame.IsChecked == true)
                             {
                                 string nextpwd = next.Substring(next.IndexOfAny(new char[]{'0','1','2','3','4','5','6','7','8','9'}));
-                                guessworker.BeginTask(next.ToLower().Trim(), nextpwd, null, m_IpToken);
+                                guessworker.BeginTask(next.ToLower().Trim(), nextpwd.Trim(), null, m_IpToken);
+                            }
+                            else if (rdbFixpwd.IsChecked == true)
+                            {
+                                guessworker.BeginTask(next.ToLower().Trim(), tbxFixpwd.Text.Trim(), null, m_IpToken);
                             }
                             else
                             {

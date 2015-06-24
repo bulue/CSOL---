@@ -38,16 +38,11 @@
                     <TextBox Height="23" HorizontalAlignment="Left" Margin="873,33,0,0" Name="tbxGuessWorkerNum" VerticalAlignment="Top" Width="74" PreviewTextInput="PreviewTextInput_Number" Text="1" MaxLength="1" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="132,33,0,0" Name="textBlock6" Text="起始值" VerticalAlignment="Top" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="16,33,0,0" Name="textBlock7" Text="前缀" VerticalAlignment="Top" />
-                    <RadioButton Content="全数字0-9" Height="16" HorizontalAlignment="Left" Margin="513,33,0,0" Name="rdbDigit" VerticalAlignment="Top" IsChecked="True" />
-                    <RadioButton Content="全英文a-z" Height="16" HorizontalAlignment="Left" Margin="606,33,0,0" Name="rdbLetter" VerticalAlignment="Top" IsChecked="False" IsEnabled="False" />
-                    <RadioButton Content="英文+数字" Height="16" HorizontalAlignment="Left" Margin="695,33,0,0" Name="rdbDigitAndLetter" VerticalAlignment="Top" IsEnabled="False" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="797,33,0,0" Name="textBlock8" Text="并行工作数量" VerticalAlignment="Top" />
                     <Button Content="启动" Height="23" HorizontalAlignment="Left" Margin="617,72,0,0" Name="btnStartSaohao" VerticalAlignment="Top" Width="75" Click="btnStartSaohao_Click" InputMethod.PreferredImeState="On"/>
                     <Button Content="停止" Height="23" HorizontalAlignment="Left" Margin="704,72,0,0" Name="btnStopSaohao" VerticalAlignment="Top" Width="75" Click="btnStopSaohao_Click" InputMethod.PreferredImeState="On"/>
                     <Button Content="导出" Height="23" HorizontalAlignment="Left" Margin="793,72,0,0" Name="btnExportSaohao" VerticalAlignment="Top" Width="75" Click="btnExportSaohao_Click" InputMethod.PreferredImeState="On"/>
                     <Button Content="清理记录" Height="23" HorizontalAlignment="Left" Margin="883,72,0,0" Name="btnCleanRecord" VerticalAlignment="Top" Width="75" Click="btnCleanRecord_Click" />
-                    <CheckBox Content="只要无证号" Height="16" HorizontalAlignment="Left" Margin="513,72,0,0" Name="cbxNoId" VerticalAlignment="Top" IsEnabled="False" />
-                    <CheckBox Content="数字密码" Height="16" HorizontalAlignment="Left" Margin="434,72,0,0" Name="cbxDigitMode" VerticalAlignment="Top" />
                     <TabControl Margin="11,101,6,31" Name="tabControl2" HorizontalAlignment="Stretch">
                         <TabItem Header="记录" Name="tabItem4">
                             <Grid  HorizontalAlignment="Stretch">
@@ -58,6 +53,11 @@
                     <StatusBar Name="statusBar1" BorderBrush="Black" BorderThickness="1" Height="25" VerticalAlignment="Bottom">
                         <TextBlock Name="tbStatus" Foreground="Black"></TextBlock>
                     </StatusBar>
+                    <RadioButton Content="密码与账号相同" HorizontalAlignment="Left" Margin="318,33,0,0" VerticalAlignment="Top" Name="rdbAllSame" IsChecked="True"/>
+                    <RadioButton Content="仅数字相同" HorizontalAlignment="Left" Margin="436,33,0,0" VerticalAlignment="Top" Name="rdbNumberSame" />
+                    <RadioButton Content="固定密码" HorizontalAlignment="Left" Margin="536,33,0,0" VerticalAlignment="Top" Name="rdbFixpwd" />
+                    <TextBox Height="23" Text="1234" Width="120" Margin="618,32,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" IsEnabled="{Binding ElementName=rdbFixpwd, Path=IsChecked}" 
+                             Name="tbxFixpwd"/>
                 </Grid>
             </TabItem>
         </TabControl>
