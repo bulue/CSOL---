@@ -43,6 +43,8 @@ namespace PwcTool
         DataSet m_csedataset = new DataSet();
         SQLiteConnection m_guessconn = new SQLiteConnection();
         DataSet m_guessdataset = new DataSet();
+        SQLiteConnection m_cardconn = new SQLiteConnection();
+        DataSet m_carddataset = new DataSet();
 
         const string lgxml = "lg.xml";
         const string pwxml = "pw.xml";
@@ -51,6 +53,7 @@ namespace PwcTool
         const string pwcdb = "uid.db";
         const string csedb = "uid.db";
         const string guessdb = "uid.db";
+        const string carddb = "uid.db";
 
         static public string captchadb = "captcha";
 
@@ -81,6 +84,13 @@ namespace PwcTool
         const string guess_column_se_balance = "balance";//账户余额
         const string guess_column_se_jifen = "jifen"; //积分
 
+        const string card_uidtable = "card_uid";
+        const string card_column_uid = "uid";
+        const string card_column_password = "password";
+        const string card_column_status = "status";
+        const string card_column_cardname = "cardname";//身份证名字
+        const string card_column_cardid = "cardid";    //身份证号码
+
         const string status_ready = "准备";
         const string status_pwderror = "密码错误";
         const string status_ok = "成功";
@@ -108,6 +118,7 @@ namespace PwcTool
         List<object> m_saveObjList = new List<object>();
         List<object> m_saveSeObjList = new List<object>();
         List<object> m_saveGuessObjList = new List<object>();
+        List<object> m_saveCardObjList = new List<object>();
         bool m_boshutdwon;
 
         UidBackup m_uidbacker = new UidBackup();
@@ -115,11 +126,13 @@ namespace PwcTool
         List<CpWorker> m_cpworkers = new List<CpWorker>();
         List<SeWorker> m_seworkers = new List<SeWorker>();
         List<GuessWorker> m_guessWorkers = new List<GuessWorker>();
+        List<CardWorker> m_cardwokers = new List<CardWorker>();
 
         Dictionary<string, int> m_uid2idx = new Dictionary<string, int>();
 
         int m_walkiterator = 0;
         int m_csewalkiterator = 0;
+        int m_cardwalkiterator = 0;
 
         int m_IpToken = 0;
 
@@ -174,6 +187,7 @@ namespace PwcTool
             InitPwcDb();
             InitCheckSafeDb();
             InitGuess();
+            InitCardSubmit();
         }
 
         //初始化修密 相关
@@ -266,10 +280,10 @@ namespace PwcTool
             {
                 if (!File.Exists(guessdb))
                 {
-                    System.Data.SQLite.SQLiteConnection.CreateFile(csedb);
+                    System.Data.SQLite.SQLiteConnection.CreateFile(guessdb);
                 }
                 SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
-                connstr.DataSource = pwcdb;
+                connstr.DataSource = guessdb;
                 m_guessconn.ConnectionString = connstr.ToString();
                 m_guessconn.Open();
                 using (SQLiteCommand cmd = new SQLiteCommand(m_guessconn))
@@ -294,6 +308,46 @@ namespace PwcTool
                 }
             }
             catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        //初始化 上证
+        void InitCardSubmit()
+        {
+            try
+            {
+                if (!File.Exists(carddb))
+                {
+                    System.Data.SQLite.SQLiteConnection.CreateFile(carddb);
+                }
+                SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
+                connstr.DataSource = carddb;
+                m_cardconn.ConnectionString = connstr.ToString();
+                m_cardconn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(m_cardconn))
+                {
+                    cmd.CommandText = "select count(*) from sqlite_master where type = 'table' and name = '" + card_uidtable + "'";
+                    Int64 result = (Int64)cmd.ExecuteScalar();
+                    if (result == 0)
+                    {
+                        cmd.CommandText = "CREATE TABLE " + card_uidtable + "(uid varchar(30) primary key,password varchar(50),status varchar(50),cardname varchar(50),cardid varchar(50))";
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    cmd.CommandText = "select * from " + card_uidtable;
+                    cmd.CommandType = CommandType.Text;
+
+                    SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
+                    da.Fill(m_carddataset);
+
+                    CardUidGrid.AutoGenerateColumns = true;
+                    CardUidGrid.ItemsSource = m_carddataset.Tables[0].DefaultView;
+                    CardUidGrid.LoadingRow += new EventHandler<DataGridRowEventArgs>(dataGrid_LoadingRow);
+                }
+            }
+            catch(Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
@@ -616,7 +670,7 @@ namespace PwcTool
                                 for (int i = 0; i < guesswaitsavelist.Count; ++i)
                                 {
                                     var tuple = guesswaitsavelist[i] as Tuple<GuessWorker, string, string, string, int, int, int>;
-                                    GuessWorker seworker = tuple.Item1;
+                                    //GuessWorker seworker = tuple.Item1;
                                     string uid = tuple.Item2;
                                     string pwd = tuple.Item3;
                                     string status = tuple.Item4;
@@ -657,6 +711,55 @@ namespace PwcTool
                     catch (System.Exception ex)
                     {
                         MessageBox.Show(ex.ToString());
+                    }
+                } while (false);
+
+
+                do
+                {
+                    List<object> cardwaitsavelist = new List<object>();
+                    lock (m_saveCardObjList)
+                    {
+                        if (m_saveCardObjList.Count > 0)
+                        {
+                            cardwaitsavelist = new List<object>(m_saveCardObjList);
+                            m_saveObjList.Clear();
+                        }
+                    }
+
+                    if (cardwaitsavelist.Count > 0)
+                    {
+                        int begintick = System.Environment.TickCount;
+                        using (SQLiteTransaction ts = m_cardconn.BeginTransaction())
+                        {
+                            for (int i = 0; i < cardwaitsavelist.Count; ++i)
+                            {
+                                var tuple = cardwaitsavelist[i] as Tuple<CardWorker, string, string, string, string, string>;
+                                string uid = tuple.Item2;
+                                string pwd = tuple.Item3;
+                                string status = tuple.Item4;
+                                string cardid = tuple.Item5;
+                                string cardname = tuple.Item6;
+
+                                using (SQLiteCommand cmd = new SQLiteCommand(m_cardconn))
+                                {
+                                    cmd.CommandText = "UPDATE " + card_uidtable + " SET " + card_column_status + " = @status , " + card_column_password + " = @pwd, "
+                                        + card_column_cardname + " = @name, " + card_column_cardid + " = @carid"
+                                        + " WHERE " + column_uid + " = @uid  ";
+
+                                    cmd.Parameters.Add(new SQLiteParameter("@status", status));
+                                    cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
+                                    cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
+                                    cmd.Parameters.Add(new SQLiteParameter("@name", cardname));
+                                    cmd.Parameters.Add(new SQLiteParameter("@carid", cardid));
+
+                                    cmd.ExecuteNonQuery();
+                                }
+                            }
+                            ts.Commit();
+                        }
+
+                        m_logger.Debug("update pwc count:" + cardwaitsavelist.Count + " time:" + (System.Environment.TickCount - begintick) + "ms");
                     }
                 } while (false);
 
@@ -1002,6 +1105,51 @@ namespace PwcTool
             }
         }
 
+        void load_carduidtxt(string uidtxt)
+        {
+            if (File.Exists(uidtxt))
+            {
+                using (SQLiteCommand cmd = new SQLiteCommand(m_cardconn))
+                {
+                    m_carddataset.Tables[0].Clear();
+
+                    cmd.CommandText = "DELETE FROM " + card_uidtable;
+                    cmd.ExecuteNonQuery();
+
+                    string[] lines = File.ReadAllLines(uidtxt, Encoding.GetEncoding("GB2312"));
+                    string pattern = @"[0-9]*[^a-zA-z0-9]*(\w+)[^a-zA-z0-9]*(\w+)";
+
+                    foreach (string line in lines)
+                    {
+                        Match mt = Regex.Match(line, pattern);
+                        if (mt.Groups.Count == 3)
+                        {
+                            string uid = mt.Groups[1].ToString();
+                            string pw = mt.Groups[2].ToString();
+
+                            DataRow newRow = m_carddataset.Tables[0].Rows.Add();
+                            newRow[card_column_uid] = uid;
+                            newRow[card_column_password] = pw;
+
+                        }
+                    }
+
+                    int begintick = System.Environment.TickCount;
+                    cmd.CommandText = "SELECT * FROM " + card_uidtable;
+                    SQLiteDataAdapter dataadapter = new SQLiteDataAdapter(cmd);
+                    SQLiteCommandBuilder cmdbuilder = new SQLiteCommandBuilder(dataadapter);
+                    dataadapter.InsertCommand = cmdbuilder.GetInsertCommand();
+                    using (SQLiteTransaction ts = m_cardconn.BeginTransaction())
+                    {
+                        dataadapter.Update(m_carddataset);
+                        ts.Commit();
+                    }
+                    m_logger.Debug("card数据库更新:" + (System.Environment.TickCount - begintick) + "ms");
+                }
+                m_cardwalkiterator = 0;
+            }
+        }
+
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             try
@@ -1009,7 +1157,7 @@ namespace PwcTool
                 m_boshutdwon = true;
 
                 m_uidbacker.BackUp();
-                Thread.Sleep(2000);
+                Thread.Sleep(3000);
                 m_pwcconn.Close();
                 CLogger.StopAllLoggers();
                 m_saveThread.Join(3000);
@@ -1085,10 +1233,21 @@ namespace PwcTool
             CheckUidSafeGrid.DragEnter += new DragEventHandler(CheckUidSafeGrid_DragEnter);
             CheckUidSafeGrid.Drop += new DragEventHandler(CheckUidSafeGrid_Drop);
 
+            CardUidGrid.DragEnter += new DragEventHandler(CardUidGrid_DragEnter);
+            CardUidGrid.Drop += new DragEventHandler(CardUidGrid_Drop);
+
             int workerThreads = 0;
             int completePortsThreads = 0;
             ThreadPool.GetMaxThreads(out workerThreads, out completePortsThreads);
             ThreadPool.SetMaxThreads(workerThreads*10, completePortsThreads*10);
+
+            if (m_userlvl < 0)
+            {
+                tabItem1.Visibility = Visibility.Collapsed;
+                tabItem2.Visibility = Visibility.Collapsed;
+                tabItem3.Visibility = Visibility.Collapsed;
+                tabItem5.IsSelected = true;
+            }
 
             if (m_userlvl == 0)
             {
@@ -1098,6 +1257,20 @@ namespace PwcTool
             {
                 tbxGuessWorkerNum.MaxLength = 2;
             }
+        }
+
+        void CardUidGrid_Drop(object sender, DragEventArgs e)
+        {
+            string fileName = ((System.Array)e.Data.GetData(DataFormats.FileDrop)).GetValue(0).ToString();
+            load_carduidtxt(fileName);
+        }
+
+        void CardUidGrid_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effects = DragDropEffects.Link;
+            else
+                e.Effects = DragDropEffects.None;     
         }
 
         void CheckUidSafeGrid_Drop(object sender, DragEventArgs e)
@@ -1119,6 +1292,7 @@ namespace PwcTool
             CpWorker.DBpwd = MyDes.Decode(m_safedbpwd, m_safekey);
             SeWorker.DBpwd = CpWorker.DBpwd;
             GuessWorker.DBpwd = CpWorker.DBpwd;
+            CardWorker.DBpwd = CpWorker.DBpwd;
 
             if (!String.IsNullOrEmpty(m_safelg)
                 && !String.IsNullOrEmpty(m_safepw))
@@ -1298,25 +1472,17 @@ namespace PwcTool
                     if (btnStopCheckSafe.IsEnabled == true)
                     {
                         DataRow nextuidrow = IteratorNextRow(m_csedataset.Tables[0], cse_column_status, ref m_csewalkiterator);
-                        //if (status == "IP被封")
-                        //{
-                        //   seworker.BeginTask(uid, pwd, nextuidrow, m_IpToken);
-                        //   nextuidrow[cse_column_status] = status_ready;
-                        //}
-                        //else
+                        if (nextuidrow != null)
                         {
-                            if (nextuidrow != null)
-                            {
-                                string nextuid = (string)nextuidrow[cse_column_uid];
-                                string nextpwd = (string)nextuidrow[cse_column_password];
-                                seworker.BeginTask(nextuid.ToLower().Trim(), nextpwd.Trim(), nextuidrow, m_IpToken);
-                                nextuidrow[cse_column_status] = status_ready;
-                            }
-                            else
-                            {
-                                seworker.IsWorking = false;
-                                CheckSeWorkerStatus();
-                            }
+                            string nextuid = (string)nextuidrow[cse_column_uid];
+                            string nextpwd = (string)nextuidrow[cse_column_password];
+                            seworker.BeginTask(nextuid.ToLower().Trim(), nextpwd.Trim(), nextuidrow, m_IpToken);
+                            nextuidrow[cse_column_status] = status_ready;
+                        }
+                        else
+                        {
+                            seworker.IsWorking = false;
+                            CheckSeWorkerStatus();
                         }
                     }
                     else
@@ -1495,21 +1661,6 @@ namespace PwcTool
         {
             try
             {
-                //var arg = e.Argument as Tuple<GuessWorker, string, string, string, bool, int, int>;
-                //GuessWorker seworker = arg.Item1;
-                //string uid = arg.Item2;
-                //string pwd = arg.Item3;
-                //string status = arg.Item4;
-                //bool has_idcard = arg.Item5;
-                //int yue = arg.Item6;
-                //int userpoint = arg.Item7;
-
-                //lock (m_saveGuessObjList)
-                //{
-                //    m_saveGuessObjList.Add(arg);
-                //}
-
-                //e.Result = arg;
                 e.Result = e.Argument;
             }
             catch (System.Exception ex)
@@ -1622,6 +1773,130 @@ namespace PwcTool
             }));
         }
 
+        void cardworker_FinishTask(CardWorker worker, string uid, string pwd, string status, string cardid, string cardname)
+        {
+            BackgroundWorker backworker = new BackgroundWorker();
+            backworker.DoWork += new DoWorkEventHandler(cardworker_OnTaskFinish);
+            backworker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(cardworker_RunWorkerCompleted);
+            backworker.RunWorkerAsync(new Tuple<CardWorker, string, string, string, string, string>(worker, uid, pwd, status, cardid, cardname));
+        }
+
+        void cardworker_OnTaskFinish(object sender, DoWorkEventArgs e)
+        {
+             e.Result = e.Argument;
+             lock (m_saveCardObjList)
+             {
+                 m_saveCardObjList.Add(e.Result);
+             }
+        }
+
+        void cardworker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            var arg = e.Result as Tuple<CardWorker, string, string, string, string, string>;
+            CardWorker cardworker = arg.Item1;
+            string uid = arg.Item2;
+            string pwd = arg.Item3;
+            string status = arg.Item4;
+            string cardid = arg.Item5;
+            string cardname = arg.Item6;
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (status == "IP被封")
+                {
+                    if (cardworker.IpToken == m_IpToken)
+                    {
+                        if (File.Exists("RebootRoutine.exe"))
+                        {
+                            m_logger.Debug("启动RebootRoutine.exe...");
+                            Process pro = Process.Start("RebootRoutine.exe");
+                            pro.WaitForExit();
+                            m_logger.Debug("RebootRoutine 退出!!");
+                        }
+                        else
+                        {
+                            MessageBox.Show("IP被封,RebootRoutine.exe文件不存在!");
+                        }
+                        m_IpToken++;
+                    }
+                }
+
+                DataRow targetrow = cardworker.workArgument as DataRow;
+                targetrow[cse_column_status] = status;
+                targetrow[card_column_cardid] = cardid;
+                targetrow[card_column_cardname] = cardname;
+
+                if (status == "上证成功")
+                {
+                    m_uidbacker.PushUid(uid, pwd, "", "card");   
+                }
+
+                try
+                {
+                    if (CardWorker.KeepRunTime != 0 && btnStartCardSubmit.IsEnabled)
+                    {
+                        if (System.Environment.TickCount - GuessWorker.StartRunTime > CardWorker.KeepRunTime)
+                        {
+                            btnStopCardSubmit.IsEnabled = false;
+                            MessageBox.Show("试用时间到了!!");
+                        }
+                    }
+
+                    if (btnStopCardSubmit.IsEnabled == true)
+                    {
+                        DataRow nextuidrow = IteratorNextRow(m_carddataset.Tables[0], card_column_status, ref m_cardwalkiterator);
+                        if (nextuidrow != null)
+                        {
+                            string nextuid = (string)nextuidrow[cse_column_uid];
+                            string nextpwd = (string)nextuidrow[cse_column_password];
+                            cardworker.BeginTask(nextuid.ToLower().Trim(), nextpwd.Trim(), nextuidrow, m_IpToken);
+                            nextuidrow[cse_column_status] = status_ready;
+                        }
+                        else
+                        {
+                            cardworker.IsWorking = false;
+                            CheckCardWorkerStatus();
+                        }
+
+                        //string next = GuessNextAccount(m_GuessSet);
+                        //if (!string.IsNullOrEmpty(next))
+                        //{
+                        //    cardworker.BeginTask(next.ToLower().Trim(), next.Trim(), null, m_IpToken);
+                        //}
+                        //else
+                        //{
+                        //    cardworker.IsWorking = false;
+                        //    CheckCardWorkerStatus();
+                        //}
+                    }
+                    else
+                    {
+                        cardworker.IsWorking = false;
+                        CheckCardWorkerStatus();
+                    }
+
+                }
+                catch (System.Exception ex)
+                {
+                    MessageBox.Show(ex.ToString());
+                }
+            }));
+        }
+
+        void CheckCardWorkerStatus()
+        {
+            foreach (CardWorker w in m_cardwokers)
+            {
+                if (w.IsWorking == true)
+                {
+                    return;
+                }
+            }
+            btnStartCardSubmit.IsEnabled = true;
+            btnStopCardSubmit.IsEnabled = true;
+            tbxCardWorkerNum.IsEnabled = true;
+        }
+
         void CheckGuessWorkerStatus()
         {
             foreach (GuessWorker w in m_guessWorkers)
@@ -1693,6 +1968,78 @@ namespace PwcTool
                 int effectOfCount = cmd.ExecuteNonQuery();
                 m_logger.Debug("clean {0} guess items!", effectOfCount);
             }
+        }
+
+        private void btnStartCardSubmit_Click(object sender, RoutedEventArgs e)
+        {
+            if (!File.Exists(md5js))
+            {
+                MessageBox.Show(lgxml + "文件不存在", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (m_bofirststart)
+            {
+                firstStart();
+                m_bofirststart = false;
+            }
+
+            if (CardWorker.KeepRunTime != 0)
+            {
+                if (System.Environment.TickCount - CardWorker.StartRunTime > CardWorker.KeepRunTime)
+                {
+                    if (File.Exists(captchadb))
+                    {
+                        File.Delete(captchadb);
+                    }
+                    m_lgcaptcha.Clear();
+                    m_pwcaptcha.Clear();
+
+                    for (int i = 0; i < m_cpworkers.Count; ++i)
+                    {
+                        m_cardwokers[i].m_lgcaptcha.Clear();
+                        m_cardwokers[i].m_pwcaptcha.Clear();
+                    }
+                    MessageBox.Show("试用到期了!!");
+                    return;
+                }
+            }
+
+            int num = int.Parse(tbxCardWorkerNum.Text);
+            for (int i = 0; i < num; ++i)
+            {
+                if (m_cardwokers.Count <= i)
+                {
+                    CardWorker worker = new CardWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
+                    worker.FinishTask += cardworker_FinishTask;
+                    m_cardwokers.Add(worker);
+                }
+
+                DataRow nextuidrow = IteratorNextRow(m_carddataset.Tables[0], card_column_status, ref m_cardwalkiterator);
+                if (nextuidrow != null)
+                {
+                    string uid = (string)nextuidrow[cse_column_uid];
+                    string pwd = (string)nextuidrow[cse_column_password];
+                    m_cardwokers[i].BeginTask(uid.ToLower().Trim(), pwd.Trim(), nextuidrow, m_IpToken);
+                    nextuidrow[cse_column_status] = status_ready;
+
+                    //m_logger.Debug("begin uid:" + uid + " pwd:" + pwd + " newpwd:" + newpwd);
+                }
+                else
+                {
+                    m_cardwokers[i].IsWorking = false;
+                }
+            }
+            btnStartCardSubmit.IsEnabled = false;
+            tbxCardWorkerNum.IsEnabled = false;
+
+            CheckCardWorkerStatus();
+        }
+
+        private void btnStopCardSubmit_Click(object sender, RoutedEventArgs e)
+        {
+            btnStopCardSubmit.IsEnabled = false;
+            CheckCardWorkerStatus();
         }
     }
 }

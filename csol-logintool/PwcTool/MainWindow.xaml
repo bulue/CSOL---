@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PwcTool" Icon="/PwcTool;component/pig.ico" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" d:DesignHeight="455" d:DesignWidth="812" Height="534" Width="1029" Loaded="Window_Loaded">
     <Grid MinHeight="300" HorizontalAlignment="Stretch" >
-        <TabControl Margin="0,0,0,0" Name="tabControl1">
+        <TabControl Name="tabControl1">
             <TabItem Header="改密" Name="tabItem1">
                 <Grid MinHeight="300" HorizontalAlignment="Stretch">
                     <DataGrid AutoGenerateColumns="True" Margin="0,48,0,0" Name="UidGrid" AllowDrop="True" />
@@ -58,6 +58,25 @@
                     <RadioButton Content="固定密码" HorizontalAlignment="Left" Margin="536,33,0,0" VerticalAlignment="Top" Name="rdbFixpwd" />
                     <TextBox Height="23" Text="1234" Width="120" Margin="618,32,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" IsEnabled="{Binding ElementName=rdbFixpwd, Path=IsChecked}" 
                              Name="tbxFixpwd"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="上证" Name="tabItem5">
+                <Grid MinHeight="300" HorizontalAlignment="Stretch" >
+                    <Button Content="启动" Height="23" HorizontalAlignment="Left" Margin="26,27,0,0" Name="btnStartCardSubmit" VerticalAlignment="Top" Width="75" Click="btnStartCardSubmit_Click" />
+                    <Button Content="停止" HorizontalAlignment="Left" Margin="118,28,0,0" VerticalAlignment="Top" Width="75" Name="btnStopCardSubmit" Click="btnStopCardSubmit_Click"/>
+                    <Button Content="导出" HorizontalAlignment="Left" Margin="211,28,0,0" VerticalAlignment="Top" Width="75" />
+                    <TextBlock HorizontalAlignment="Left" Margin="312,31,0,0" TextWrapping="Wrap" Text="并发工作" VerticalAlignment="Top"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="381,27,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="28" MaxLength="2" Name="tbxCardWorkerNum"/>
+                    <DataGrid Margin="0,67,0,0" AutoGenerateColumns="True" Name="CardUidGrid" AllowDrop="True"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="账号注册" Name="tabItem6">
+                <Grid MinHeight="300" HorizontalAlignment="Stretch" >
+                    <Button Content="开始注册" Height="23" Width="75" Margin="20,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStartReg" />
+                    <Button Content="停止注册" Height="23" Width="75" Margin="115,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStopReg" />
+                    <TextBlock HorizontalAlignment="Left" Margin="312,31,0,0" TextWrapping="Wrap" Text="并发工作" VerticalAlignment="Top"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="381,27,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="28" MaxLength="2" Name="tbxRegWorkerNum1"/>
+                    <DataGrid Margin="0,67,0,0" AutoGenerateColumns="True" Name="RegUidGrid" AllowDrop="True"/>
                 </Grid>
             </TabItem>
         </TabControl>

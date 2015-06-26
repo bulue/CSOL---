@@ -90,6 +90,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CardIdGenerator.cs" />
     <Compile Include="Computer.cs" />
     <Compile Include="GuessWorker.cs" />
     <Compile Include="login.xaml.cs">
@@ -101,6 +102,7 @@
     <Compile Include="SeWorker.cs" />
     <Compile Include="UidBackup.cs" />
     <Compile Include="UrlFunction.cs" />
+    <Compile Include="CardWorker.cs" />
     <Page Include="login.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

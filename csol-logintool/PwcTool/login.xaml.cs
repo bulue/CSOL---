@@ -43,7 +43,6 @@ namespace PwcTool
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             this.Cursor = Cursors.Wait;
-
             string machineinfo = UrlFunction.UrlEncode(MyDes.Encode(Computer.Instance().DiskID + ";" + Computer.Instance().CpuID + ";", safe_key));
             string computername = UrlFunction.UrlEncode(Computer.Instance().ComputerName);
             string isneedcaptcha = File.Exists(tbxUid.Text) ? "0" : "1";
@@ -113,6 +112,8 @@ namespace PwcTool
                             SeWorker.Matchinfo = CpWorker.Matchinfo;
                             GuessWorker.Uid = tbxUid.Text;
                             GuessWorker.Matchinfo = CpWorker.Matchinfo;
+                            CardWorker.Uid = tbxUid.Text;
+                            CardWorker.Matchinfo = CpWorker.Matchinfo;
                             MainWindow.captchadb = CpWorker.Uid;
                             this.Cursor = Cursors.Arrow;
                             this.Close();
