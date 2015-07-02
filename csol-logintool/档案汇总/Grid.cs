@@ -28,7 +28,7 @@ namespace 档案汇总
         public string checktime;           //签到时间
         public string status;              //状态
         public int bocheck;                //是否成功签到
-        public int checkedday;             //签到天数
+        public int chipcout;                //芯片数量
         public string loginip;             //登陆机ip
         public string logincode;           //登陆代号
     }
@@ -70,6 +70,14 @@ namespace 档案汇总
             else if (IniReadValue("UI", "zone") == "2")
             {
                 this.rbZone2.Checked = true;
+            }
+            if (IniReadValue("UI", "State") == "1")
+            {
+                this.rdbLogin.Checked = true;
+            }
+            else if (IniReadValue("UI", "State") == "2")
+            {
+                this.rdbChip.Checked = true;
             }
 
             textBox_IP.Text = Sever.GetLocalIp();
@@ -343,9 +351,9 @@ namespace 档案汇总
                     item.SetAttribute("签到", Convert.ToString(info.bocheck));
                 }
 
-                if (info.checkedday != 0)
+                if (info.chipcout != 0)
                 {
-                    item.SetAttribute("签到天数", Convert.ToString(info.checkedday));
+                    item.SetAttribute("芯片数量", Convert.ToString(info.chipcout));
                 }
 
                 if (info.loginip != null)
@@ -379,29 +387,6 @@ namespace 档案汇总
                 doc.Load("Data.xml");
 
                 XmlNode root = doc.SelectSingleNode("Data");
-
-                //for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
-                //{
-
-                //    bool bDelete = true;
-                //    int newIdx = dgvUserData.Rows.Add();
-                //    for (int i = 0; i < dgvUserData.Columns.Count; ++i)
-                //    {
-                //        string HeaderText = dgvUserData.Columns[i].HeaderText;
-                //        if (item.Attributes[HeaderText] != null)
-                //        {
-                //            string s = item.Attributes[HeaderText].Value;
-                //            dgvUserData.Rows[newIdx].Cells[i].Value = s;
-                //            bDelete = false;
-                //        }
-                //    }
-                //    if (bDelete)
-                //    {
-                //        dgvUserData.Rows.Remove(dgvUserData.Rows[newIdx]);
-                //    }
-                //}
-
-                //dgvUserData.AutoResizeColumns();
                 m_userinfos.Clear();
                 m_userinfolist.Clear();
                 for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
@@ -446,9 +431,9 @@ namespace 档案汇总
                         info.bocheck = Convert.ToInt32(item.Attributes["签到"].Value);
                     }
 
-                    if (item.Attributes["签到天数"] != null)
+                    if (item.Attributes["芯片数量"] != null)
                     {
-                        info.checkedday = Convert.ToInt32(item.Attributes["签到天数"].Value);
+                        info.chipcout = Convert.ToInt32(item.Attributes["芯片数量"].Value);
                     }
 
                     if (item.Attributes["登陆机IP"] != null)
@@ -575,9 +560,9 @@ namespace 档案汇总
                         dgvUserData.Rows[newidx].Cells["Checked"].Value = info.bocheck;
                     }
 
-                    if (info.checkedday != null)
+                    if (info.chipcout != 0)
                     {
-                        dgvUserData.Rows[newidx].Cells["Days"].Value = info.checkedday;
+                        dgvUserData.Rows[newidx].Cells["Days"].Value = info.chipcout;
                     }
 
                     if (info.loginip != null)
@@ -974,7 +959,7 @@ namespace 档案汇总
                                     {
                                         m_Token.Add(token, accName);
                                     }
-                                    c.Send("2$" + accName + "$" + passWord + "$" + (rbZone1.Checked ? "1" : "2"));
+                                    c.Send("2$" + accName + "$" + passWord + "$" + (rbZone1.Checked ? "1" : "2") + "$" + (rdbLogin.Checked? "1":"2"));
 
                                     Global.logger.Debug("socket:{0};ip:{1};({2}->{3})", c.handle.GetHashCode()
                                         , c.handle.RemoteEndPoint.ToString()
@@ -987,6 +972,11 @@ namespace 档案汇总
                             {
                                 string accName = split[1];
                                 string isOk = split[2];
+                                string chipStr = null;
+                                if (split.Length >= 4)
+                                {
+                                    chipStr = split[3];
+                                }
 
                                 if (m_accountRecord.ContainsKey(accName))
                                 {
@@ -1008,6 +998,7 @@ namespace 档案汇总
                                         info.checktime = DateTime.Now.ToString();
                                         info.failedcount = 0;
                                         info.status = "签到完成";
+                                        info.chipcout = Convert.ToInt32(chipStr);
 
                                         m_userinfos[accName] = info;
                                         m_checkuserinfos.Remove(accName);
@@ -1096,7 +1087,7 @@ namespace 档案汇总
                                             info.checktime,
                                             info.status,
                                             info.bocheck,
-                                            info.checkedday,
+                                            info.chipcout,
                                             info.loginip,
                                             info.logincode);
                                     }
@@ -1130,24 +1121,24 @@ namespace 档案汇总
                                     m_Token.Remove(token);
                                 }
                             } break;
-                        case "5":
-                            {
-                                string accName = split[1];
-                                string Day = split[2];
-                                if (m_checkuserinfos.ContainsKey(accName))
-                                {
-                                    userinfo info = m_checkuserinfos[accName];
-                                    info.checkedday = Convert.ToInt32(Day);
-                                    m_checkuserinfos[accName] = info;
-                                }
+                        //case "5":
+                        //    {
+                        //        string accName = split[1];
+                        //        string Day = split[2];
+                        //        if (m_checkuserinfos.ContainsKey(accName))
+                        //        {
+                        //            userinfo info = m_checkuserinfos[accName];
+                        //            info.checkedday = Convert.ToInt32(Day);
+                        //            m_checkuserinfos[accName] = info;
+                        //        }
 
-                                if (m_userinfos.ContainsKey(accName))
-                                {
-                                    userinfo info = m_userinfos[accName];
-                                    info.checkedday = Convert.ToInt32(Day);
-                                    m_userinfos[accName] = info;
-                                }
-                            } break;
+                        //        if (m_userinfos.ContainsKey(accName))
+                        //        {
+                        //            userinfo info = m_userinfos[accName];
+                        //            info.checkedday = Convert.ToInt32(Day);
+                        //            m_userinfos[accName] = info;
+                        //        }
+                        //    } break;
                         case "6":
                             {
                                 //遇到验证码
@@ -2024,6 +2015,16 @@ namespace 档案汇总
         private void rbZone2_CheckedChanged(object sender, EventArgs e)
         {
             IniWriteValue("UI", "zone", "2");
+        }
+
+        private void rdbLogin_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "State", "1");
+        }
+
+        private void radioChipState_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "State", "2");
         }
 
         private void Grid_Load(object sender, EventArgs e)

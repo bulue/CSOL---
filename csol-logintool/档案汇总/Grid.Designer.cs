@@ -104,6 +104,10 @@
             this.rlog = new System.Windows.Forms.ListBox();
             this.rbZone1 = new System.Windows.Forms.RadioButton();
             this.rbZone2 = new System.Windows.Forms.RadioButton();
+            this.rdbLogin = new System.Windows.Forms.RadioButton();
+            this.rdbChip = new System.Windows.Forms.RadioButton();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -115,14 +119,16 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvProgress)).BeginInit();
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).BeginInit();
+            this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvUserData
             // 
             this.dgvUserData.AllowDrop = true;
-            this.dgvUserData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvUserData.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvUserData.BackgroundColor = System.Drawing.SystemColors.ButtonFace;
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
@@ -206,7 +212,7 @@
             // 
             // Days
             // 
-            this.Days.HeaderText = "签到天数";
+            this.Days.HeaderText = "芯片数量";
             this.Days.Name = "Days";
             // 
             // IP
@@ -407,17 +413,17 @@
             // 
             // tabControl1
             // 
-            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Location = new System.Drawing.Point(0, 34);
+            this.tabControl1.Location = new System.Drawing.Point(0, 54);
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(1115, 474);
+            this.tabControl1.Size = new System.Drawing.Size(1115, 454);
             this.tabControl1.TabIndex = 15;
             // 
             // tabPage1
@@ -426,7 +432,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(1107, 448);
+            this.tabPage1.Size = new System.Drawing.Size(1107, 428);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "账号";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -437,7 +443,7 @@
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(1107, 448);
+            this.tabPage3.Size = new System.Drawing.Size(1107, 428);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "进度";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -445,9 +451,9 @@
             // dgvProgress
             // 
             this.dgvProgress.AllowDrop = true;
-            this.dgvProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvProgress.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvProgress.BackgroundColor = System.Drawing.SystemColors.ButtonFace;
             dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
             dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Control;
@@ -487,7 +493,7 @@
             dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.dgvProgress.RowHeadersDefaultCellStyle = dataGridViewCellStyle6;
             this.dgvProgress.RowTemplate.Height = 23;
-            this.dgvProgress.Size = new System.Drawing.Size(1107, 448);
+            this.dgvProgress.Size = new System.Drawing.Size(1107, 428);
             this.dgvProgress.TabIndex = 1;
             // 
             // dataGridViewTextBoxColumn1
@@ -530,7 +536,7 @@
             // 
             // dataGridViewTextBoxColumn6
             // 
-            this.dataGridViewTextBoxColumn6.HeaderText = "签到天数";
+            this.dataGridViewTextBoxColumn6.HeaderText = "芯片数量";
             this.dataGridViewTextBoxColumn6.Name = "dataGridViewTextBoxColumn6";
             // 
             // dataGridViewTextBoxColumn7
@@ -549,7 +555,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(1107, 448);
+            this.tabPage2.Size = new System.Drawing.Size(1107, 428);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "连接";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -557,9 +563,9 @@
             // dgvSession
             // 
             this.dgvSession.AllowUserToOrderColumns = true;
-            this.dgvSession.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.dgvSession.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvSession.BackgroundColor = System.Drawing.SystemColors.ButtonFace;
             this.dgvSession.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dgvSession.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
@@ -717,8 +723,8 @@
             // 
             // rlog
             // 
-            this.rlog.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.rlog.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.rlog.FormattingEnabled = true;
             this.rlog.ItemHeight = 12;
             this.rlog.Location = new System.Drawing.Point(0, 524);
@@ -730,7 +736,7 @@
             // 
             this.rbZone1.AutoSize = true;
             this.rbZone1.Checked = true;
-            this.rbZone1.Location = new System.Drawing.Point(397, 12);
+            this.rbZone1.Location = new System.Drawing.Point(23, 15);
             this.rbZone1.Name = "rbZone1";
             this.rbZone1.Size = new System.Drawing.Size(41, 16);
             this.rbZone1.TabIndex = 23;
@@ -742,7 +748,7 @@
             // rbZone2
             // 
             this.rbZone2.AutoSize = true;
-            this.rbZone2.Location = new System.Drawing.Point(453, 12);
+            this.rbZone2.Location = new System.Drawing.Point(97, 15);
             this.rbZone2.Name = "rbZone2";
             this.rbZone2.Size = new System.Drawing.Size(41, 16);
             this.rbZone2.TabIndex = 24;
@@ -750,14 +756,61 @@
             this.rbZone2.UseVisualStyleBackColor = true;
             this.rbZone2.CheckedChanged += new System.EventHandler(this.rbZone2_CheckedChanged);
             // 
+            // rdbLogin
+            // 
+            this.rdbLogin.AutoSize = true;
+            this.rdbLogin.Checked = true;
+            this.rdbLogin.Location = new System.Drawing.Point(16, 14);
+            this.rdbLogin.Name = "rdbLogin";
+            this.rdbLogin.Size = new System.Drawing.Size(47, 16);
+            this.rdbLogin.TabIndex = 25;
+            this.rdbLogin.TabStop = true;
+            this.rdbLogin.Text = "签到";
+            this.rdbLogin.UseVisualStyleBackColor = true;
+            this.rdbLogin.CheckedChanged += new System.EventHandler(this.rdbLogin_CheckedChanged);
+            // 
+            // rdbChip
+            // 
+            this.rdbChip.AutoSize = true;
+            this.rdbChip.Location = new System.Drawing.Point(81, 14);
+            this.rdbChip.Name = "rdbChip";
+            this.rdbChip.Size = new System.Drawing.Size(59, 16);
+            this.rdbChip.TabIndex = 26;
+            this.rdbChip.Text = "查芯片";
+            this.rdbChip.UseVisualStyleBackColor = true;
+            this.rdbChip.CheckedChanged += new System.EventHandler(this.radioChipState_CheckedChanged);
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.rbZone2);
+            this.groupBox1.Controls.Add(this.rbZone1);
+            this.groupBox1.Location = new System.Drawing.Point(385, 11);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(176, 37);
+            this.groupBox1.TabIndex = 27;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "选区";
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.BackColor = System.Drawing.SystemColors.Control;
+            this.groupBox2.Controls.Add(this.rdbLogin);
+            this.groupBox2.Controls.Add(this.rdbChip);
+            this.groupBox2.Location = new System.Drawing.Point(578, 12);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(172, 36);
+            this.groupBox2.TabIndex = 28;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "功能";
+            // 
             // Grid
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1127, 741);
-            this.Controls.Add(this.rbZone2);
-            this.Controls.Add(this.rbZone1);
+            this.Controls.Add(this.groupBox2);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.rlog);
             this.Controls.Add(this.btnShowNotCheck);
             this.Controls.Add(this.btnShowFailed);
@@ -793,6 +846,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvProgress)).EndInit();
             this.tabPage2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvSession)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -812,15 +869,6 @@
         private System.Windows.Forms.ToolStripMenuItem MenuItem_ClearGouXuan;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBox_IP;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Account;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Password;
-        private System.Windows.Forms.DataGridViewTextBoxColumn FailedCount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn CheckTime;
-        private System.Windows.Forms.DataGridViewTextBoxColumn State;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn Checked;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Days;
-        private System.Windows.Forms.DataGridViewTextBoxColumn IP;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Code;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.StatusStrip statusStrip;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
@@ -843,15 +891,6 @@
         private System.Windows.Forms.ToolStripStatusLabel sbTotalCount;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.DataGridView dgvProgress;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn5;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn dataGridViewCheckBoxColumn1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn6;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn7;
-        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn8;
         private System.Windows.Forms.Button btnShowOk;
         private System.Windows.Forms.Button btnShowFailed;
         private System.Windows.Forms.Button btnShowNotCheck;
@@ -868,6 +907,28 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn sVer;
         private System.Windows.Forms.DataGridViewButtonColumn sDisconnect;
         private System.Windows.Forms.DataGridViewButtonColumn reboot;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Account;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Password;
+        private System.Windows.Forms.DataGridViewTextBoxColumn FailedCount;
+        private System.Windows.Forms.DataGridViewTextBoxColumn CheckTime;
+        private System.Windows.Forms.DataGridViewTextBoxColumn State;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn Checked;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Days;
+        private System.Windows.Forms.DataGridViewTextBoxColumn IP;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Code;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn5;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn dataGridViewCheckBoxColumn1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn6;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn7;
+        private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn8;
+        private System.Windows.Forms.RadioButton rdbLogin;
+        private System.Windows.Forms.RadioButton rdbChip;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox2;
     }
 }
 
