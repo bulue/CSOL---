@@ -130,7 +130,7 @@ namespace CSLogin
                 //{
                 //    Global.logger.Debug("验证码 bestValue = " + bestValue);
                 //}
-                //TraceInfo("图片 [" + picFileName + "] 耗时:" + (System.Environment.TickCount - ticks) + "ms.");
+                //Global.logger.Debug("图片 [" + picFileName + "] 耗时:" + (System.Environment.TickCount - ticks) + "ms.");
                 if (bestValue > approximation)
                 {
                     //TraceInfo("找到图片[" + picFileName + "]");

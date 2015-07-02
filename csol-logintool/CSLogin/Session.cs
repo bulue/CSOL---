@@ -186,7 +186,7 @@ namespace CSLogin
                 send_buffer.AddRange(head_buffer);
                 send_buffer.AddRange(msg_buffer);
                 m_sock.BeginSend(send_buffer.ToArray(), 0, send_buffer.Count, 0, new AsyncCallback(SendCallback), new Tuple<Socket, byte[]>(m_sock, send_buffer.ToArray()));
-                Global.logger.Debug("发送内容:" + msg);
+                //Global.logger.Debug("发送内容:" + msg);
                 return true;
             }
             catch (System.Net.Sockets.SocketException ex)
