@@ -758,12 +758,12 @@ namespace CSLogin
                                     }
 
                                     if (bInputPwd
-                                         && CommonApi.FindPic(sX + 198, sY + 290, 73, 27, @".\BMP\破译芯片.bmp", 0.98, out dx, out dy))
+                                         && CommonApi.FindPic(sX + 198, sY + 290, 73, 27, @".\BMP\破译芯片.bmp", 0.99, out dx, out dy))
                                     {
                                         Bitmap screen = new Bitmap(39, 18);
 
                                         Graphics g = Graphics.FromImage(screen);
-                                        g.CopyFromScreen(dx + 23, dy + 16, 0, 0, screen.Size);
+                                        g.CopyFromScreen(dx + 21, dy + 14, 0, 0, screen.Size);
 
                                         screen.Save("验证码.bmp");
                                         int n = s_numberanalysis.Analysis(screen);

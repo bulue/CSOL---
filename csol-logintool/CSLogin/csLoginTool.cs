@@ -253,6 +253,9 @@ namespace CSLogin
 
         private void gamePathPickBtn_Click(object sender, EventArgs e)
         {
+            //Bitmap i = (Bitmap)Image.FromFile("验证码.bmp");
+            //NumberAnalysis s_numberanalysis = new NumberAnalysis();
+            //s_numberanalysis.Analysis(i);
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Title = "选择CSOLauncher.exe";
             dialog.Filter = "游戏(*.exe)|*.exe";

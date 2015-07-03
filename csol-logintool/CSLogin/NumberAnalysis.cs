@@ -33,10 +33,6 @@ namespace CSLogin
                     list_Shuzi.Add(bmp);
                 }
             }
-            else
-            {
-                MessageBox.Show("ERROR 数字集");
-            }
 
             if (Directory.Exists("数字集"))
             {
@@ -77,7 +73,7 @@ namespace CSLogin
                         //对于平方差匹配和归一化平方差匹配，最小值表示最好的匹配；其他情况下，最大值表示最好的匹配            
                         for (int idx = 0; idx < maxValues.Length; ++idx)
                         {
-                            if (maxValues[idx] > 0.99)
+                            if (maxValues[idx] > 0.98)
                             {
                                 NumXpoint number = new NumXpoint();
                                 number.num = i;
