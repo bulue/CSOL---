@@ -35,7 +35,7 @@
                     <TextBlock Height="23" Text="警告:此功能只能用于寻回属于自己的账号,做其他用途的后果自负!" Margin="16,72,620,0" VerticalAlignment="Top"/>
                     <TextBox Height="23" HorizontalAlignment="Left" Margin="174,33,0,0" Name="tbxBeginValue" VerticalAlignment="Top" Width="120" PreviewTextInput="PreviewTextInput_Number" Text="005000" />
                     <TextBox Height="23" HorizontalAlignment="Left" Margin="46,33,0,0" Name="tbxPrefixAccount" VerticalAlignment="Top" Width="68" PreviewTextInput="PreviewTextInput_NumberAndEnglish" Text="a9" />
-                    <TextBox Height="23" HorizontalAlignment="Left" Margin="873,33,0,0" Name="tbxGuessWorkerNum" VerticalAlignment="Top" Width="74" PreviewTextInput="PreviewTextInput_Number" Text="1" MaxLength="1" />
+                    <TextBox Height="23" HorizontalAlignment="Left" Margin="873,33,0,0" Name="tbxGuessWorkerNum" VerticalAlignment="Top" Width="74" PreviewTextInput="PreviewTextInput_Number" Text="1" MaxLength="2" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="132,33,0,0" Name="textBlock6" Text="起始值" VerticalAlignment="Top" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="16,33,0,0" Name="textBlock7" Text="前缀" VerticalAlignment="Top" />
                     <TextBlock Height="23" HorizontalAlignment="Left" Margin="797,33,0,0" Name="textBlock8" Text="并行工作数量" VerticalAlignment="Top" />
@@ -74,9 +74,11 @@
                 <Grid MinHeight="300" HorizontalAlignment="Stretch" >
                     <Button Content="开始注册" Height="23" Width="75" Margin="20,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStartReg" />
                     <Button Content="停止注册" Height="23" Width="75" Margin="115,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStopReg" />
-                    <TextBlock HorizontalAlignment="Left" Margin="312,31,0,0" TextWrapping="Wrap" Text="并发工作" VerticalAlignment="Top"/>
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="381,27,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="28" MaxLength="2" Name="tbxRegWorkerNum1"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="209,27,0,0" TextWrapping="Wrap" Text="并发工作" VerticalAlignment="Top"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="274,27,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="28" MaxLength="2" Name="tbxRegWorkerNum1"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="323,27,0,0" TextWrapping="Wrap" Text="前缀" VerticalAlignment="Top" />
                     <DataGrid Margin="0,67,0,0" AutoGenerateColumns="True" Name="RegUidGrid" AllowDrop="True"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="352,27,0,0" TextWrapping="Wrap" Text="quine" VerticalAlignment="Top" Width="67" Name="tbxRegNamePrefix"/>
                 </Grid>
             </TabItem>
         </TabControl>

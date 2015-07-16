@@ -605,7 +605,6 @@ namespace PwcTool
                         string retstr = jsObj["Msg"].ToString();
                         if (retstr == "验证码不正确")
                         {
-                            m_logger.Debug("uid:" + uid + "验证码错误,重新尝试获取验证码!");
                             string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
                             HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
                             next_request.ServicePoint.Expect100Continue = false;

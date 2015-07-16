@@ -35,6 +35,7 @@ namespace PwcTool
         public string m_dbpwd = "";
         public string deadline_date = "";
         public int userlvl = 0;
+        public int guessworkernum = 16;
 
         const string safe_key = "0x77ffbb";
         const string loginurl = "http://121.42.148.243/captcha.php?";
@@ -102,6 +103,7 @@ namespace PwcTool
                         m_dbpwd = jsobj["dbpwd"].ToString();
                         deadline_date = jsobj["deadline_date"].ToString();
                         userlvl = Convert.ToInt32(jsobj["lvl"].ToString());
+                        guessworkernum = Convert.ToInt32(jsobj["gswokernum"].ToString());
                         CpWorker.KeepRunTime = int.Parse(jsobj["deadline"].ToString()) * 1000;
 
                         this.Dispatcher.BeginInvoke(new Action(() =>

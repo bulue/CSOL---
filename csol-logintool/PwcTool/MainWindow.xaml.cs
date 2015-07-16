@@ -104,6 +104,7 @@ namespace PwcTool
         string m_constkey = "0xab3aff";
 
         int m_userlvl = 0;
+        int m_maxGuessWorker = 0;
 
         Dictionary<string, string> m_lgcaptcha = new Dictionary<string, string>();
         Dictionary<string, string> m_pwcaptcha = new Dictionary<string, string>();
@@ -161,6 +162,7 @@ namespace PwcTool
                 m_safepw = dlg.m_pw;
                 m_safedbpwd = dlg.m_dbpwd;
                 m_userlvl = dlg.userlvl;
+                m_maxGuessWorker = dlg.guessworkernum;
                 if (String.IsNullOrEmpty(account)
                     || String.IsNullOrEmpty(m_safedbpwd))
                 {
@@ -1253,10 +1255,6 @@ namespace PwcTool
             {
                 tabItem3.Visibility = Visibility.Collapsed;
             }
-            if (m_userlvl >= 100)
-            {
-                tbxGuessWorkerNum.MaxLength = 2;
-            }
         }
 
         void CardUidGrid_Drop(object sender, DragEventArgs e)
@@ -1610,6 +1608,11 @@ namespace PwcTool
             try
             {
                 int numOfWorkers = Convert.ToInt32(tbxGuessWorkerNum.Text);
+                if (numOfWorkers > m_maxGuessWorker)
+                {
+                    tbxGuessWorkerNum.Text = m_maxGuessWorker.ToString();
+                    numOfWorkers = m_maxGuessWorker;
+                }
                 for (int i = 0; i < numOfWorkers; ++i)
                 {
                     if (numOfWorkers >= m_guessWorkers.Count)
@@ -1692,10 +1695,6 @@ namespace PwcTool
                             Process pro = Process.Start("RebootRoutine.exe");
                             pro.WaitForExit();
                             m_logger.Debug("RebootRoutine 退出!!");
-                        }
-                        else
-                        {
-                            MessageBox.Show("IP被封,RebootRoutine.exe文件不存在!");
                         }
                         m_IpToken++;
                     }
@@ -1812,10 +1811,6 @@ namespace PwcTool
                             Process pro = Process.Start("RebootRoutine.exe");
                             pro.WaitForExit();
                             m_logger.Debug("RebootRoutine 退出!!");
-                        }
-                        else
-                        {
-                            MessageBox.Show("IP被封,RebootRoutine.exe文件不存在!");
                         }
                         m_IpToken++;
                     }
