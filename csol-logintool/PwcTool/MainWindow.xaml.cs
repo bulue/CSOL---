@@ -45,6 +45,8 @@ namespace PwcTool
         DataSet m_guessdataset = new DataSet();
         SQLiteConnection m_cardconn = new SQLiteConnection();
         DataSet m_carddataset = new DataSet();
+        SQLiteConnection m_regconn = new SQLiteConnection();
+        DataSet m_regdataset = new DataSet();
 
         const string lgxml = "lg.xml";
         const string pwxml = "pw.xml";
@@ -54,6 +56,7 @@ namespace PwcTool
         const string csedb = "uid.db";
         const string guessdb = "uid.db";
         const string carddb = "uid.db";
+        const string regdb = "uid.db";
 
         static public string captchadb = "captcha";
 
@@ -91,6 +94,13 @@ namespace PwcTool
         const string card_column_cardname = "cardname";//身份证名字
         const string card_column_cardid = "cardid";    //身份证号码
 
+        const string reg_uidtable = "reg_uid";
+        const string reg_column_uid = "uid";
+        const string reg_column_password = "password";
+        const string reg_column_status = "status";
+        const string reg_column_cardname = "cardname";//身份证名字
+        const string reg_column_cardid = "cardid";    //身份证号码
+
         const string status_ready = "准备";
         const string status_pwderror = "密码错误";
         const string status_ok = "成功";
@@ -120,6 +130,7 @@ namespace PwcTool
         List<object> m_saveSeObjList = new List<object>();
         List<object> m_saveGuessObjList = new List<object>();
         List<object> m_saveCardObjList = new List<object>();
+        List<object> m_saveRegObjList = new List<object>();
         bool m_boshutdwon;
 
         UidBackup m_uidbacker = new UidBackup();
@@ -128,6 +139,7 @@ namespace PwcTool
         List<SeWorker> m_seworkers = new List<SeWorker>();
         List<GuessWorker> m_guessWorkers = new List<GuessWorker>();
         List<CardWorker> m_cardwokers = new List<CardWorker>();
+        List<RegWorker> m_regworkers = new List<RegWorker>();
 
         Dictionary<string, int> m_uid2idx = new Dictionary<string, int>();
 
@@ -189,7 +201,8 @@ namespace PwcTool
             InitPwcDb();
             InitCheckSafeDb();
             InitGuess();
-            InitCardSubmit();
+            InitCardSubmit(); 
+            InitRegAccount();
         }
 
         //初始化修密 相关
@@ -350,6 +363,46 @@ namespace PwcTool
                 }
             }
             catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+         //初始化 注册
+        void InitRegAccount()
+        {
+            try
+            {
+                if (!File.Exists(regdb))
+                {
+                    System.Data.SQLite.SQLiteConnection.CreateFile(regdb);
+                }
+                SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
+                connstr.DataSource = regdb;
+                m_regconn.ConnectionString = connstr.ToString();
+                m_regconn.Open();
+                using (SQLiteCommand cmd = new SQLiteCommand(m_regconn))
+                {
+                    cmd.CommandText = "select count(*) from sqlite_master where type = 'table' and name = '" + reg_uidtable + "'";
+                    Int64 result = (Int64)cmd.ExecuteScalar();
+                    if (result == 0)
+                    {
+                        cmd.CommandText = "CREATE TABLE " + reg_uidtable + "(uid varchar(30) primary key,password varchar(50),status varchar(256),cardname varchar(50),cardid varchar(50))";
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    cmd.CommandText = "select * from " + reg_uidtable;
+                    cmd.CommandType = CommandType.Text;
+
+                    SQLiteDataAdapter da = new SQLiteDataAdapter(cmd);
+                    da.Fill(m_regdataset);
+
+                    RegUidGrid.AutoGenerateColumns = true;
+                    RegUidGrid.ItemsSource = m_regdataset.Tables[0].DefaultView;
+                    RegUidGrid.LoadingRow += new EventHandler<DataGridRowEventArgs>(dataGrid_LoadingRow);
+                }
+            }
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
@@ -763,6 +816,65 @@ namespace PwcTool
 
                         m_logger.Debug("update pwc count:" + cardwaitsavelist.Count + " time:" + (System.Environment.TickCount - begintick) + "ms");
                     }
+                } while (false);
+
+
+                do
+                {
+                    List<object> regwaitsavelist = new List<object>();
+                    lock(m_saveRegObjList)
+                    {
+                        if (m_saveRegObjList.Count > 0)
+                        {
+                            for (int i = 0; i < m_saveRegObjList.Count; ++i)
+                            {
+                                regwaitsavelist.Add(m_saveRegObjList[i]);
+                            }
+                            m_saveRegObjList.Clear();
+                        }
+                    }
+
+                    if (regwaitsavelist.Count > 0)
+                    {
+                        int begintick = System.Environment.TickCount;
+                        using (SQLiteTransaction ts = m_regconn.BeginTransaction())
+                        {
+                            for (int i = 0; i < regwaitsavelist.Count; ++i)
+                            {
+                                var tuple = regwaitsavelist[i] as Tuple<string, string, string, string, string>;
+                                string uid = tuple.Item1;
+                                string pwd = tuple.Item2;
+                                string status = tuple.Item3;
+                                string cardid = tuple.Item4;
+                                string cardname = tuple.Item5;
+
+                                using (SQLiteCommand cmd = new SQLiteCommand(m_regconn))
+                                {
+                                    cmd.CommandText = "UPDATE reg_uid SET password=@pwd,status=@status,cardname=@name,cardid=@carid where uid=@uid";
+                                    cmd.Parameters.Add(new SQLiteParameter("@status", status));
+                                    cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
+                                    cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
+                                    cmd.Parameters.Add(new SQLiteParameter("@name", cardname));
+                                    cmd.Parameters.Add(new SQLiteParameter("@carid", cardid));
+                                    int effectrows = cmd.ExecuteNonQuery();
+                                    if (effectrows == 0)
+                                    {
+                                        cmd.CommandText = "INSERT INTO reg_uid (uid,password,status,cardname,cardid) VALUES(@uid,@pwd,@status,@name,@carid)";
+                                        cmd.Parameters.Add(new SQLiteParameter("@status", status));
+                                        cmd.Parameters.Add(new SQLiteParameter("@uid", uid));
+                                        cmd.Parameters.Add(new SQLiteParameter("@pwd", pwd));
+                                        cmd.Parameters.Add(new SQLiteParameter("@name", cardname));
+                                        cmd.Parameters.Add(new SQLiteParameter("@carid", cardid));
+
+                                        cmd.ExecuteNonQuery();
+                                    }
+                                }
+                            }
+                            ts.Commit();
+                        }
+                        m_logger.Debug("update reg count:" + regwaitsavelist.Count + " time:" + (System.Environment.TickCount - begintick) + "ms");
+                    }
+
                 } while (false);
 
                 Thread.Sleep(1000);
@@ -1395,15 +1507,6 @@ namespace PwcTool
         {
             try
             {
-                //var arg = e.Argument as Tuple<SeWorker, string, string, string, int, int, int, int>;
-                //SeWorker seworker = arg.Item1;
-                //string uid = arg.Item2;
-                //string pwd = arg.Item3;
-                //string status = arg.Item4;
-                //int has_idcard = arg.Item5;
-                //int yue = arg.Item6;
-                //int safepoint = arg.Item7;
-
                 lock (m_saveSeObjList)
                 {
                     m_saveSeObjList.Add(e.Argument);
@@ -1908,6 +2011,19 @@ namespace PwcTool
             tbxGuessWorkerNum.IsEnabled = true;
         }
 
+        void CheckRegWorkerStatus()
+        {
+            foreach (RegWorker w in m_regworkers)
+            {
+                if (w.IsWorking == true)
+                {
+                    return;
+                }
+            }
+            btnStartReg.IsEnabled = true;
+            btnStopReg.IsEnabled = true;
+        }
+
         private void btnStopSaohao_Click(object sender, RoutedEventArgs e)
         {
             btnStopSaohao.IsEnabled = false;
@@ -2035,6 +2151,104 @@ namespace PwcTool
         {
             btnStopCardSubmit.IsEnabled = false;
             CheckCardWorkerStatus();
+        }
+
+        private void btnStartReg_Click(object sender, RoutedEventArgs e)
+        {
+            if (m_bofirststart)
+            {
+                firstStart();
+                m_bofirststart = false;
+            }
+
+            if (!File.Exists(md5js))
+            {
+                MessageBox.Show(md5js + "文件不存在", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            int num = int.Parse(tbxRegWorkerNum1.Text);
+            for (int i = 0; i < num; ++i)
+            {
+                if (m_regworkers.Count <= i)
+                {
+                    RegWorker worker = new RegWorker(m_lgcaptcha, m_pwcaptcha);
+                    worker.FinishTask += RegWorker_FinishTask;
+                    m_regworkers.Add(worker);
+                }
+                m_regworkers[i].Start(tbxRegNamePrefix.Text + RandomString.Next(Convert.ToInt32(tbxRegNameLenSuffix.Text)
+                    , tbxRegNameSuffix.Text)
+                    , RandomString.Next(4, "a-z") + RandomString.Next(4, "0-9")
+                    , CardIdGenerator.NewId()
+                    , CardIdGenerator.NewName());
+            }
+
+            btnStartReg.IsEnabled = false;
+            CheckRegWorkerStatus();
+        }
+
+        void RegWorker_FinishTask(RegWorker regwoker, Tuple<string,string,string,string,string> ret)
+        {
+            lock (m_saveRegObjList)
+            {
+                m_saveRegObjList.Add(ret);
+            }
+
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                DataRow row = m_regdataset.Tables[0].NewRow();
+                row[reg_column_uid] = ret.Item1;
+                row[reg_column_password] = ret.Item2;
+                row[reg_column_status] = ret.Item3;
+                row[reg_column_cardid] = ret.Item4;
+                row[reg_column_cardname] = ret.Item5;
+                m_regdataset.Tables[0].Rows.Add(row);
+
+                regwoker.IsWorking = false;
+                if (btnStopReg.IsEnabled)
+                {
+                    if (ret.Item3 == "Error:1040" 
+                        || ret.Item3 == "")
+                    {
+                        if (regwoker.IpToken == m_IpToken)
+                        {
+                            if (File.Exists("RebootRoutine.exe"))
+                            {
+                                m_logger.Debug("启动RebootRoutine.exe...");
+                                Process pro = Process.Start("RebootRoutine.exe");
+                                pro.WaitForExit();
+                                m_logger.Debug("RebootRoutine 退出!!");
+                            }
+                            m_IpToken++;
+                        }
+                    }
+                    regwoker.IpToken = m_IpToken;
+                    regwoker.Start(tbxRegNamePrefix.Text + RandomString.Next(Convert.ToInt32(tbxRegNameLenSuffix.Text)
+                        , tbxRegNameSuffix.Text)
+                        , RandomString.Next(4, "a-z") + RandomString.Next(4, "0-9")
+                        , CardIdGenerator.NewId()
+                        , CardIdGenerator.NewName());
+                }
+                else
+                {
+                    CheckRegWorkerStatus();
+                }
+            }));
+        }
+
+        private void btnStopReg_Click(object sender, RoutedEventArgs e)
+        {
+            btnStopReg.IsEnabled = false;
+        }
+
+        private void btnClearReg_Click(object sender, RoutedEventArgs e)
+        {
+            m_regdataset.Tables[0].Rows.Clear();
+            using (SQLiteCommand cmd = new SQLiteCommand(m_regconn))
+            {
+                cmd.CommandText = "DELETE FROM " + reg_uidtable;
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 }

@@ -72,13 +72,18 @@
             </TabItem>
             <TabItem Header="账号注册" Name="tabItem6">
                 <Grid MinHeight="300" HorizontalAlignment="Stretch" >
-                    <Button Content="开始注册" Height="23" Width="75" Margin="20,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStartReg" />
-                    <Button Content="停止注册" Height="23" Width="75" Margin="115,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStopReg" />
-                    <TextBlock HorizontalAlignment="Left" Margin="209,27,0,0" TextWrapping="Wrap" Text="并发工作" VerticalAlignment="Top"/>
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="274,27,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="28" MaxLength="2" Name="tbxRegWorkerNum1"/>
-                    <TextBlock HorizontalAlignment="Left" Margin="323,27,0,0" TextWrapping="Wrap" Text="前缀" VerticalAlignment="Top" />
+                    <Button Content="开始注册" Height="23" Width="75" Margin="20,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStartReg" Click="btnStartReg_Click" />
+                    <Button Content="停止注册" Height="23" Width="75" Margin="115,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnStopReg" Click="btnStopReg_Click" />
+                    <Button Content="清理记录" Height="23" Width="75" Margin="210,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Name="btnClearReg" Click="btnClearReg_Click" />
+                    <TextBlock HorizontalAlignment="Left" Margin="321,22,0,0" TextWrapping="Wrap" Text="并发工作" VerticalAlignment="Top" Width="51"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="386,22,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="28" MaxLength="2" Name="tbxRegWorkerNum1"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="435,22,0,0" TextWrapping="Wrap" Text="前缀" VerticalAlignment="Top" />
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="464,22,0,0" TextWrapping="Wrap" Text="quine" VerticalAlignment="Top" Width="67" Name="tbxRegNamePrefix"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="547,22,0,0" TextWrapping="Wrap" Text="后缀位数" VerticalAlignment="Top" />
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="609,22,0,0" TextWrapping="Wrap" Text="3" VerticalAlignment="Top" Width="28" Name="tbxRegNameLenSuffix"/>
+                    <TextBlock HorizontalAlignment="Left" Margin="647,22,0,0" TextWrapping="Wrap" Text="后缀随机" VerticalAlignment="Top" />
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="700,22,0,0" TextWrapping="Wrap" Text="0-9" VerticalAlignment="Top" Width="112" Name="tbxRegNameSuffix"/>
                     <DataGrid Margin="0,67,0,0" AutoGenerateColumns="True" Name="RegUidGrid" AllowDrop="True"/>
-                    <TextBox HorizontalAlignment="Left" Height="23" Margin="352,27,0,0" TextWrapping="Wrap" Text="quine" VerticalAlignment="Top" Width="67" Name="tbxRegNamePrefix"/>
                 </Grid>
             </TabItem>
         </TabControl>
