@@ -11,8 +11,7 @@
     <RootNamespace>CSLogin</RootNamespace>
     <AssemblyName>CSLogin</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -69,8 +68,12 @@
     <Reference Include="Emgu.Util">
       <HintPath>C:\Emgu\emgucv-windows-universal-cuda 2.9.0.1922\bin\Emgu.Util.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\test_call_js\bin\Release\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -82,13 +85,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bit.cs" />
+    <Compile Include="ChipState.cs" />
     <Compile Include="CommonApi.cs" />
-    <Compile Include="countDownReboot.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="countDownReboot.Designer.cs">
-      <DependentUpon>countDownReboot.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Computer.cs" />
     <Compile Include="csLoginTool.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -98,18 +97,17 @@
     <Compile Include="IniFile.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="LoginManage.cs" />
+    <Compile Include="LoginState.cs" />
+    <Compile Include="MyDes.cs" />
+    <Compile Include="MyKeyborad.cs" />
+    <Compile Include="MyUpdate.cs" />
+    <Compile Include="NumberAnalysis.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RandomString.cs" />
     <Compile Include="Session.cs" />
-    <Compile Include="xiaoaiInfo.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="xiaoaiInfo.Designer.cs">
-      <DependentUpon>xiaoaiInfo.cs</DependentUpon>
-    </Compile>
-    <EmbeddedResource Include="countDownReboot.resx">
-      <DependentUpon>countDownReboot.cs</DependentUpon>
-    </EmbeddedResource>
+    <Compile Include="UidBackup.cs" />
+    <Compile Include="VirtualKeyCode.cs" />
     <EmbeddedResource Include="csLoginTool.resx">
       <DependentUpon>csLoginTool.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -124,9 +122,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="xiaoaiInfo.resx">
-      <DependentUpon>xiaoaiInfo.cs</DependentUpon>
-    </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Properties\app.manifest">
       <SubType>Designer</SubType>

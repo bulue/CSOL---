@@ -318,8 +318,8 @@ namespace CSLogin
 
                             int wujuese_Interval = 0;
                             int queren_Interval = 5000;
-                            int quxiao_Interval = 5000;
-                            int close_Interval = 5000;
+                            int quxiao_Interval = 4000;
+                            int close_Interval = 4000;
 
                             int movemouse_Lasttime = System.Environment.TickCount;
 
@@ -730,7 +730,7 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CheckInterLastTime(ref quxiao_Lasttime, quxiao_Interval + _Rand(1000))
+                                    if (CheckInterLastTime(ref quxiao_Lasttime, quxiao_Interval)
                                         && CommonApi.FindPic(x, y, w, h, @".\BMP\关闭.bmp", 0.98, out dx, out dy))
                                     {
                                         Global.logger.Debug("click 关闭");
@@ -741,6 +741,15 @@ namespace CSLogin
 
                                     if (CheckInterLastTime(ref close_Lasttime, close_Interval)
                                         && CommonApi.FindPic(sX + 550, sY + 469, 50, 50, @".\BMP\关闭B.bmp", 0.98, out dx, out dy))
+                                    {
+                                        Global.logger.Debug("click 关闭B");
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+
+                                        break;
+                                    }
+
+                                    if (bInputPwd
+                                        && CommonApi.FindPic(sX + 672, sY + 640, 58, 29, @".\BMP\关闭B.bmp", 0.98, out dx, out dy))
                                     {
                                         Global.logger.Debug("click 关闭B");
                                         CommonApi.Left_Click(dx + 5, dy + 5);

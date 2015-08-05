@@ -840,7 +840,7 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (CheckInterLastTime(ref quxiao_Lasttime, quxiao_Interval + _Rand(1000))
+                                    if (CheckInterLastTime(ref quxiao_Lasttime, quxiao_Interval)
                                         && CommonApi.FindPic(x, y, w, h, @".\BMP\关闭.bmp", 0.98, out dx, out dy))
                                     {
                                         Global.logger.Debug("click 关闭");
