@@ -643,7 +643,7 @@ namespace CSLogin
 
                                     if (bInputPwd
                                         && CheckInterLastTime(ref wjdc_Lasttime, 2000)
-                                        && CommonApi.FindPic(sX + 318, sY + 167, 72, 26, @".\BMP\问卷调查.bmp", 0.99, out dx, out dy))
+                                        && CommonApi.FindPic(sX + 318, sY + 167, 72, 26, @".\BMP\问卷调查.bmp", 0.97, out dx, out dy))
                                     {
                                         CommonApi.Left_Click(dx + 225, dy + 441);
                                         Sleep(200);
@@ -730,6 +730,18 @@ namespace CSLogin
                                         break;
                                     }
 
+                                    if (bInputPwd
+                                        && CommonApi.FindPic(sX + 531, sY + 598, 88, 44, @".\BMP\调查取消.bmp", 0.97, out dx, out dy))
+                                    {
+                                        queren_Lasttime = System.Environment.TickCount;
+                                        CommonApi.Mouse_Move(dx + 5, dy + 5);
+                                        Sleep(100);
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+                                        Sleep(200);
+
+                                        break;
+                                    }
+
                                     if (CheckInterLastTime(ref quxiao_Lasttime, quxiao_Interval)
                                         && CommonApi.FindPic(x, y, w, h, @".\BMP\关闭.bmp", 0.98, out dx, out dy))
                                     {
@@ -749,7 +761,7 @@ namespace CSLogin
                                     }
 
                                     if (bInputPwd
-                                        && CommonApi.FindPic(sX + 672, sY + 640, 58, 29, @".\BMP\关闭B.bmp", 0.98, out dx, out dy))
+                                        && CommonApi.FindPic(sX + 672, sY + 640, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
                                     {
                                         Global.logger.Debug("click 关闭B");
                                         CommonApi.Left_Click(dx + 5, dy + 5);
