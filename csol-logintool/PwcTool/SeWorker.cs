@@ -400,7 +400,7 @@ namespace PwcTool
                             next_request.CookieContainer.Add(response.Cookies);
                             next_request.BeginGetResponse(new AsyncCallback(OnTryGetIsIdCardSafe), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
                         }
-                        else if (logRet == "7")
+                        else if (logRet == "7" || logRet == "6")
                         {
                             m_logger.Debug("ip被封");
                             TaskFinishInvoke(this, uid, pwd, "IP被封");

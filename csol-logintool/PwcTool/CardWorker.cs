@@ -413,7 +413,7 @@ namespace PwcTool
                             //next_request.BeginGetRequestStream(new AsyncCallback(OnTryGetCardIdSubmitStream), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
                             next_request.BeginGetResponse(new AsyncCallback(OnTryCardIdSubmit), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newname, newid));
                         }
-                        else if (logRet == "7")
+                        else if (logRet == "7" || logRet == "6")
                         {
                             m_logger.Debug("ip被封");
                             TaskFinishInvoke(this, uid, pwd, "IP被封");
