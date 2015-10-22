@@ -25,6 +25,7 @@ using System.ComponentModel;
 using System.IO.Compression;
 using System.Threading;
 using System.Diagnostics;
+using Microsoft.Win32;
 
 namespace PwcTool
 {
@@ -47,6 +48,10 @@ namespace PwcTool
         DataSet m_carddataset = new DataSet();
         SQLiteConnection m_regconn = new SQLiteConnection();
         DataSet m_regdataset = new DataSet();
+
+        JavascriptContext m_jsVM = new JavascriptContext();
+        DateTime m_jsModifyTime = new DateTime();
+        
 
         const string lgxml = "lg.xml";
         const string pwxml = "pw.xml";
@@ -1656,7 +1661,43 @@ namespace PwcTool
 
         string GuessNextAccount(int saohaoset)
         {
-            return m_GuessAccountPrefix + string.Format("{0:D" + m_numberOfDigit + "}", m_GuessBeginValue++);
+            if (cbEnableLua.IsChecked == true)
+            {
+            }
+            else
+            {
+                return m_GuessAccountPrefix + string.Format("{0:D" + m_numberOfDigit + "}", m_GuessBeginValue++);
+            }
+            return "";
+        }
+
+        void GuessNextAccount1(ref string account, ref string password)
+        {
+            account = "";
+            password = "";
+            if (cbEnableLua.IsChecked == true)
+            {
+                m_jsVM.Run("getNewAccount()");
+
+                account = (string)m_jsVM.GetParameter("Account");
+                password = (string)m_jsVM.GetParameter("Password");
+            }
+            else
+            {
+                account = m_GuessAccountPrefix + string.Format("{0:D" + m_numberOfDigit + "}", m_GuessBeginValue++);
+                if (rdbNumberSame.IsChecked == true)
+                {
+                    password = account.Substring(account.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }));
+                }
+                else if (rdbFixpwd.IsChecked == true)
+                {
+                    password = tbxFixpwd.Text;
+                }
+                else
+                {
+                    password = account;
+                }
+            }
         }
 
         private void btnStartSaohao_Click(object sender, RoutedEventArgs e)
@@ -1725,21 +1766,26 @@ namespace PwcTool
                         m_guessWorkers.Add(worker);
                     }
 
-                    string nextguess = GuessNextAccount(m_GuessSet);
-                    //m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
-                    if (rdbNumberSame.IsChecked == true)
-                    {
-                        string nextpwd = nextguess.Substring(nextguess.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }));
-                        m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), nextpwd, null, m_IpToken);
-                    }
-                    else if (rdbFixpwd.IsChecked == true)
-                    {
-                        m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), tbxFixpwd.Text, null, m_IpToken);
-                    }
-                    else
-                    {
-                        m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), nextguess.Trim(), null, m_IpToken);
-                    }
+                    string newAccount = "";
+                    string newPassword = "";
+                    GuessNextAccount1(ref newAccount, ref newPassword);
+                    m_guessWorkers[i].BeginTask(newAccount.ToLower().Trim(), newPassword, null, m_IpToken);
+
+                    //string nextguess = GuessNextAccount(m_GuessSet);
+                    ////m_guessWorkers[i].BeginTask(nextguess.Trim(), nextguess.Trim(), null, m_IpToken);
+                    //if (rdbNumberSame.IsChecked == true)
+                    //{
+                    //    string nextpwd = nextguess.Substring(nextguess.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }));
+                    //    m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), nextpwd, null, m_IpToken);
+                    //}
+                    //else if (rdbFixpwd.IsChecked == true)
+                    //{
+                    //    m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), tbxFixpwd.Text, null, m_IpToken);
+                    //}
+                    //else
+                    //{
+                    //    m_guessWorkers[i].BeginTask(nextguess.ToLower().Trim(), nextguess.Trim(), null, m_IpToken);
+                    //}
                 }
             }
             catch (Exception ex)
@@ -1838,22 +1884,12 @@ namespace PwcTool
 
                     if (btnStopSaohao.IsEnabled == true)
                     {
-                        string next = GuessNextAccount(m_GuessSet);
-                        if (!string.IsNullOrEmpty(next))
+                        string newAccount = "";
+                        string newPassword = "";
+                        GuessNextAccount1(ref newAccount, ref newPassword);
+                        if (!string.IsNullOrEmpty(newAccount))
                         {
-                            if (rdbNumberSame.IsChecked == true)
-                            {
-                                string nextpwd = next.Substring(next.IndexOfAny(new char[]{'0','1','2','3','4','5','6','7','8','9'}));
-                                guessworker.BeginTask(next.ToLower().Trim(), nextpwd.Trim(), null, m_IpToken);
-                            }
-                            else if (rdbFixpwd.IsChecked == true)
-                            {
-                                guessworker.BeginTask(next.ToLower().Trim(), tbxFixpwd.Text.Trim(), null, m_IpToken);
-                            }
-                            else
-                            {
-                                guessworker.BeginTask(next.ToLower().Trim(), next.Trim(), null, m_IpToken);
-                            }
+                            guessworker.BeginTask(newAccount.ToLower().Trim(), newPassword, null, m_IpToken);
                         }
                         else
                         {
@@ -2248,6 +2284,87 @@ namespace PwcTool
             {
                 cmd.CommandText = "DELETE FROM " + reg_uidtable;
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void Button_Click_PickJsPath(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog dlg = new OpenFileDialog();
+                dlg.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory + "脚本\\";
+                dlg.Filter = "js|*.js";
+                dlg.ShowDialog();
+                tbxLuaPath.Text = dlg.FileName;
+
+                m_jsVM.Run(File.ReadAllText(tbxLuaPath.Text));
+                m_jsModifyTime = File.GetLastWriteTime(tbxLuaPath.Text);
+            }
+            catch(JavascriptException ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Button_Click_TestScript(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (m_jsModifyTime != File.GetLastWriteTime(tbxLuaPath.Text))
+                {
+                    m_jsVM.Run(File.ReadAllText(tbxLuaPath.Text));
+                    m_jsModifyTime = File.GetLastWriteTime(tbxLuaPath.Text);
+                }
+                string account;
+                string password;
+                string tempFile = System.IO.Path.GetTempFileName();
+
+                StringBuilder sb = new StringBuilder();
+                for (int i = 1; i <= 10000; ++i)
+                {
+                    m_jsVM.Run("getNewAccount()");
+                    account = (string)m_jsVM.GetParameter("Account");
+                    password = (string)m_jsVM.GetParameter("Password");
+                    sb.Append(account + "----" + password + "\r\n");
+                }
+                File.WriteAllText(tempFile, sb.ToString());
+                Process.Start("notepad", tempFile);
+                //File.Delete(tempFile);
+            }
+            catch (JavascriptException ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void cbEnableLua_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (cbEnableLua.IsChecked == true)
+                {
+                    if (m_jsModifyTime != File.GetLastWriteTime(tbxLuaPath.Text))
+                    {
+                        m_jsVM.Run(File.ReadAllText(tbxLuaPath.Text));
+                        m_jsModifyTime = File.GetLastWriteTime(tbxLuaPath.Text);
+                    }
+                }
+            }
+            catch (JavascriptException ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

@@ -106,6 +106,7 @@ namespace PwcTool
             catch(Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke("未知异常");
             }
         }
 
@@ -189,6 +190,7 @@ namespace PwcTool
             catch (Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke("未知异常");
             }
         }
 
@@ -293,6 +295,7 @@ namespace PwcTool
             catch (Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke("未知异常");
             }
         }
 
@@ -332,6 +335,7 @@ namespace PwcTool
             catch (Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke("未知异常");
             }
         }
 
