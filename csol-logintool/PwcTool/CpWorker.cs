@@ -47,7 +47,15 @@ namespace PwcTool
         string m_safekey = "";
 
         public bool IsWorking = false;
-        public int IpToken = 0; 
+        public int IpToken = 0;
+
+        public bool CaptureMod = false;
+        public byte[] m_ImageData;
+        public string m_Ans = "0";
+
+        string _uid;
+        string _pwd;
+        string _newpwd;
 
         public CpWorker(Dictionary<string, string> lg,Dictionary<string, string> pw,string safekey)
         {
@@ -67,6 +75,13 @@ namespace PwcTool
         {
             IpToken = iptoken;
             IsWorking = true;
+            _uid = uid;
+            _pwd = pwd;
+            _newpwd = newpwd;
+            if (CaptureMod)
+            {
+                m_Ans = "" + m_rgen.Next(0, 9);
+            }
             try
             {
                 m_logger.Debug("====Begin uid: " + uid + " this:" + this.GetHashCode());
@@ -82,6 +97,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -110,6 +126,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -155,6 +172,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -224,6 +242,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -261,33 +280,66 @@ namespace PwcTool
                     md5_str = cs_md5(md5_str + Uid);
                     md5_str = cs_md5(md5_str + Matchinfo + old_md5_str);
                     md5_str = cs_md5(md5_str + DBpwd + old_md5_str);
-                    if (m_lgcaptcha.ContainsKey(md5_str))
-                    {
-                        string cap = m_lgcaptcha[md5_str];
 
-                        HttpWebRequest next_request = System.Net.WebRequest.Create(url_matcheck + "&id=" + uid) as HttpWebRequest;
-                        next_request.ServicePoint.Expect100Continue = false;
-                        next_request.Timeout = 1000 * 60;
-                        next_request.ContentType = "application/x-www-form-urlencoded";
-                        next_request.CookieContainer = request.CookieContainer;
-                        next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_RsaKey), new Tuple<HttpWebRequest, string, string, string, string, string>(next_request, uid, pwd, newpwd, captoken, cap));
+                    if (!CaptureMod)
+                    {
+                        if (m_lgcaptcha.ContainsKey(md5_str))
+                        {
+                            string cap = m_lgcaptcha[md5_str];
+
+                            HttpWebRequest next_request = System.Net.WebRequest.Create(url_matcheck + "&id=" + uid) as HttpWebRequest;
+                            next_request.ServicePoint.Expect100Continue = false;
+                            next_request.Timeout = 1000 * 60;
+                            next_request.ContentType = "application/x-www-form-urlencoded";
+                            next_request.CookieContainer = request.CookieContainer;
+                            next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_RsaKey), new Tuple<HttpWebRequest, string, string, string, string, string>(next_request, uid, pwd, newpwd, captoken, cap));
+                        }
+                        else
+                        {
+                            string newcaptoken = Guid.NewGuid().ToString().Replace("-", "");
+                            string image_url = url_capimage + "&uid=" + uid + "&tid=" + newcaptoken + "&rnd=" + m_rgen.NextDouble() * 99999;
+                            HttpWebRequest next_request = System.Net.WebRequest.Create(image_url) as HttpWebRequest;
+                            next_request.ServicePoint.Expect100Continue = false;
+                            next_request.Timeout = 1000 * 60;
+                            next_request.ContentType = "application/x-www-form-urlencoded";
+                            next_request.CookieContainer = request.CookieContainer;
+                            next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_GetCaptcha), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newpwd, newcaptoken));
+                        }
                     }
                     else
                     {
-                        string newcaptoken = Guid.NewGuid().ToString().Replace("-", "");
-                        string image_url = url_capimage + "&uid=" + uid + "&tid=" + newcaptoken + "&rnd=" + m_rgen.NextDouble() * 99999;
-                        HttpWebRequest next_request = System.Net.WebRequest.Create(image_url) as HttpWebRequest;
-                        next_request.ServicePoint.Expect100Continue = false;
-                        next_request.Timeout = 1000 * 60;
-                        next_request.ContentType = "application/x-www-form-urlencoded";
-                        next_request.CookieContainer = request.CookieContainer;
-                        next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_GetCaptcha), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newpwd, newcaptoken));
+                        if (m_lgcaptcha.ContainsKey(md5_str))
+                        {
+                            string newcaptoken = Guid.NewGuid().ToString().Replace("-", "");
+                            string image_url = url_capimage + "&uid=" + uid + "&tid=" + newcaptoken + "&rnd=" + m_rgen.NextDouble() * 99999;
+                            HttpWebRequest next_request = System.Net.WebRequest.Create(image_url) as HttpWebRequest;
+                            next_request.ServicePoint.Expect100Continue = false;
+                            next_request.Timeout = 1000 * 60;
+                            next_request.ContentType = "application/x-www-form-urlencoded";
+                            next_request.CookieContainer = request.CookieContainer;
+                            next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_GetCaptcha), new Tuple<HttpWebRequest, string, string, string, string>(next_request, uid, pwd, newpwd, newcaptoken));
+                        }
+                        else
+                        {
+                            string cap = m_Ans;
+                            m_ImageData = new byte[readbytes];
+                            Array.Copy(img_buf, 0, m_ImageData, 0, m_ImageData.Length);
+
+                            HttpWebRequest next_request = System.Net.WebRequest.Create(url_matcheck + "&id=" + uid) as HttpWebRequest;
+                            next_request.ServicePoint.Expect100Continue = false;
+                            next_request.Timeout = 1000 * 60;
+                            next_request.ContentType = "application/x-www-form-urlencoded";
+                            next_request.CookieContainer = request.CookieContainer;
+                            next_request.BeginGetResponse(new AsyncCallback(OnTryLoginCallBack_RsaKey), new Tuple<HttpWebRequest, string, string, string, string, string>(next_request, uid, pwd, newpwd, captoken, cap));
+                            
+                        }
                     }
                 }
             }
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -358,6 +410,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -389,21 +442,53 @@ namespace PwcTool
                         {
                             m_logger.Debug("uid: {0} 登录OK", uid);
 
-                            string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
-                            HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-                            next_request.ServicePoint.Expect100Continue = false;
-                            next_request.Timeout = 1000 * 60;
-                            next_request.Method = "POST";
-                            next_request.ContentLength = 0;
-                            next_request.ContentType = "application/x-www-form-urlencoded";
-                            next_request.CookieContainer = new CookieContainer();
-                            next_request.CookieContainer.Add(response.Cookies);
-                            next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                            if (CaptureMod)
+                            {
+                                if (!Directory.Exists("cap"))
+                                {
+                                    Directory.CreateDirectory("cap");
+                                }
+                                string filename = "./cap/" + cs_md5(m_ImageData) + "----" + m_Ans + ".bmp";
+                                if (!File.Exists(filename))
+                                {
+                                    File.WriteAllBytes(filename, m_ImageData);
+                                }
+                                TaskFinishInvoke(this, uid, pwd, newpwd, "特殊模式");
+                            }
+                            else
+                            {
+                                string url = "http://aq.tiancity.com/Home/GetCaptchaUrl";
+                                HttpWebRequest next_request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                                next_request.ServicePoint.Expect100Continue = false;
+                                next_request.Timeout = 1000 * 60;
+                                next_request.Method = "POST";
+                                next_request.ContentLength = 0;
+                                next_request.ContentType = "application/x-www-form-urlencoded";
+                                next_request.CookieContainer = new CookieContainer();
+                                next_request.CookieContainer.Add(response.Cookies);
+                                next_request.BeginGetResponse(new AsyncCallback(OnTryChangePwd_GetCaptchaUrl), new Tuple<HttpWebRequest, string, string, string>(next_request, uid, pwd, newpwd));
+                            }
                         }
                         else if (logRet == "7" || logRet == "6")
                         {
-                            m_logger.Debug("uid: {0} ip被封", uid);
-                            TaskFinishInvoke(this, uid, pwd, newpwd, "IP被封");
+                            if (CaptureMod)
+                            {
+                                if (!Directory.Exists("cap"))
+                                {
+                                    Directory.CreateDirectory("cap");
+                                }
+                                string filename = "./cap/" + cs_md5(m_ImageData) + "----" + m_Ans + ".bmp";
+                                if (!File.Exists(filename))
+                                {
+                                    File.WriteAllBytes(filename, m_ImageData);
+                                }
+                                TaskFinishInvoke(this, uid, pwd, newpwd, "特殊模式");
+                            }
+                            else
+                            {
+                                m_logger.Debug("uid: {0} ip被封", uid);
+                                TaskFinishInvoke(this, uid, pwd, newpwd, "IP被封");
+                            }
                         }
                         else if (logRet == "4")
                         {
@@ -421,6 +506,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -454,6 +540,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -477,6 +564,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -553,6 +641,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -576,6 +665,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -626,6 +716,7 @@ namespace PwcTool
             catch (System.Exception ex)
             {
                 m_logger.Error(ex.ToString());
+                TaskFinishInvoke(this, _uid, _pwd, _newpwd, "未知异常");
             }
         }
 
@@ -650,6 +741,15 @@ namespace PwcTool
         {
             MD5 md5 = new MD5CryptoServiceProvider();
             byte[] strbytes = Encoding.Default.GetBytes(src);
+            byte[] md5_bytes = md5.ComputeHash(strbytes, 0, strbytes.Length);
+            string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
+            return md5_str;
+        }
+
+        public string cs_md5(byte[] src)
+        {
+            MD5 md5 = new MD5CryptoServiceProvider();
+            byte[] strbytes = src;
             byte[] md5_bytes = md5.ComputeHash(strbytes, 0, strbytes.Length);
             string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
             return md5_str;

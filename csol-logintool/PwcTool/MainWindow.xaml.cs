@@ -471,24 +471,42 @@ namespace PwcTool
                 if (m_cpworkers.Count <= i)
                 {
                     CpWorker worker = new CpWorker(m_lgcaptcha, m_pwcaptcha, m_safekey);
+                    if (cbSpecial.IsChecked == true)
+                    {
+                        worker.CaptureMod = true;
+                    }
                     worker.FinishTask += new Action<CpWorker, string, string, string, string>(worker_FinishTask);
                     m_cpworkers.Add(worker);
                 }
 
-                DataRow nextuidrow = IteratorNextRow(m_pwcdataset.Tables[0],column_status,ref m_walkiterator);
-                if (nextuidrow != null)
+                if (cbSpecial.IsChecked == true)
                 {
-                    string uid = (string)nextuidrow[column_uid];
-                    string pwd = (string)nextuidrow[column_password];
-                    string newpwd = this.GetNewPassword();
+                    string uid = "test883322";
+                    string pwd = "test883322";
+                    string newpwd = "test883322";
+                    if (cbSpecial.IsChecked == true)
+                    {
+                        m_cpworkers[i].CaptureMod = true;
+                    }
                     m_cpworkers[i].BeginTaskChangePwd(uid.ToLower().Trim(), pwd.Trim(), newpwd, m_IpToken);
-                    nextuidrow[column_status] = status_ready;
-
-                    //m_logger.Debug("begin uid:" + uid + " pwd:" + pwd + " newpwd:" + newpwd);
                 }
                 else
                 {
-                    m_cpworkers[i].IsWorking = false;
+                    DataRow nextuidrow = IteratorNextRow(m_pwcdataset.Tables[0], column_status, ref m_walkiterator);
+                    if (nextuidrow != null)
+                    {
+                        string uid = (string)nextuidrow[column_uid];
+                        string pwd = (string)nextuidrow[column_password];
+                        string newpwd = this.GetNewPassword();
+                        m_cpworkers[i].BeginTaskChangePwd(uid.ToLower().Trim(), pwd.Trim(), newpwd, m_IpToken);
+                        nextuidrow[column_status] = status_ready;
+
+                        //m_logger.Debug("begin uid:" + uid + " pwd:" + pwd + " newpwd:" + newpwd);
+                    }
+                    else
+                    {
+                        m_cpworkers[i].IsWorking = false;
+                    }
                 }
             }
 
@@ -896,22 +914,25 @@ namespace PwcTool
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                DataRow targetrow = m_pwcdataset.Tables[0].Rows[m_uid2idx[uid]];
-                targetrow[column_password] = pwd;
-                targetrow[column_status] = result;
-
-                if (result == "IP被封")
+                if (cbSpecial.IsChecked == false)
                 {
-                    if (cpwoker.IpToken == m_IpToken)
+                    DataRow targetrow = m_pwcdataset.Tables[0].Rows[m_uid2idx[uid]];
+                    targetrow[column_password] = pwd;
+                    targetrow[column_status] = result;
+
+                    if (result == "IP被封")
                     {
-                        if (File.Exists("RebootRoutine.exe"))
+                        if (cpwoker.IpToken == m_IpToken)
                         {
-                            m_logger.Debug("启动RebootRoutine.exe...");
-                            Process pro= Process.Start("RebootRoutine.exe");
-                            pro.WaitForExit();
-                            m_logger.Debug("RebootRoutine 退出!!");
+                            if (File.Exists("RebootRoutine.exe"))
+                            {
+                                m_logger.Debug("启动RebootRoutine.exe...");
+                                Process pro = Process.Start("RebootRoutine.exe");
+                                pro.WaitForExit();
+                                m_logger.Debug("RebootRoutine 退出!!");
+                            }
+                            m_IpToken++;
                         }
-                        m_IpToken++;
                     }
                 }
 
@@ -928,12 +949,18 @@ namespace PwcTool
 
                     if (btnStop.IsEnabled == true)
                     {
-                        //if (result == "IP被封")
-                        //{
-                        //    cpwoker.BeginTaskChangePwd(uid, pwd, GetNewPassword(), m_IpToken);
-                        //    targetrow[column_status] = status_ready;
-                        //}
-                        //else
+                        if (cbSpecial.IsChecked == true)
+                        {
+                            string nextuid = "test883322";
+                            string nextpwd = "test883322";
+                            string nextnewpwd = "test883322";
+                            if (cbSpecial.IsChecked == true)
+                            {
+                                cpwoker.CaptureMod = true;
+                            }
+                            cpwoker.BeginTaskChangePwd(nextuid.ToLower().Trim(), nextpwd.Trim(), nextnewpwd, m_IpToken);
+                        }
+                        else
                         {
                             DataRow nextuidrow = IteratorNextRow(m_pwcdataset.Tables[0], column_status, ref m_walkiterator);
                             if (nextuidrow != null)
@@ -1346,6 +1373,22 @@ namespace PwcTool
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            cbSpecial.Visibility = Visibility.Hidden;
+            if (File.Exists("sig"))
+            {
+                byte[] sig = File.ReadAllBytes("sig");
+                if (sig.Length > 0)
+                {
+                    MD5 md5 = new MD5CryptoServiceProvider();
+                    byte[] strbytes = sig;
+                    byte[] md5_bytes = md5.ComputeHash(strbytes, 0, strbytes.Length);
+                    string md5_str = BitConverter.ToString(md5_bytes).Replace("-", "");
+                    if (md5_str == "F47815543AB6B6278F857644B3AC0745")
+                    {
+                        cbSpecial.Visibility = Visibility.Visible;
+                    }
+                }
+            }
             UidGrid.DragEnter += new DragEventHandler(statusGrid_DragEnter);
             UidGrid.Drop += new DragEventHandler(statusGrid_Drop);
 

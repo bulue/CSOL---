@@ -18,6 +18,7 @@
                     <Button Content="开始" Height="23" HorizontalAlignment="Left" Margin="591,16,0,0" Name="btnStart" VerticalAlignment="Top" Width="75" Click="btnStartChangePwd_Click" />
                     <Button Content="导出" Height="23" HorizontalAlignment="Left" Margin="752,16,0,0" Name="button3" VerticalAlignment="Top" Width="75" Click="btnExportCpResult_Click" />
                     <TextBox Height="21" HorizontalAlignment="Left" Margin="234,16,0,0" Name="tbxPwdNum" VerticalAlignment="Top" Width="34" Text="8" MaxLength="2" />
+                    <CheckBox Name="cbSpecial" Content="特殊模式" HorizontalAlignment="Left" Margin="927,21,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Header="校验密保" Name="tabItem2">
