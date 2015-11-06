@@ -1,0 +1,24 @@
+﻿<Window x:Class="popkart_capture.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="popkart_辅助" Height="350" Width="525" Loaded="Window_Loaded"  ResizeMode="NoResize">
+    <Grid>
+        <Button Name="btnStart" Content="监听" HorizontalAlignment="Left" Margin="39,275,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_Start"/>
+        <Button Name="btnStop" Content="停止" HorizontalAlignment="Left" Margin="147,275,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_Stop"/>
+        <ListView Name="lvRecord" Height="231" Margin="23,19,23,0" VerticalAlignment="Top">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="时间" Width="100" DisplayMemberBinding="{Binding Path=Time}"/>
+                    <GridViewColumn Header="图片" Width="120" >
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding Path=Img}" Width="80" Height="40"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="结果" Width="50" DisplayMemberBinding="{Binding Path=Record}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>
