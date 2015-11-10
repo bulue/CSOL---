@@ -1349,22 +1349,55 @@ namespace PwcTool
 
         private void btnExportCpResult_Click(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
-            dlg.Filter = "保存类型 |*.txt";
-            dlg.FilterIndex = 1;
-            if (dlg.ShowDialog() == true)
+            if (cbSpecial.IsChecked == true)
             {
-                using (FileStream fs = new FileStream(dlg.FileName,FileMode.Create))
+                Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+                dlg.Filter = "保存类型 |*.xml";
+                dlg.FilterIndex = 1;
+                if (dlg.ShowDialog() == true)
                 {
-                    using (StreamWriter writer = new StreamWriter(fs))
+                    if (Directory.Exists("cap"))
                     {
-                        for (int i = 0; i < m_pwcdataset.Tables[0].Rows.Count; ++i)
-                        {
-                            string uid = m_pwcdataset.Tables[0].Rows[i][column_uid].ToString();
-                            string pwd = m_pwcdataset.Tables[0].Rows[i][column_password].ToString();
-                            string status = m_pwcdataset.Tables[0].Rows[i][column_status].ToString();
+                        string[] files = Directory.GetFiles("cap");
+                        XmlDocument doc = new XmlDocument();
+                        XmlDeclaration dec = doc.CreateXmlDeclaration("1.0", "GB2312", null);
+                        XmlElement root = doc.CreateElement("Data");
+                        doc.AppendChild(root);
 
-                            writer.WriteLine(uid + "----" + pwd + "----" + status);
+                        foreach (string file in files)
+                        {
+                            Match mt = Regex.Match(file, "(\\w+)----([0-9]+).bmp");
+                            if (mt.Groups.Count == 3)
+                            {
+                                XmlElement item = doc.CreateElement("captcha");
+                                item.SetAttribute("name", mt.Groups[1].ToString());
+                                item.SetAttribute("value", mt.Groups[2].ToString());
+                                root.AppendChild(item);
+                            }
+                        }
+                        doc.Save(dlg.FileName);
+                    }
+                }
+            }
+            else
+            {
+                Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
+                dlg.Filter = "保存类型 |*.txt";
+                dlg.FilterIndex = 1;
+                if (dlg.ShowDialog() == true)
+                {
+                    using (FileStream fs = new FileStream(dlg.FileName, FileMode.Create))
+                    {
+                        using (StreamWriter writer = new StreamWriter(fs))
+                        {
+                            for (int i = 0; i < m_pwcdataset.Tables[0].Rows.Count; ++i)
+                            {
+                                string uid = m_pwcdataset.Tables[0].Rows[i][column_uid].ToString();
+                                string pwd = m_pwcdataset.Tables[0].Rows[i][column_password].ToString();
+                                string status = m_pwcdataset.Tables[0].Rows[i][column_status].ToString();
+
+                                writer.WriteLine(uid + "----" + pwd + "----" + status);
+                            }
                         }
                     }
                 }
