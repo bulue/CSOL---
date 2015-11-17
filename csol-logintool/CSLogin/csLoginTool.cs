@@ -17,6 +17,9 @@ using System.Xml;
 using System.Security.Cryptography;
 using CommonQ;
 using System.Net.Sockets;
+using Emgu.CV.Structure;
+using Emgu.CV;
+using Emgu.CV.OCR;
 
 namespace CSLogin
 {
@@ -216,9 +219,56 @@ namespace CSLogin
             }
         }
 
+
+        private static Emgu.CV.OCR.Tesseract _ocr;//创建识别对象
+        //传入图片进行识别
+        public string RecognizeNumber(Bitmap img)
+        {
+            if (_ocr == null)
+            {
+                //方法第一个参数可为""表示通过环境变量调用字库，第二个参数表示字库的文件，第三个表示识别方式，可看文档与资料查找。
+                _ocr = new Emgu.CV.OCR.Tesseract(@"./tessdata", "eng", OcrEngineMode.CubeOnly);
+                _ocr.SetVariable("tessedit_char_whitelist", "0123456789");//此方法表示只识别1234567890与x字母
+            }
+
+            //""标示OCR识别调用失败
+            string re = "";
+            if (img == null)
+                return re;
+            else
+            {
+                Bgr drawColor = new Bgr(Color.White);
+                try
+                {
+                    Image<Bgr, Byte> image = new Image<Bgr, byte>(img);
+                    using (Image<Gray, byte> gray = image.Convert<Gray, Byte>())
+                    {
+                        pictureBox1.Image = gray.ToBitmap();
+                        _ocr.Recognize(gray);
+                        Emgu.CV.OCR.Tesseract.Character[] charactors = _ocr.GetCharacters();
+                        foreach (Emgu.CV.OCR.Tesseract.Character c in charactors)
+                        {
+                            image.Draw(c.Region, drawColor, 1);
+                        }
+                        pictureBox1.Image = image.ToBitmap();
+                        re = _ocr.GetText();
+                    }
+                    img.Dispose();
+                    return re;
+                }
+                catch (Exception ex)
+                {
+                    return re;
+                }
+            }
+        }
+
         private void startBtn_Click(object sender, EventArgs e)
         {
-            StartLogin();
+            Bitmap b = (Bitmap)Image.FromFile("验证码.bmp");
+            string s = RecognizeNumber(b);
+            MessageBox.Show(s);
+            //StartLogin();
         }
 
         private void StartLogin()

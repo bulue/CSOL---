@@ -13,6 +13,7 @@ using Emgu.CV.Structure;
 using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.IO;
+using Emgu.CV.OCR;
 
 namespace CSLogin
 {
@@ -113,7 +114,7 @@ namespace CSLogin
                     }
                 }
 
-                TM_TYPE tmType = TM_TYPE.CV_TM_CCORR_NORMED;
+                TemplateMatchingType tmType = TemplateMatchingType.CcorrNormed;
                 Image<Gray, float> imageResult = img.MatchTemplate(templ, tmType);
 
                 double bestValue;
@@ -171,7 +172,7 @@ namespace CSLogin
                 Image<Bgr, Byte> img = new Image<Bgr, Byte>(screen);
                 Image<Bgr, Byte> templ = new Image<Bgr, Byte>(pic);
 
-                TM_TYPE tmType = TM_TYPE.CV_TM_CCORR_NORMED;
+                TemplateMatchingType tmType = TemplateMatchingType.CcorrNormed;
                 Image<Gray, float> imageResult = img.MatchTemplate(templ, tmType);
 
                 double bestValue;
@@ -286,7 +287,7 @@ namespace CSLogin
             h = 0;
         }
 
-        static private void FindBestMatchPointAndValue(Image<Gray, Single> image, TM_TYPE tmType, out double bestValue, out Point bestPoint)
+        static private void FindBestMatchPointAndValue(Image<Gray, Single> image, TemplateMatchingType tmType, out double bestValue, out Point bestPoint)
         {
             bestValue = 0d;
             bestPoint = new Point(0, 0);
@@ -294,7 +295,7 @@ namespace CSLogin
             Point[] minLocations, maxLocations;
             image.MinMax(out minValues, out maxValues, out minLocations, out maxLocations);
             //对于平方差匹配和归一化平方差匹配，最小值表示最好的匹配；其他情况下，最大值表示最好的匹配            
-            if (tmType == TM_TYPE.CV_TM_SQDIFF || tmType == TM_TYPE.CV_TM_SQDIFF_NORMED)
+            if (tmType == TemplateMatchingType.Sqdiff || tmType == TemplateMatchingType.SqdiffNormed)
             {
                 bestValue = minValues[0];
                 bestPoint = minLocations[0];
@@ -330,7 +331,50 @@ namespace CSLogin
         delegate void DelegateV<T>(T t);
         delegate void DelegateV2<T1,T2>(T1 t1,T2 t2);
         delegate R Delegate0<R>();
-        delegate R Delegate1<R, T>(T t); 
+        delegate R Delegate1<R, T>(T t);
+
+
+        private static Emgu.CV.OCR.Tesseract _ocr;//创建识别对象
+        //传入图片进行识别
+        public static string RecognizeNumber(Bitmap img)
+        {
+            if (_ocr == null)
+            {
+                //方法第一个参数可为""表示通过环境变量调用字库，第二个参数表示字库的文件，第三个表示识别方式，可看文档与资料查找。
+                _ocr = new Emgu.CV.OCR.Tesseract(@"./tessdata", "eng", OcrEngineMode.CubeOnly);
+                _ocr.SetVariable("tessedit_char_whitelist", "0123456789");//此方法表示只识别1234567890与x字母
+            }
+
+            //""标示OCR识别调用失败
+            string re = "";
+            if (img == null)
+                return re;
+            else
+            {
+                Bgr drawColor = new Bgr(Color.White);
+                try
+                {
+                    Image<Bgr, Byte> image = new Image<Bgr, byte>(img);
+                    using (Image<Gray, byte> gray = image.Convert<Gray, Byte>())
+                    {
+                        _ocr.Recognize(gray);
+                        Emgu.CV.OCR.Tesseract.Character[] charactors = _ocr.GetCharacters();
+                        foreach (Emgu.CV.OCR.Tesseract.Character c in charactors)
+                        {
+                            image.Draw(c.Region, drawColor, 1);
+                        }
+                        re = _ocr.GetText();
+                    }
+                    img.Dispose();
+                    return re;
+                }
+                catch (Exception ex)
+                {
+                    return re;
+                }
+            }
+        }
+
     }
 
 }

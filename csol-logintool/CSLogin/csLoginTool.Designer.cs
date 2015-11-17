@@ -48,7 +48,9 @@
             this.SetCodeBtn = new System.Windows.Forms.Button();
             this.SetManageIpBtn = new System.Windows.Forms.Button();
             this.tbxMac = new System.Windows.Forms.TextBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.statusBar.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -102,9 +104,9 @@
             // 
             // textBox
             // 
-            this.textBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textBox.Cursor = System.Windows.Forms.Cursors.Default;
             this.textBox.Location = new System.Drawing.Point(21, 97);
             this.textBox.Multiline = true;
@@ -204,11 +206,20 @@
             this.tbxMac.Size = new System.Drawing.Size(124, 21);
             this.tbxMac.TabIndex = 25;
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(439, 24);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(100, 50);
+            this.pictureBox1.TabIndex = 26;
+            this.pictureBox1.TabStop = false;
+            // 
             // csLoginTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(619, 376);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.tbxMac);
             this.Controls.Add(this.SetManageIpBtn);
             this.Controls.Add(this.SetCodeBtn);
@@ -230,6 +241,7 @@
             this.Load += new System.EventHandler(this.csLoginTool_Load);
             this.statusBar.ResumeLayout(false);
             this.statusBar.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -255,6 +267,7 @@
         private System.Windows.Forms.Button SetCodeBtn;
         private System.Windows.Forms.Button SetManageIpBtn;
         private System.Windows.Forms.TextBox tbxMac;
+        private System.Windows.Forms.PictureBox pictureBox1;
 
     }
 }

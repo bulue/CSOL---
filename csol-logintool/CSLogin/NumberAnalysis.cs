@@ -64,7 +64,7 @@ namespace CSLogin
 
                         img = new Image<Bgr, Byte>(raw);
                         templ = new Image<Bgr, Byte>(bitmaps[i]);
-                        TM_TYPE tmType = TM_TYPE.CV_TM_CCORR_NORMED;
+                        TemplateMatchingType tmType = TemplateMatchingType.CcorrNormed;
                         Image<Gray, float> imageResult = img.MatchTemplate(templ, tmType);
 
                         double[] minValues, maxValues;

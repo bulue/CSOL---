@@ -145,6 +145,7 @@ namespace CSLogin
                     m_session.m_code = m_Code;
                     m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
                     m_session.OnException = OnSessionException;
+                    Thread.Sleep(2000);
                 }
  
                 long nLastQueryTime = 0;
@@ -171,9 +172,14 @@ namespace CSLogin
                                 LoginState stateMachine = new LoginState();
                                 stateMachine.Run(m_account, m_session);
                             }
-                            else
+                            else if (m_account.state == 2)
                             {
                                 ChipState stateMachine = new ChipState();
+                                stateMachine.Run(m_account, m_session);
+                            }
+                            else if (m_account.state == 3)
+                            {
+                                HuanLeYiXianQianState stateMachine = new HuanLeYiXianQianState();
                                 stateMachine.Run(m_account, m_session);
                             }
                             m_session.SendMsg("4$" + MacId);
