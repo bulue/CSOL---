@@ -60,7 +60,7 @@ namespace PwcTool
         {
             m_lgcaptcha = new Dictionary<string, string>(lg);
             m_pwcaptcha = new Dictionary<string, string>(pw);
-            m_logger = CLogger.FromFolder("reg/log");
+            m_logger = CLogger.FromFolder("reg/reg");
             if (!initJavascript)
             {
                 m_JsContext.Run(File.ReadAllText(md5js));

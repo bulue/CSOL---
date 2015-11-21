@@ -199,7 +199,7 @@ namespace PwcTool
                 Environment.Exit(0);
             }
 
-            m_logger = CLogger.FromFolder("pwclog");
+            m_logger = CLogger.FromFolder("log/log");
             m_saveThread = new Thread(new ThreadStart(SaveUidPwdStatus));
             m_saveThread.Start();
 

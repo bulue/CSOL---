@@ -60,7 +60,7 @@ namespace PwcTool
             m_pwcaptcha = new Dictionary<string, string>(pw);
 
             m_safekey = safekey;
-            m_logger = CLogger.FromFolder("pwclog");
+            m_logger = CLogger.FromFolder("log/log");
             if (!initJavascript)
             {
                 m_JsContext.Run(File.ReadAllText(md5js));
