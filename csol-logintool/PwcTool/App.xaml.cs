@@ -17,6 +17,6 @@ namespace PwcTool
                 , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
                 , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
                 , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build);
-        public static string subversion = "a";
+        public static string subversion = "b";
     }
 }
