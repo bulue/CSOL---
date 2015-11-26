@@ -243,14 +243,12 @@ namespace CSLogin
                     Image<Bgr, Byte> image = new Image<Bgr, byte>(img);
                     using (Image<Gray, byte> gray = image.Convert<Gray, Byte>())
                     {
-                        pictureBox1.Image = gray.ToBitmap();
                         _ocr.Recognize(gray);
                         Emgu.CV.OCR.Tesseract.Character[] charactors = _ocr.GetCharacters();
                         foreach (Emgu.CV.OCR.Tesseract.Character c in charactors)
                         {
                             image.Draw(c.Region, drawColor, 1);
                         }
-                        pictureBox1.Image = image.ToBitmap();
                         re = _ocr.GetText();
                     }
                     img.Dispose();
@@ -265,10 +263,13 @@ namespace CSLogin
 
         private void startBtn_Click(object sender, EventArgs e)
         {
-            Bitmap b = (Bitmap)Image.FromFile("验证码.bmp");
-            string s = RecognizeNumber(b);
-            MessageBox.Show(s);
-            //StartLogin();
+            //Bitmap bt = (Bitmap)Bitmap.FromFile("芯片.bmp");
+           // NumberAnalysis s_numberanalysis = new NumberAnalysis();
+            //int a = s_numberanalysis.Analysis(bt);
+            //Thread.Sleep(1000);
+            //CommonApi.Mouse_Wheel(500);
+           // MyKeyborad.keyPress(VirtualKeyCode.OEM_3);
+            StartLogin();
         }
 
         private void StartLogin()

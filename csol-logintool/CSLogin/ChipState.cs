@@ -1,4 +1,5 @@
-﻿using System;
+﻿//查芯片
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -315,6 +316,7 @@ namespace CSLogin
                             int close_Lasttime = System.Environment.TickCount;
                             int wjdc_Lasttime = System.Environment.TickCount;       //问卷调查
                             int mmx_Lasttime = System.Environment.TickCount;        //密码箱
+                            int quxiao_time1 = System.Environment.TickCount;
 
                             int wujuese_Interval = 0;
                             int queren_Interval = 5000;
@@ -375,6 +377,7 @@ namespace CSLogin
                                     quxiao_Lasttime = System.Environment.TickCount;
                                     mimacuowu_Lasttime = System.Environment.TickCount;
                                     tingfeng_Lasttime = System.Environment.TickCount;
+                                    quxiao_time1 = System.Environment.TickCount;
                                 }
                                 CommonApi.GetWindowXYWH(hwnd, out sX, out sY, out sW, out sH);
                                 x = sX + 150;
@@ -574,6 +577,10 @@ namespace CSLogin
                                                                 Sleep(3000, "服务器连接中断,关闭游戏");
                                                             }
 
+                                                            MyKeyborad.keyPress(VirtualKeyCode.OEM_3);
+                                                            Sleep(100);
+                                                            MyKeyborad.keyPress(VirtualKeyCode.OEM_3);
+
                                                             yanzhengma_Lastime = System.Environment.TickCount;
                                                             xinbinbaodao_Lasttime = System.Environment.TickCount;
                                                             wujuese_Lasttime = System.Environment.TickCount;
@@ -761,9 +768,36 @@ namespace CSLogin
                                     }
 
                                     if (bInputPwd
+                                         && CommonApi.FindPic(sX + 787, sY + 724, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
+                                    {
+                                        Global.logger.Debug("click 关闭B  787,724");
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+
+                                        break;
+                                    }
+
+                                    if (bInputPwd
+                                        && CommonApi.FindPic(sX + 561, sY + 469, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
+                                    {
+                                        Global.logger.Debug("click 关闭B  561,469");
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+
+                                        break;
+                                    }
+
+                                    if (bInputPwd
                                         && CommonApi.FindPic(sX + 672, sY + 640, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
                                     {
                                         Global.logger.Debug("click 关闭B");
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+
+                                        break;
+                                    }
+
+                                    if (bInputPwd
+                                        && CommonApi.FindPic(sX + 871, sY + 717, 58, 29, @".\BMP\关闭B.bmp", 0.995, out dx, out dy))
+                                    {
+                                        Global.logger.Debug("click 关闭B  871,717");
                                         CommonApi.Left_Click(dx + 5, dy + 5);
 
                                         break;
@@ -778,15 +812,23 @@ namespace CSLogin
                                         break;
                                     }
 
+                                    if (bInputPwd 
+                                        && CommonApi.FindPic(sX + 241, sY + 597, 147, 46, @".\BMP\开启密码箱.bmp", 0.99, out dx, out dy))
+                                    {
+                                        CommonApi.Mouse_Move(dx, dy - 50);
+                                        Sleep(500);
+                                        CommonApi.Mouse_Wheel(1000);
+                                    }
+
                                     if (bInputPwd
-                                         && CommonApi.FindPic(sX + 198, sY + 290, 73, 27, @".\BMP\破译芯片.bmp", 0.99, out dx, out dy))
+                                         && CommonApi.FindPic(sX + 198, sY + 288, 73, 27, @".\BMP\破译芯片.bmp", 0.99, out dx, out dy))
                                     {
                                         Bitmap screen = new Bitmap(39, 18);
 
                                         Graphics g = Graphics.FromImage(screen);
-                                        g.CopyFromScreen(dx + 21, dy + 14, 0, 0, screen.Size);
+                                        g.CopyFromScreen(dx + 22, dy + 13, 0, 0, screen.Size);
 
-                                        screen.Save("验证码.bmp");
+                                        screen.Save("芯片.bmp");
                                         int n = s_numberanalysis.Analysis(screen);
 
                                         Global.logger.Debug("查号结束" + _AccInfo.account + " 芯片数" + n);
