@@ -46,6 +46,7 @@ namespace CSLogin
         const int MOUSEEVENTF_MIDDLEDOWN = 0x0020; //模拟鼠标中键按下 
         const int MOUSEEVENTF_MIDDLEUP = 0x0040; //模拟鼠标中键抬起 
         const int MOUSEEVENTF_ABSOLUTE = 0x8000; //标示是否采用绝对坐标 
+        const int MOUSEEVENTF_WHEEL = 0x0800;
 
         [DllImport("user32.dll")]
         public static extern bool GetWindowRect(IntPtr hWnd, ref RECT rect);
@@ -238,6 +239,11 @@ namespace CSLogin
             int x = nX * 65536 / System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width;
             int y = nY * 65536 / System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height;
             mouse_event(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE, x, y, 0, 0);
+        }
+
+        static public void Mouse_Wheel(int v)
+        {
+            mouse_event(MOUSEEVENTF_WHEEL, 0, 0, v, 0);
         }
 
         static public Process StartProcess(string path)
