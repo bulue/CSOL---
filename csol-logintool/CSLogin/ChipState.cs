@@ -29,7 +29,6 @@ namespace CSLogin
             {
                 _curAccInfo = info;
                 _currentState = State.Kaishi;
-                //m_client = s;
 
                 Global.logger.Info("");
                 Global.logger.Info("=====账号:" + _curAccInfo.account + "开始=====");
@@ -237,11 +236,29 @@ namespace CSLogin
                                         xoffset = 435;
                                         yoffset = 19;
                                     }
-                                    else
+                                    else if (_AccInfo.zoneid == 2)
                                     {
                                         //2区
-                                        xoffset = 534;
+                                        xoffset = 535;
                                         yoffset = 19;
+                                    }
+                                    else if (_AccInfo.zoneid == 3)
+                                    {
+                                        //3区
+                                        xoffset = 635;
+                                        yoffset = 19;
+                                    }
+                                    else if (_AccInfo.zoneid == 4)
+                                    {
+                                        //网1
+                                        xoffset = 435;
+                                        yoffset = 44;
+                                    }
+                                    else
+                                    {
+                                        //网2
+                                        xoffset = 535;
+                                        yoffset = 44;
                                     }
 
                                     if (CommonApi.FindPic(x + xoffset, y + yoffset, 30, 30, @".\BMP\选区按钮.bmp", 0.99, out tx, out ty))
