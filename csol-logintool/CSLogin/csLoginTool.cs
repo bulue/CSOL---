@@ -104,6 +104,7 @@ namespace CSLogin
 
             textBox_Code.Text = _iniFile.IniReadValue("UI", "code");
             textBox_IP.Text = _iniFile.IniReadValue("UI", "manageIp");
+            cbForceReboot.Checked = _iniFile.IniReadValue("UI", "forcereboot") == "0" ? false : true;
 
             if (textBox_Code.Text == "")
             {
@@ -700,6 +701,11 @@ namespace CSLogin
 0x2e, 0x61, 0x73, 0x70, 0x26, 0x61, 0x63, 0x74, 
 0x69, 0x6f, 0x6e, 0x3d, 0x33 };
         #endregion
+
+        private void cbForceReboot_CheckedChanged(object sender, EventArgs e)
+        {
+            _iniFile.IniWriteValue("UI", "forcereboot", "1");
+        }
     }
 
 }

@@ -48,6 +48,7 @@
             this.SetCodeBtn = new System.Windows.Forms.Button();
             this.SetManageIpBtn = new System.Windows.Forms.Button();
             this.tbxMac = new System.Windows.Forms.TextBox();
+            this.cbForceReboot = new System.Windows.Forms.CheckBox();
             this.statusBar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -204,11 +205,25 @@
             this.tbxMac.Size = new System.Drawing.Size(124, 21);
             this.tbxMac.TabIndex = 25;
             // 
+            // cbForceReboot
+            // 
+            this.cbForceReboot.AutoSize = true;
+            this.cbForceReboot.Checked = true;
+            this.cbForceReboot.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbForceReboot.Location = new System.Drawing.Point(154, 277);
+            this.cbForceReboot.Name = "cbForceReboot";
+            this.cbForceReboot.Size = new System.Drawing.Size(138, 16);
+            this.cbForceReboot.TabIndex = 26;
+            this.cbForceReboot.Text = "5分钟未签到强制重启";
+            this.cbForceReboot.UseVisualStyleBackColor = true;
+            this.cbForceReboot.CheckedChanged += new System.EventHandler(this.cbForceReboot_CheckedChanged);
+            // 
             // csLoginTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(619, 376);
+            this.Controls.Add(this.cbForceReboot);
             this.Controls.Add(this.tbxMac);
             this.Controls.Add(this.SetManageIpBtn);
             this.Controls.Add(this.SetCodeBtn);
@@ -255,6 +270,7 @@
         private System.Windows.Forms.Button SetCodeBtn;
         private System.Windows.Forms.Button SetManageIpBtn;
         private System.Windows.Forms.TextBox tbxMac;
+        private System.Windows.Forms.CheckBox cbForceReboot;
 
     }
 }

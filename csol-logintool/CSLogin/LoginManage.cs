@@ -169,7 +169,7 @@ namespace CSLogin
                         {
                             if (m_account.state == 1)
                             {
-                                LoginState stateMachine = new LoginState();
+                                LoginState stateMachine = new LoginState(0);
                                 stateMachine.Run(m_account, m_session);
                             }
                             else if (m_account.state == 2)
@@ -180,6 +180,11 @@ namespace CSLogin
                             else if (m_account.state == 3)
                             {
                                 HuanLeYiXianQianState stateMachine = new HuanLeYiXianQianState();
+                                stateMachine.Run(m_account, m_session);
+                            }
+                            else if (m_account.state == 4)
+                            {
+                                LoginState stateMachine = new LoginState(1);
                                 stateMachine.Run(m_account, m_session);
                             }
                             m_session.SendMsg("4$" + MacId);

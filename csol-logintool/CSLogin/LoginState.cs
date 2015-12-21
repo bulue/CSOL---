@@ -13,6 +13,11 @@ namespace CSLogin
 {
     class LoginState
     {
+        public LoginState(int type)
+        {
+            _Type = type;
+        }
+
         enum State
         {
             Kaishi,
@@ -428,7 +433,6 @@ namespace CSLogin
                                         CommonApi.Left_Click(dx, dy);
 
                                         Global.logger.Info("等待登陆完成..");
-                                        //Sleep(5000, "点击登陆");
 
                                         long nowTick = System.Environment.TickCount;
                                         do
@@ -676,31 +680,67 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    if (bInputPwd
-                                         && CheckInterLastTime(ref lingguojiangli_time, 1000)
-                                         && CommonApi.FindPic(sX + 470, sY + 670, 78, 34, @".\BMP\领过奖励.bmp", 0.999, out dx, out dy))
+                                    if (_Type == 0)
                                     {
-                                        SendLogSucess(_AccInfo);
+                                        if (bInputPwd
+                                            && CheckInterLastTime(ref lingguojiangli_time, 1000)
+                                            && CommonApi.FindPic(sX + 470, sY + 670, 78, 34, @".\BMP\领过奖励.bmp", 0.999, out dx, out dy))
+                                        {
+                                            SendLogSucess(_AccInfo);
 
-                                        _NextState = State.JieShu;
-                                        CommonApi.CloseWindow(hwnd);
+                                            _NextState = State.JieShu;
+                                            CommonApi.CloseWindow(hwnd);
 
-                                        Sleep(4000, "签到结束:" + _AccInfo.account + " 领过奖励!!");
+                                            Sleep(4000, "签到结束:" + _AccInfo.account + " 领过奖励!!");
 
-                                        break;
+                                            break;
+                                        }
+
+
+                                        if (bInputPwd
+                                            && CommonApi.FindPic(sX + 329, sY + 268, 111, 24, @".\BMP\新战场补给奖励.bmp", 0.99, out dx, out dy))
+                                        {
+                                            SendLogSucess(_AccInfo);
+
+                                            _NextState = State.JieShu;
+                                            CommonApi.CloseWindow(hwnd);
+
+                                            Sleep(4000, "签到结束");
+
+                                            break;
+                                        }
                                     }
-
-                                    if (bInputPwd
-                                        && CommonApi.FindPic(sX + 329, sY + 268, 111, 24, @".\BMP\新战场补给奖励.bmp", 0.99, out dx, out dy))
+                                    else if (_Type == 1)
                                     {
-                                        SendLogSucess(_AccInfo);
+                                        if (bInputPwd
+                                            && CommonApi.FindPic(sX + 241, sY + 597, 147, 46, @".\BMP\开启密码箱.bmp", 0.99, out dx, out dy))
+                                        {
+                                            CommonApi.Mouse_Move(dx, dy - 50);
+                                            Sleep(500);
+                                            CommonApi.Mouse_Wheel(-100);
+                                        }
 
-                                        _NextState = State.JieShu;
-                                        CommonApi.CloseWindow(hwnd);
+                                        if (bInputPwd
+                                             && CommonApi.FindPic(sX + 195, sY + 520, 73, 27, @".\BMP\七周年.bmp", 0.99, out dx, out dy))
+                                        {
+                                            Bitmap screen = new Bitmap(39, 18);
 
-                                        Sleep(4000, "签到结束");
+                                            Graphics g = Graphics.FromImage(screen);
+                                            g.CopyFromScreen(dx + 22, dy + 13, 0, 0, screen.Size);
 
-                                        break;
+                                            screen.Save("七周年.bmp");
+                                            int n = s_numberanalysis.Analysis(screen);
+
+                                            Global.logger.Debug("查号结束" + _AccInfo.account + " 芯片数" + n);
+                                            SendLogSucess(_AccInfo, n);
+
+                                            _NextState = State.JieShu;
+                                            CommonApi.CloseWindow(hwnd);
+
+                                            Sleep(4000, "查号结束");
+
+                                            break;
+                                        }
                                     }
 
                                     if (bInputPwd
@@ -834,14 +874,14 @@ namespace CSLogin
                                         break;
                                     }
 
-                                    //if (bInputPwd
-                                    //     && CommonApi.FindPic(sX + 787, sY + 724, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
-                                    //{
-                                    //    Global.logger.Debug("click 关闭B  787,724");
-                                    //    CommonApi.Left_Click(dx + 5, dy + 5);
+                                    if (bInputPwd
+                                         && CommonApi.FindPic(sX + 787, sY + 724, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
+                                    {
+                                        Global.logger.Debug("click 关闭B  787,724");
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
 
-                                    //    break;
-                                    //}
+                                        break;
+                                    }
 
                                     if (bInputPwd
                                         && CommonApi.FindPic(sX + 561, sY + 469, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
@@ -889,32 +929,37 @@ namespace CSLogin
 
                                     notFindPic = true;
 
-                                    //if (bInputPwd
-                                    //    && CheckInterLastTime(ref mmx_Lasttime, 1000)
-                                    //    && CommonApi.FindPic(sX + sW - 122, sY + sH - 50, 122, 50, @".\BMP\密码箱.bmp", 0.999, out dx, out dy))
-                                    //{
-                                    //    Global.logger.Debug("click 密码箱");
-                                    //    CommonApi.Mouse_Move(dx + 6, dy + 6);
-                                    //    Sleep(1500);
-                                    //    CommonApi.Left_Click(dx + 6, dy + 6);
-                                    //    Sleep(1000);
-                                    //    CommonApi.Double_Click(dx + 6, dy + 6);
-
-                                    //    break;
-                                    //}
-
-                                    if (bInputPwd
-                                        && CheckInterLastTime(ref mmx_Lasttime, 1000)
-                                        && CommonApi.FindPic(sX + sW - 261, sY + sH - 31, 124, 34, @".\BMP\战场补给.bmp", 0.99, out dx, out dy))
+                                    if (_Type == 0)
                                     {
-                                        Global.logger.Debug("click 战场补给");
-                                        CommonApi.Mouse_Move(dx + 6, dy + 6);
-                                        Sleep(1500);
-                                        CommonApi.Left_Click(dx + 6, dy + 6);
-                                        Sleep(1000);
-                                        CommonApi.Double_Click(dx + 6, dy + 6);
+                                        if (bInputPwd
+                                            && CheckInterLastTime(ref mmx_Lasttime, 1000)
+                                            && CommonApi.FindPic(sX + sW - 261, sY + sH - 31, 124, 34, @".\BMP\战场补给.bmp", 0.99, out dx, out dy))
+                                        {
+                                            Global.logger.Debug("click 战场补给");
+                                            CommonApi.Mouse_Move(dx + 6, dy + 6);
+                                            Sleep(1500);
+                                            CommonApi.Left_Click(dx + 6, dy + 6);
+                                            Sleep(1000);
+                                            CommonApi.Double_Click(dx + 6, dy + 6);
 
-                                        break;
+                                            break;
+                                        }
+                                    }
+                                    else if (_Type == 1)
+                                    {
+                                        if (bInputPwd
+                                            && CheckInterLastTime(ref mmx_Lasttime, 1000)
+                                            && CommonApi.FindPic(sX + sW - 122, sY + sH - 50, 122, 50, @".\BMP\密码箱.bmp", 0.999, out dx, out dy))
+                                        {
+                                            Global.logger.Debug("click 密码箱");
+                                            CommonApi.Mouse_Move(dx + 6, dy + 6);
+                                            Sleep(1500);
+                                            CommonApi.Left_Click(dx + 6, dy + 6);
+                                            Sleep(1000);
+                                            CommonApi.Double_Click(dx + 6, dy + 6);
+
+                                            break;
+                                        }
                                     }
                                 }
 
@@ -1750,15 +1795,15 @@ namespace CSLogin
             return false;
         }
 
-        private void SendLogSucess(userInfo account)
+        private void SendLogSucess(userInfo account, int retCount = 0)
         {
             if (!bSendRet)
             {
                 bSendRet = true;
-                breportok = SendMsg("3$" + account.account + "$" + "OK");
+                breportok = SendMsg("3$" + account.account + "$" + "OK" + "$" + retCount);
                 if (!breportok)
                 {
-                    report = "3$" + account.account + "$" + "OK";
+                    report = "3$" + account.account + "$" + "OK" + "$" + retCount;
                 }
             }
         }
@@ -1829,5 +1874,8 @@ namespace CSLogin
 
         static UidBackup m_uidbacker = new UidBackup();
         delegate R Delegate0<R>();
+
+        int _Type;
+        static NumberAnalysis s_numberanalysis = new NumberAnalysis();
     }
 }
