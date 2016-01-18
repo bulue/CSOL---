@@ -481,9 +481,9 @@ namespace PwcTool
 
                 if (cbSpecial.IsChecked == true)
                 {
-                    string uid = "test883322";
-                    string pwd = "test883322";
-                    string newpwd = "test883322";
+                    string uid = "youxi0087";
+                    string pwd = "youxi0087";
+                    string newpwd = "youxi0087";
                     if (cbSpecial.IsChecked == true)
                     {
                         m_cpworkers[i].CaptureMod = true;
@@ -951,9 +951,9 @@ namespace PwcTool
                     {
                         if (cbSpecial.IsChecked == true)
                         {
-                            string nextuid = "test883322";
-                            string nextpwd = "test883322";
-                            string nextnewpwd = "test883322";
+                            string nextuid = "youxi0087";
+                            string nextpwd = "youxi0087";
+                            string nextnewpwd = "youxi0087";
                             if (cbSpecial.IsChecked == true)
                             {
                                 cpwoker.CaptureMod = true;
