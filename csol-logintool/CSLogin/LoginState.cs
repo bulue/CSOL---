@@ -715,31 +715,59 @@ namespace CSLogin
                                         if (bInputPwd
                                             && CommonApi.FindPic(sX + 241, sY + 597, 147, 46, @".\BMP\开启密码箱.bmp", 0.99, out dx, out dy))
                                         {
-                                            CommonApi.Mouse_Move(dx, dy - 50);
+                                            int listX = dx;
+                                            int listY = dy;
+                                            CommonApi.Mouse_Move(listX, listY - 50);
                                             Sleep(500);
-                                            CommonApi.Mouse_Wheel(-100);
-                                        }
+                                            CommonApi.Mouse_Wheel(-1000);
+                                            Sleep(500);
 
-                                        if (bInputPwd
-                                             && CommonApi.FindPic(sX + 195, sY + 520, 73, 27, @".\BMP\七周年.bmp", 0.99, out dx, out dy))
-                                        {
-                                            Bitmap screen = new Bitmap(39, 18);
+                                            if (CommonApi.FindPic(sX + 180, sY + 160, 320, 440, @".\BMP\七周年.bmp", 0.99, out dx, out dy))
+                                            {
+                                                Bitmap screen = new Bitmap(39, 18);
 
-                                            Graphics g = Graphics.FromImage(screen);
-                                            g.CopyFromScreen(dx + 22, dy + 13, 0, 0, screen.Size);
+                                                Graphics g = Graphics.FromImage(screen);
+                                                g.CopyFromScreen(dx + 22, dy + 13, 0, 0, screen.Size);
 
-                                            screen.Save("七周年.bmp");
-                                            int n = s_numberanalysis.Analysis(screen);
+                                                screen.Save("七周年.bmp");
+                                                int n = s_numberanalysis.Analysis(screen);
 
-                                            Global.logger.Debug("查号结束" + _AccInfo.account + " 芯片数" + n);
-                                            SendLogSucess(_AccInfo, n);
+                                                Global.logger.Debug("查号结束" + _AccInfo.account + " 芯片数" + n);
+                                                SendLogSucess(_AccInfo, n);
 
-                                            _NextState = State.JieShu;
-                                            CommonApi.CloseWindow(hwnd);
+                                                _NextState = State.JieShu;
+                                                CommonApi.CloseWindow(hwnd);
 
-                                            Sleep(4000, "查号结束");
+                                                Sleep(4000, "查号结束");
 
-                                            break;
+                                                break;
+                                            }
+
+                                            CommonApi.Mouse_Move(listX, listY - 50);
+                                            Sleep(500);
+                                            CommonApi.Mouse_Wheel(1000);
+                                            Sleep(500);
+
+                                            if (CommonApi.FindPic(sX + 180, sY + 160, 320, 440, @".\BMP\七周年.bmp", 0.99, out dx, out dy))
+                                            {
+                                                Bitmap screen = new Bitmap(39, 18);
+
+                                                Graphics g = Graphics.FromImage(screen);
+                                                g.CopyFromScreen(dx + 22, dy + 13, 0, 0, screen.Size);
+
+                                                screen.Save("七周年.bmp");
+                                                int n = s_numberanalysis.Analysis(screen);
+
+                                                Global.logger.Debug("查号结束" + _AccInfo.account + " 芯片数" + n);
+                                                SendLogSucess(_AccInfo, n);
+
+                                                _NextState = State.JieShu;
+                                                CommonApi.CloseWindow(hwnd);
+
+                                                Sleep(4000, "查号结束");
+
+                                                break;
+                                            }
                                         }
                                     }
 

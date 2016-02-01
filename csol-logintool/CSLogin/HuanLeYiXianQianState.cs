@@ -797,6 +797,16 @@ namespace CSLogin
                                         break;
                                     }
 
+                                    //关闭战场补给
+                                    if (bInputPwd
+                                        && CommonApi.FindPic(sX + 787, sY + 724, 58, 29, @".\BMP\关闭B.bmp", 0.99, out dx, out dy))
+                                    {
+                                        Global.logger.Debug("click 关闭B  787,724");
+                                        CommonApi.Left_Click(dx + 5, dy + 5);
+
+                                        break;
+                                    }
+
                                     if (bInputPwd
                                          && CommonApi.FindPic(sX + 652, sY + 493, 94, 35, @".\BMP\路路通奖励.bmp", 0.99, out dx, out dy))
                                     {
@@ -835,13 +845,39 @@ namespace CSLogin
                                         {
                                             jifen = "-1";
                                         }
-                                        SendLogSucess(_AccInfo, ret, jifen);
-                                        Sleep(2000);
+                                        if (ret == "无神器")
+                                        {
+                                            CommonApi.Left_Click(sX + 699, sY + 625);
+                                            Sleep(1000);
+                                            if (CommonApi.FindPic(sX + 374, sY + 376, 289, 64, @".\BMP\重置提示.bmp", 0.99, out dx, out dy))
+                                            {
+                                                if (CommonApi.FindPic(sX + 430, sY + 410, 122, 92, @".\BMP\免费充值确认.bmp", 0.99, out dx, out dy))
+                                                {
+                                                    CommonApi.Left_Click(dx + 5, dy + 5);
+                                                }
+                                                Sleep(1000);
+                                                if (CommonApi.FindPic(sX + 435, sY + 378, 138, 40, @".\BMP\欢乐积分不足.bmp", 0.99, out dx, out dy))
+                                                {
+                                                    SendLogSucess(_AccInfo, ret, jifen);
+                                                    Sleep(2000);
 
-                                        _NextState = State.JieShu;
-                                        CommonApi.CloseWindow(hwnd);
+                                                    _NextState = State.JieShu;
+                                                    CommonApi.CloseWindow(hwnd);
 
-                                        Sleep(4000, "欢乐一线牵查询结束----" + ret + "&" + jifen);
+                                                    Sleep(4000, "欢乐一线牵查询结束----" + ret + "&" + jifen);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            SendLogSucess(_AccInfo, ret, jifen);
+                                            Sleep(2000);
+
+                                            _NextState = State.JieShu;
+                                            CommonApi.CloseWindow(hwnd);
+
+                                            Sleep(4000, "欢乐一线牵查询结束----" + ret + "&" + jifen);
+                                        }
 
                                         break;
                                     }
