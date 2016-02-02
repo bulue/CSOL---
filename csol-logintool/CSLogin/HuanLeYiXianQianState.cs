@@ -38,7 +38,14 @@ namespace CSLogin
                     Global.logger.Debug("State:" + _currentState);
                     Sleep(1);
                     ClearOtherWnd();
-                    RunNextStation();
+                    try
+                    {
+                        RunNextStation();
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Global.logger.Info(ex.ToString());
+                    }
                     _currentState = _NextState;
 
                     if (_currentState == State.JieShu)
@@ -77,7 +84,7 @@ namespace CSLogin
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                Global.logger.Info(ex.ToString());
             }
         }
 

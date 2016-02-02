@@ -372,12 +372,12 @@ namespace CSLogin
                         re = _ocr.GetText();
                     }
                     img.Dispose();
-                    return re;
                 }
                 catch (Exception ex)
                 {
-                    return re;
+
                 }
+                return re == null ? "":re;
             }
         }
 
