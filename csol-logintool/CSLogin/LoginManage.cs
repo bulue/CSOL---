@@ -135,14 +135,17 @@ namespace CSLogin
                 thread = new Thread(new ThreadStart(RunReboot));
                 thread.Start();
 
-                if (m_session == null)
+                lock (m_session)
                 {
-                    Session.IP = m_ManageIp;
-                    m_session = new Session();
-                    m_session.m_code = m_Code;
-                    m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
-                    m_session.OnException = OnSessionException;
-                    Thread.Sleep(2000);
+                    if (m_session == null)
+                    {
+                        Session.IP = m_ManageIp;
+                        m_session = new Session();
+                        m_session.m_code = m_Code;
+                        m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
+                        m_session.OnException = OnSessionException;
+                        Thread.Sleep(2000);
+                    }
                 }
  
                 long nLastQueryTime = 0;
