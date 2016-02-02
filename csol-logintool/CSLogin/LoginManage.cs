@@ -99,10 +99,7 @@ namespace CSLogin
                             if (changeip == "changeip")
                             {
                                 Global.logger.Info("收到换ip的系统的请求,执行");
-                                if (File.Exists("RebootRoutine.exe"))
-                                {
-                                    Process.Start("RebootRoutine");
-                                }
+                                Process.Start("rasdial", "/DISCONNECT");
                             }
                         }break;
                 }
