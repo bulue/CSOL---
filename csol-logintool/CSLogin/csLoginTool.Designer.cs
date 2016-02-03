@@ -48,7 +48,8 @@
             this.SetCodeBtn = new System.Windows.Forms.Button();
             this.SetManageIpBtn = new System.Windows.Forms.Button();
             this.tbxMac = new System.Windows.Forms.TextBox();
-            this.cbForceReboot = new System.Windows.Forms.CheckBox();
+            this.cbModeHangup = new System.Windows.Forms.CheckBox();
+            this.button1 = new System.Windows.Forms.Button();
             this.statusBar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -65,11 +66,11 @@
             // startBtn
             // 
             this.startBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.startBtn.Location = new System.Drawing.Point(350, 277);
+            this.startBtn.Location = new System.Drawing.Point(339, 270);
             this.startBtn.Name = "startBtn";
-            this.startBtn.Size = new System.Drawing.Size(117, 38);
+            this.startBtn.Size = new System.Drawing.Size(100, 28);
             this.startBtn.TabIndex = 5;
-            this.startBtn.Text = "启动登陆";
+            this.startBtn.Text = "启动";
             this.startBtn.UseVisualStyleBackColor = true;
             this.startBtn.Click += new System.EventHandler(this.startBtn_Click);
             // 
@@ -93,9 +94,9 @@
             // PauseBtn
             // 
             this.PauseBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.PauseBtn.Location = new System.Drawing.Point(490, 277);
+            this.PauseBtn.Location = new System.Drawing.Point(447, 270);
             this.PauseBtn.Name = "PauseBtn";
-            this.PauseBtn.Size = new System.Drawing.Size(117, 38);
+            this.PauseBtn.Size = new System.Drawing.Size(100, 28);
             this.PauseBtn.TabIndex = 9;
             this.PauseBtn.Text = "暂停 Ctrl+f12";
             this.PauseBtn.UseVisualStyleBackColor = true;
@@ -199,31 +200,40 @@
             // 
             // tbxMac
             // 
-            this.tbxMac.Location = new System.Drawing.Point(21, 299);
+            this.tbxMac.Location = new System.Drawing.Point(14, 330);
             this.tbxMac.Name = "tbxMac";
             this.tbxMac.ReadOnly = true;
             this.tbxMac.Size = new System.Drawing.Size(124, 21);
             this.tbxMac.TabIndex = 25;
             // 
-            // cbForceReboot
+            // cbModeHangup
             // 
-            this.cbForceReboot.AutoSize = true;
-            this.cbForceReboot.Checked = true;
-            this.cbForceReboot.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbForceReboot.Location = new System.Drawing.Point(154, 277);
-            this.cbForceReboot.Name = "cbForceReboot";
-            this.cbForceReboot.Size = new System.Drawing.Size(138, 16);
-            this.cbForceReboot.TabIndex = 26;
-            this.cbForceReboot.Text = "5分钟未签到强制重启";
-            this.cbForceReboot.UseVisualStyleBackColor = true;
-            this.cbForceReboot.CheckedChanged += new System.EventHandler(this.cbForceReboot_CheckedChanged);
+            this.cbModeHangup.AutoSize = true;
+            this.cbModeHangup.Location = new System.Drawing.Point(21, 299);
+            this.cbModeHangup.Name = "cbModeHangup";
+            this.cbModeHangup.Size = new System.Drawing.Size(72, 16);
+            this.cbModeHangup.TabIndex = 27;
+            this.cbModeHangup.Text = "断网模式";
+            this.cbModeHangup.UseVisualStyleBackColor = true;
+            this.cbModeHangup.CheckedChanged += new System.EventHandler(this.cbModeHangup_CheckedChanged);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(339, 304);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(100, 28);
+            this.button1.TabIndex = 28;
+            this.button1.Text = "测试断网";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // csLoginTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(619, 376);
-            this.Controls.Add(this.cbForceReboot);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.cbModeHangup);
             this.Controls.Add(this.tbxMac);
             this.Controls.Add(this.SetManageIpBtn);
             this.Controls.Add(this.SetCodeBtn);
@@ -270,7 +280,8 @@
         private System.Windows.Forms.Button SetCodeBtn;
         private System.Windows.Forms.Button SetManageIpBtn;
         private System.Windows.Forms.TextBox tbxMac;
-        private System.Windows.Forms.CheckBox cbForceReboot;
+        private System.Windows.Forms.CheckBox cbModeHangup;
+        private System.Windows.Forms.Button button1;
 
     }
 }
