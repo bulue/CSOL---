@@ -37,8 +37,10 @@ namespace CSLogin
 
         public string m_Code = "";
         public string m_ManageIp = "";
+        public bool m_modeHangup = false;
 
         static public Session m_session;
+        static public bool IsConnecting = false;
         string MacId;       //物理地址
 
         public Thread thread;
@@ -85,7 +87,7 @@ namespace CSLogin
                     case "101":
                         {
                             string reboot = split[1];
-                            if (reboot == "reboot")
+                            if (reboot == "reboot" && !m_modeHangup)
                             {
                                 Global.logger.Info("收到重启系统的请求,执行");
                                 csLoginTool.RegAutoStart(true);
@@ -112,7 +114,7 @@ namespace CSLogin
 
         void OnSessionException(Exception ex, Session s)
         {
-            lock (m_session)
+            lock (this)
             {
                 Global.logger.Debug(ex.ToString());
                 if (m_session == s)
@@ -131,15 +133,12 @@ namespace CSLogin
         {
             try
             {
-                Random r = new Random();
-                thread = new Thread(new ThreadStart(RunReboot));
-                thread.Start();
-
-                lock (m_session)
+                lock (this)
                 {
                     if (m_session == null)
                     {
                         Session.IP = m_ManageIp;
+                        Session.spmode = m_modeHangup;
                         m_session = new Session();
                         m_session.m_code = m_Code;
                         m_session.SetMsgHandle(csLoginTool.Instance.OnMsg);
@@ -147,53 +146,59 @@ namespace CSLogin
                         Thread.Sleep(2000);
                     }
                 }
- 
-                long nLastQueryTime = 0;
-                do
-                {
-                    Thread.Sleep(1000);
 
-                    lock (this)
+                if (!m_modeHangup)
+                {
+                    thread = new Thread(new ThreadStart(RunReboot));
+                    thread.Start();
+
+                    long nLastQueryTime = 0;
+                    do
                     {
-                        if (m_account == null)
+                        Thread.Sleep(1000);
+
+                        lock (this)
                         {
-                            if (System.Environment.TickCount - nLastQueryTime > 10 * 1000)
+                            if (m_account == null)
                             {
-                                if (m_session.SendMsg("1$" + MacId + "$" + m_Code))
+                                if (System.Environment.TickCount - nLastQueryTime > 10 * 1000)
                                 {
-                                    nLastQueryTime = System.Environment.TickCount;
+                                    if (m_session.SendMsg("1$" + MacId + "$" + m_Code))
+                                    {
+                                        nLastQueryTime = System.Environment.TickCount;
+                                    }
                                 }
                             }
+                            else
+                            {
+                                if (m_account.state == 1)
+                                {
+                                    LoginState stateMachine = new LoginState(0);
+                                    stateMachine.Run(m_account, m_session);
+                                }
+                                else if (m_account.state == 2)
+                                {
+                                    ChipState stateMachine = new ChipState();
+                                    stateMachine.Run(m_account, m_session);
+                                }
+                                else if (m_account.state == 3)
+                                {
+                                    HuanLeYiXianQianState stateMachine = new HuanLeYiXianQianState();
+                                    stateMachine.Run(m_account, m_session);
+                                }
+                                else if (m_account.state == 4)
+                                {
+                                    LoginState stateMachine = new LoginState(1);
+                                    stateMachine.Run(m_account, m_session);
+                                }
+                                m_session.SendMsg("4$" + MacId);
+                                nLastQueryTime = 0;
+                                m_account = null;
+                                _lastCheckRebootTick = System.Environment.TickCount;
+                            }
                         }
-                        else
-                        {
-                            if (m_account.state == 1)
-                            {
-                                LoginState stateMachine = new LoginState(0);
-                                stateMachine.Run(m_account, m_session);
-                            }
-                            else if (m_account.state == 2)
-                            {
-                                ChipState stateMachine = new ChipState();
-                                stateMachine.Run(m_account, m_session);
-                            }
-                            else if (m_account.state == 3)
-                            {
-                                HuanLeYiXianQianState stateMachine = new HuanLeYiXianQianState();
-                                stateMachine.Run(m_account, m_session);
-                            }
-                            else if (m_account.state == 4)
-                            {
-                                LoginState stateMachine = new LoginState(1);
-                                stateMachine.Run(m_account, m_session);
-                            }
-                            m_session.SendMsg("4$" + MacId);
-                            nLastQueryTime = 0;
-                            m_account = null;
-                            _lastCheckRebootTick = System.Environment.TickCount;
-                        }
-                    }
-                } while (true);
+                    } while (true);
+                }
 
             }
             catch (ThreadAbortException)
