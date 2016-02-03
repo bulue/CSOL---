@@ -23,7 +23,8 @@ namespace CSLogin
         msgHandle m_msgHandle;
 
         public static string IP = "";
-        static int port = 723;
+        public static int port = 723;
+        public static bool spmode = false;
 
         public string m_code = "";
 
@@ -73,17 +74,30 @@ namespace CSLogin
                 Socket socket = (Socket)ar.AsyncState;
                 socket.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), socket);
 
-                SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
-                    , System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)
-                    , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
-                    , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
-                    , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build));
+                if (!spmode)
+                {
+                    SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
+                        , System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)
+                        , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
+                        , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
+                        , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build));
+                }
+                else
+                {
+                    SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
+                        , System.IO.File.GetLastWriteTime(this.GetType().Assembly.Location)
+                        , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
+                        , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
+                        , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build)
+                         + "$hangup");
+                }
             }
             catch (Exception ex)
             {
                 OnError(ex, this);
             }
         }
+
         private void OnReceive(IAsyncResult ar)
         {
             try
@@ -202,24 +216,6 @@ namespace CSLogin
             {
                 OnException.Invoke(ex, s);
             }
-            //try
-            //{
-            //    m_isOk = false;
-            //    m_recvBuffer = new Byte[1024];
-            //    m_buffer = new List<byte>();
-
-            //    int Sec = 3;
-            //    Global.logger.Debug(ex.ToString());
-            //    Global.logger.Info("线程ID:" + Thread.CurrentThread.ManagedThreadId + " " + "连接" + IP + "失败,套接字句柄:" + m_sock.Handle + "," + Sec + "秒之后尝试重新连接...");
-
-            //    Thread.Sleep(Sec * 1000);
-            //    m_sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            //    m_sock.BeginConnect(IP, port, new AsyncCallback(OnConnect), m_sock);
-            //}
-            //catch (Exception ex1)
-            //{
-            //    OnError(ex1);
-            //}
         }
 
         public static byte[] Compress(byte[] raw)
