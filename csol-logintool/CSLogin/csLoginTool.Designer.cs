@@ -38,7 +38,6 @@
             this.textBox = new System.Windows.Forms.TextBox();
             this.autoStartCkbox = new System.Windows.Forms.CheckBox();
             this.autostartTimer = new System.Windows.Forms.Timer(this.components);
-            this.rebootTimer = new System.Windows.Forms.Timer(this.components);
             this.statusBar = new System.Windows.Forms.StatusStrip();
             this.CountdownTime = new System.Windows.Forms.ToolStripStatusLabel();
             this.label2 = new System.Windows.Forms.Label();
@@ -50,6 +49,10 @@
             this.tbxMac = new System.Windows.Forms.TextBox();
             this.cbModeHangup = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.cbHangupPerHour = new System.Windows.Forms.CheckBox();
+            this.timerHangup = new System.Windows.Forms.Timer(this.components);
+            this.tbHangeUpInterval = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.statusBar.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -227,11 +230,46 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // cbHangupPerHour
+            // 
+            this.cbHangupPerHour.AutoSize = true;
+            this.cbHangupPerHour.Location = new System.Drawing.Point(139, 277);
+            this.cbHangupPerHour.Name = "cbHangupPerHour";
+            this.cbHangupPerHour.Size = new System.Drawing.Size(72, 16);
+            this.cbHangupPerHour.TabIndex = 29;
+            this.cbHangupPerHour.Text = "定时断网";
+            this.cbHangupPerHour.UseVisualStyleBackColor = true;
+            this.cbHangupPerHour.CheckedChanged += new System.EventHandler(this.cbHangupPerHour_CheckedChanged);
+            // 
+            // timerHangup
+            // 
+            this.timerHangup.Tick += new System.EventHandler(this.timerHangup_Tick);
+            // 
+            // tbHangeUpInterval
+            // 
+            this.tbHangeUpInterval.Location = new System.Drawing.Point(217, 275);
+            this.tbHangeUpInterval.Name = "tbHangeUpInterval";
+            this.tbHangeUpInterval.Size = new System.Drawing.Size(47, 21);
+            this.tbHangeUpInterval.TabIndex = 30;
+            this.tbHangeUpInterval.Text = "60";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(270, 278);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(29, 12);
+            this.label4.TabIndex = 31;
+            this.label4.Text = "分钟";
+            // 
             // csLoginTool
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(619, 376);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.tbHangeUpInterval);
+            this.Controls.Add(this.cbHangupPerHour);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.cbModeHangup);
             this.Controls.Add(this.tbxMac);
@@ -270,7 +308,6 @@
         private System.Windows.Forms.TextBox textBox;
         private System.Windows.Forms.CheckBox autoStartCkbox;
         private System.Windows.Forms.Timer autostartTimer;
-        private System.Windows.Forms.Timer rebootTimer;
         private System.Windows.Forms.StatusStrip statusBar;
         private System.Windows.Forms.ToolStripStatusLabel CountdownTime;
         private System.Windows.Forms.Label label2;
@@ -282,6 +319,10 @@
         private System.Windows.Forms.TextBox tbxMac;
         private System.Windows.Forms.CheckBox cbModeHangup;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckBox cbHangupPerHour;
+        private System.Windows.Forms.Timer timerHangup;
+        private System.Windows.Forms.TextBox tbHangeUpInterval;
+        private System.Windows.Forms.Label label4;
 
     }
 }

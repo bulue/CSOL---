@@ -144,7 +144,11 @@ namespace CSLogin
             textBox_Code.Text = _iniFile.IniReadValue("UI", "code");
             textBox_IP.Text = _iniFile.IniReadValue("UI", "manageIp");
             cbModeHangup.Checked = _iniFile.IniReadValue("UI", "hangup") == "1" ? true : false;
+            cbHangupPerHour.Checked = _iniFile.IniReadValue("UI", "hangupPerHour") == "1" ? true : false;
+            tbHangeUpInterval.Text = _iniFile.IniReadValue("UI", "tbHangeUpInterval") == "" ? "60" : _iniFile.IniReadValue("UI", "tbHangeUpInterval");
 
+            tbHangeUpInterval.TextChanged += tbHangeUpInterval_TextChanged;
+            tbHangeUpInterval.KeyPress += tbHangeUpInterval_KeyPress;
 
             if (textBox_Code.Text == "")
             {
@@ -173,8 +177,6 @@ namespace CSLogin
             autostartTimer.Interval = 2000;
             autostartTimer.Start();
 
-            rebootTimer.Interval = 1000;
-
             string autoStart = _iniFile.IniReadValue("Other", "autoStart");
             if (autoStart == "1")
             {
@@ -187,6 +189,28 @@ namespace CSLogin
 
             Global.logger = CLogger.FromFolder("log/cslog");
             Global.logger.SetShowLogFunction(ShowLogFunc);
+        }
+
+        void tbHangeUpInterval_TextChanged(object sender, EventArgs e)
+        {
+            _iniFile.IniWriteValue("UI", "tbHangeUpInterval", tbHangeUpInterval.Text);
+        }
+
+        private void tbHangeUpInterval_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 0x20) e.KeyChar = (char)0;  //禁止空格键
+            if ((e.KeyChar == 0x2D) && (((TextBox)sender).Text.Length == 0)) return;   //处理负数
+            if (e.KeyChar > 0x20)
+            {
+                try
+                {
+                    double.Parse(((TextBox)sender).Text + e.KeyChar.ToString());
+                }
+                catch
+                {
+                    e.KeyChar = (char)0;   //处理非法字符
+                }
+            }
         }
 
         public void ShowLogFunc(eLoggerLevel l,string s)
@@ -531,6 +555,54 @@ namespace CSLogin
         {
             Global.logger.Info("测试断网功能!");
             Process.Start("rasdial", "/DISCONNECT");
+        }
+
+        DateTime m_HangeUpTime = DateTime.Now;
+
+        private void cbHangupPerHour_CheckedChanged(object sender, EventArgs e)
+        {
+            _iniFile.IniWriteValue("UI", "hangupPerHour", cbHangupPerHour.Checked ? "1" : "0");
+            if (cbHangupPerHour.Checked)
+            {
+                if (!timerHangup.Enabled)
+                {
+                    timerHangup.Start();
+                    m_HangeUpTime = DateTime.Now.AddMinutes(int.Parse(tbHangeUpInterval.Text));
+                    TimeSpan sp = m_HangeUpTime - DateTime.Now;
+                    updateStatusbar(string.Format("下次断网时间<{0:yyyy-MM-dd HH:mm:ss}> ,剩余 {1:00}:{2:00}:{3:00}", m_HangeUpTime, sp.Hours, sp.Minutes, sp.Seconds));
+                }
+            }
+            else
+            {
+                if (timerHangup.Enabled)
+                {
+                    timerHangup.Stop();
+                    m_HangeUpTime = DateTime.MinValue;
+                    updateStatusbar(string.Format("下次断网时间<{0:yyyy-MM-dd HH:mm:ss}> ,剩余 {1:00}:{2:00}:{3:00}", m_HangeUpTime, 0,0,0));
+                }
+            }
+        }
+
+        private void updateStatusbar(string text)
+        {
+            if (statusBar.Items.Count == 0){
+                statusBar.Items.Add(text);
+            }
+            else{
+                statusBar.Items[0].Text = text;
+            }
+        }
+
+        private void timerHangup_Tick(object sender, EventArgs e)
+        {
+            TimeSpan sp = m_HangeUpTime - DateTime.Now;
+            updateStatusbar(string.Format("下次断网时间<{0:yyyy-MM-dd HH:mm:ss}> ,剩余 {1:00}:{2:00}:{3:00}", m_HangeUpTime, sp.Hours, sp.Minutes, sp.Seconds));
+            if (sp.TotalSeconds < 0)
+            {
+                Global.logger.Debug("启动断网!!");
+                Process.Start("rasdial", "/DISCONNECT");
+                m_HangeUpTime = DateTime.Now.AddMinutes(int.Parse(tbHangeUpInterval.Text));
+            }
         }
     }
 
