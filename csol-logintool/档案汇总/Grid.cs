@@ -29,6 +29,8 @@ namespace 档案汇总
         public string status;              //状态
         public int bocheck;                //是否成功签到
         public int chipcout;                //芯片数量
+        public string gun;                  //枪
+        public string jifen;               //积分
         public string loginip;             //登陆机ip
         public string logincode;           //登陆代号
     }
@@ -71,13 +73,34 @@ namespace 档案汇总
             {
                 this.rbZone2.Checked = true;
             }
-            if (IniReadValue("UI", "State") == "1")
+            else if (IniReadValue("UI", "zone") == "3")
+            {
+                this.rbZone3.Checked = true;
+            }
+            else if (IniReadValue("UI", "zone") == "4")
+            {
+                this.rbZone4.Checked = true;
+            }
+            else if (IniReadValue("UI", "zone") == "5")
+            {
+                this.rbZone5.Checked = true;
+            }
+
+            if (IniReadValue("UI", "State") == "1")     
             {
                 this.rdbLogin.Checked = true;
             }
             else if (IniReadValue("UI", "State") == "2")
             {
                 this.rdbChip.Checked = true;
+            }
+            else if (IniReadValue("UI", "State") == "3")    //欢乐一线牵
+            {
+                this.rdbfun.Checked = true;
+            }
+            else if (IniReadValue("UI", "State") == "4")    
+            {
+                this.rdbZhouNianLihe.Checked = true;
             }
 
             textBox_IP.Text = Sever.GetLocalIp();
@@ -296,7 +319,7 @@ namespace 档案汇总
         [DllImport("kernel32")]
         private static extern int GetPrivateProfileString(string section, string key, string def, StringBuilder retVal, int size, string filePath);
 
-        private void IniWriteValue(string Section, string Key, string Value)
+        public void IniWriteValue(string Section, string Key, string Value)
         {
             WritePrivateProfileString(Section, Key, Value, @".\config.ini");
         }
@@ -354,6 +377,16 @@ namespace 档案汇总
                 if (info.chipcout != 0)
                 {
                     item.SetAttribute("芯片数量", Convert.ToString(info.chipcout));
+                }
+
+                if (info.gun != null)
+                {
+                    item.SetAttribute("一线牵神器", Convert.ToString(info.gun));
+                }
+
+                if (info.jifen != null)
+                {
+                    item.SetAttribute("一线牵积分", info.jifen);
                 }
 
                 if (info.loginip != null)
@@ -434,6 +467,16 @@ namespace 档案汇总
                     if (item.Attributes["芯片数量"] != null)
                     {
                         info.chipcout = Convert.ToInt32(item.Attributes["芯片数量"].Value);
+                    }
+
+                    if (item.Attributes["一线牵神器"] != null)
+                    {
+                        info.gun = item.Attributes["一线牵神器"].Value;
+                    }
+
+                    if (item.Attributes["一线牵积分"] != null)
+                    {
+                        info.jifen = item.Attributes["一线牵积分"].Value;
                     }
 
                     if (item.Attributes["登陆机IP"] != null)
@@ -575,6 +618,16 @@ namespace 档案汇总
                         dgvUserData.Rows[newidx].Cells["Code"].Value = info.logincode;
                     }
 
+                    if (info.gun != null)
+                    {
+                        dgvUserData.Rows[newidx].Cells["HuanLeYiXianQianShenQi"].Value = info.gun;
+                    }
+
+                    if (info.jifen != null)
+                    {
+                        dgvUserData.Rows[newidx].Cells["jifen"].Value = info.jifen;
+                    }
+
                     newidx++;
                 }
                 //dgvUserData.AutoResizeColumns();
@@ -630,7 +683,8 @@ namespace 档案汇总
             try
             {
 
-                string[] ips = new string[] { GetLocalIp(), "121.42.148.243" };
+                string[] ips = new string[] { "121.42.148.243" };
+                //string[] ips = new string[] { GetLocalIp(), "172.16.0.61" };
                 string authentication_ip = "";
                 for (int i = 0; i < ips.Length; ++i)
                 {
@@ -665,7 +719,6 @@ namespace 档案汇总
 
                 timer_StatusBarRefresh.Start();
                 tmReboot.Start();
-
 
                 m_AuthenticationSession = new AuthenticationConnecter();
                 m_AuthenticationSession.SetAddress(authentication_ip, 7626);
@@ -773,9 +826,15 @@ namespace 档案汇总
                     string mac = split[1];
                     string code = split[2];
                     string ver = "";
-                    if (split.Length == 4)
+                    string sp = "";
+                    if (split.Length >= 4)
                     {
                         ver = split[3];
+                    }
+                    if (split.Length >= 5)
+                    {
+                        sp = split[4];
+                        c.m_sp = true;
                     }
 
                     c.m_code = code;
@@ -791,7 +850,7 @@ namespace 档案汇总
                             Global.logger.Debug("mac:{0}, ip({1}->{2})", rMac, c.handle.RemoteEndPoint.ToString(), row.Cells["sIP"].Value.ToString());
                             row.Cells["sCode"].Value = code;
                             row.Cells["sIP"].Value = c.handle.RemoteEndPoint.ToString();
-                            row.Cells["sVer"].Value = ver;
+                            row.Cells["sVer"].Value = sp == "" ? ver : "断网模式 " + ver;
                             x = true;
                         }
                     }
@@ -959,7 +1018,26 @@ namespace 档案汇总
                                     {
                                         m_Token.Add(token, accName);
                                     }
-                                    c.Send("2$" + accName + "$" + passWord + "$" + (rbZone1.Checked ? "1" : "2") + "$" + (rdbLogin.Checked? "1":"2"));
+                                    int zone;
+                                    if (rbZone1.Checked)
+                                    {
+                                        zone = 1;
+                                    }
+                                    else if (rbZone2.Checked)
+                                    {
+                                        zone = 2;
+                                    }
+                                    else if (rbZone3.Checked)
+                                    {
+                                        zone = 3;
+                                    }
+                                    else if (rbZone4.Checked)
+                                    {
+                                        zone = 4;
+                                    }
+                                    else
+                                        zone = 5;
+                                    c.Send("2$" + accName + "$" + passWord + "$" + zone + "$" + (rdbLogin.Checked ? "1" : (rdbChip.Checked ? "2" : (rdbfun.Checked? "3" : "4"))));
 
                                     Global.logger.Debug("socket:{0};ip:{1};({2}->{3})", c.handle.GetHashCode()
                                         , c.handle.RemoteEndPoint.ToString()
@@ -973,9 +1051,19 @@ namespace 档案汇总
                                 string accName = split[1];
                                 string isOk = split[2];
                                 string chipStr = null;
+                                string gun = null;
+                                string jifen = null;
                                 if (split.Length >= 4)
                                 {
                                     chipStr = split[3];
+                                }
+                                if (split.Length >= 5)
+                                {
+                                    gun = split[4];
+                                }
+                                if (split.Length >= 6)
+                                {
+                                    jifen = split[5];
                                 }
 
                                 if (m_accountRecord.ContainsKey(accName))
@@ -999,6 +1087,8 @@ namespace 档案汇总
                                         info.failedcount = 0;
                                         info.status = "签到完成";
                                         info.chipcout = Convert.ToInt32(chipStr);
+                                        info.gun = gun;
+                                        info.jifen = jifen;
 
                                         m_userinfos[accName] = info;
                                         m_checkuserinfos.Remove(accName);
@@ -1087,6 +1177,8 @@ namespace 档案汇总
                                             info.checktime,
                                             info.status,
                                             info.bocheck,
+                                            info.gun,
+                                            info.jifen,
                                             info.chipcout,
                                             info.loginip,
                                             info.logincode);
@@ -1142,58 +1234,26 @@ namespace 档案汇总
                         case "6":
                             {
                                 //遇到验证码
-                                //给路由发送命令重启
+                                //给路由发送换ip命令
 
+                                bool issend = false;
                                 if (cbRoutineIp.Checked)
                                 {
-                                    c.Send("102$changeip");
-                                    //Global.logger.Debug("IP:{0} code:{1} mac{2} 请求换ip"
-                                    //    , c.handle.RemoteEndPoint.ToString()
-                                    //    , c.m_code
-                                    //    , c.m_mac);
-                                    //string endpoint = c.handle.RemoteEndPoint.ToString();
-                                    //string ip = endpoint.Substring(0, endpoint.IndexOf(":"));
-                                    //if (changeiptimestamp.ContainsKey(ip))
-                                    //{
-                                    //    changeiptimestamp[ip]++;
-                                    //    Global.logger.Debug("IP:({0})累积收到换ip请求次数:{1}", ip, changeiptimestamp[ip]);
-                                    //    if (changeiptimestamp[ip] > 10)
-                                    //    {
-                                    //        changeiptimestamp[ip] = 0;
-                                    //        Global.logger.Debug("(1)发送换ip命令 {0}!", endpoint);
-                                    //        c.Send("102$changeip");
-
-                                    //        lock (Sever.m_Clinets)
-                                    //        {
-                                    //            int sendCount = 0;
-                                    //            for (int i = 0; i < Sever.m_Clinets.Count; ++i)
-                                    //            {
-                                    //                string et = Sever.m_Clinets[i].handle.RemoteEndPoint.ToString();
-                                    //                string cip = et.Substring(0, et.IndexOf(":"));
-                                    //                if (Sever.m_Clinets[i].IsActive && cip == ip)
-                                    //                {
-                                    //                    if (System.Environment.TickCount % 3 == 0)
-                                    //                    {
-                                    //                        Sever.m_Clinets[i].Send("102$changeip");
-                                    //                        sendCount++;
-                                    //                    }
-                                    //                    if (sendCount > 2)
-                                    //                    {
-                                    //                        break;
-                                    //                    }
-                                    //                }
-                                    //            }
-                                    //        }
-
-                                    //    }
-                                    //}
-                                    //else
-                                    //{
-                                    //    //Global.logger.Debug("(2)发送换ip命令 {0}!", endpoint);
-                                    //    changeiptimestamp.Add(ip, 1);
-                                    //    Global.logger.Debug("IP:({0})累积收到换ip请求次数:{1}", ip, changeiptimestamp[ip]);
-                                    //    //c.Send("102$changeip");
-                                    //}
+                                    lock (Sever.m_Clinets)
+                                    {
+                                        foreach (Session cc in Sever.m_Clinets)
+                                        {
+                                            if (cc.m_sp && cc.handle.RemoteEndPoint.ToString() == c.handle.RemoteEndPoint.ToString())
+                                            {
+                                                cc.Send("102$changeip");
+                                                issend = true;
+                                            }
+                                        }
+                                    }
+                                    if (!issend)
+                                    {
+                                        c.Send("102$changeip");
+                                    }
                                 }
                             } break;
                         case "7":
@@ -1271,51 +1331,6 @@ namespace 档案汇总
             Global.logger.Debug(s);
         }
 
-        //private void FlushToTextBox()
-        //{
-        //    lock (m_textBoxBuffer)
-        //    {
-        //        if (m_textBoxBuffer.Length < 1048 * 10)
-        //        {
-        //            if (textBox.Text.Length > 1048 * 10)
-        //            {
-        //                textBox.Text = "";
-        //            }
-        //            textBox.Text += m_textBoxBuffer;
-        //        }
-        //        else
-        //        {
-        //            string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} Thread:{1} {2} {3}", DateTime.Now, Thread.CurrentThread.ManagedThreadId, "Warming", "日志数量巨大...跳过打印");
-        //            textBox.Text += format_msg;
-        //            textBox.Text += "\r\n";
-        //        }
-
-        //        textBox.SelectionStart = textBox.Text.Length;  //设定光标位置
-        //        textBox.ScrollToCaret();
-
-
-        //        const string logDir = @".\Manage_Log";
-        //        if (!Directory.Exists(logDir))
-        //        {
-        //            Directory.CreateDirectory(logDir);
-        //        }
-
-        //        try
-        //        {
-        //            using (StreamWriter writer = new StreamWriter(logDir + @"\" + logFileName, true))
-        //            {
-        //                writer.Write(m_textBoxBuffer);
-        //            }
-        //        }
-        //        catch
-        //        {
-
-        //        }
-
-        //        m_textBoxBuffer = "";
-        //    }
-        //}
-
         Dictionary<string, string> m_Token = new Dictionary<string, string>();
 
         private void button1_Click(object sender, EventArgs e)
@@ -1330,17 +1345,6 @@ namespace 档案汇总
 
         private void timer_StatusBarRefresh_Tick(object sender, EventArgs e)
         {
-
-                //if (System.Environment.TickCount - _lastSendCheckMsg > 20* 60 * 1000)
-                //{
-                //    for (int i = 0; i < Sever.m_Clinets.Count; ++i)
-                //    {
-                //        Session s = Sever.m_Clinets[i];
-                //        s.Send("0");
-                //    }
-                //    _lastSendCheckMsg = System.Environment.TickCount;
-                //    Global.logger.Debug("----------心跳检测-------");
-                //}
             if (System.Environment.TickCount - _lastCheckSessionConnect > 3 * 1000)
             {
                 _lastCheckSessionConnect = System.Environment.TickCount;
@@ -1664,7 +1668,7 @@ namespace 档案汇总
                                     for (int i = 0; i < Sever.m_Clinets.Count; ++i)
                                     {
                                         Session s = Sever.m_Clinets[i];
-                                        if (s.handle.RemoteEndPoint.ToString() == remotePoint)
+                                        if (s.handle.RemoteEndPoint.ToString() == remotePoint && !s.m_sp)
                                         {
                                             Print("mac:" + s.m_mac + " code:"+s.m_code + " 长时间未登陆成功账号..发送重启命令!!");
                                             s.Send("101$reboot");
@@ -2017,6 +2021,22 @@ namespace 档案汇总
             IniWriteValue("UI", "zone", "2");
         }
 
+        private void rbZone3_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "zone", "3");
+        }
+
+
+        private void rbZone4_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "zone", "4");
+        }
+
+        private void rdbZone5_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "zone", "5");
+        }
+
         private void rdbLogin_CheckedChanged(object sender, EventArgs e)
         {
             IniWriteValue("UI", "State", "1");
@@ -2025,6 +2045,16 @@ namespace 档案汇总
         private void radioChipState_CheckedChanged(object sender, EventArgs e)
         {
             IniWriteValue("UI", "State", "2");
+        }
+
+        private void rdbfun_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "State", "3");      //欢乐一线牵
+        }
+
+        private void rdbZhouNianLihe_CheckedChanged(object sender, EventArgs e)
+        {
+            IniWriteValue("UI", "State", "4");      //周年礼盒
         }
 
         private void Grid_Load(object sender, EventArgs e)
@@ -2043,5 +2073,7 @@ namespace 档案汇总
             }
             Global.logger.Debug("captcha :{0}", captcha.Count);
         }
+
+
     }
 }

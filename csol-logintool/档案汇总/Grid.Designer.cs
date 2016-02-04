@@ -43,6 +43,8 @@
             this.CheckTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.State = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Checked = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.HuanLeYiXianQianShenQi = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.jifen = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Days = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.IP = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Code = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -78,6 +80,8 @@
             this.dataGridViewTextBoxColumn4 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewCheckBoxColumn1 = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn7 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dataGridViewTextBoxColumn8 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -107,7 +111,12 @@
             this.rdbLogin = new System.Windows.Forms.RadioButton();
             this.rdbChip = new System.Windows.Forms.RadioButton();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.rbZone5 = new System.Windows.Forms.RadioButton();
+            this.rbZone4 = new System.Windows.Forms.RadioButton();
+            this.rbZone3 = new System.Windows.Forms.RadioButton();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.rdbfun = new System.Windows.Forms.RadioButton();
+            this.rdbZhouNianLihe = new System.Windows.Forms.RadioButton();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -146,6 +155,8 @@
             this.CheckTime,
             this.State,
             this.Checked,
+            this.HuanLeYiXianQianShenQi,
+            this.jifen,
             this.Days,
             this.IP,
             this.Code});
@@ -177,14 +188,14 @@
             this.Account.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
             this.Account.HeaderText = "账号";
             this.Account.Name = "Account";
-            this.Account.Width = 54;
+            this.Account.Width = 51;
             // 
             // Password
             // 
             this.Password.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
             this.Password.HeaderText = "密码";
             this.Password.Name = "Password";
-            this.Password.Width = 54;
+            this.Password.Width = 51;
             // 
             // FailedCount
             // 
@@ -208,7 +219,17 @@
             this.Checked.HeaderText = "签到";
             this.Checked.Name = "Checked";
             this.Checked.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.Checked.Width = 54;
+            this.Checked.Width = 51;
+            // 
+            // HuanLeYiXianQianShenQi
+            // 
+            this.HuanLeYiXianQianShenQi.HeaderText = "欢乐一线牵神器";
+            this.HuanLeYiXianQianShenQi.Name = "HuanLeYiXianQianShenQi";
+            // 
+            // jifen
+            // 
+            this.jifen.HeaderText = "欢乐一线牵积分";
+            this.jifen.Name = "jifen";
             // 
             // Days
             // 
@@ -471,6 +492,8 @@
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn5,
             this.dataGridViewCheckBoxColumn1,
+            this.Column1,
+            this.Column2,
             this.dataGridViewTextBoxColumn6,
             this.dataGridViewTextBoxColumn7,
             this.dataGridViewTextBoxColumn8});
@@ -501,14 +524,14 @@
             this.dataGridViewTextBoxColumn1.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
             this.dataGridViewTextBoxColumn1.HeaderText = "账号";
             this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
-            this.dataGridViewTextBoxColumn1.Width = 54;
+            this.dataGridViewTextBoxColumn1.Width = 51;
             // 
             // dataGridViewTextBoxColumn2
             // 
             this.dataGridViewTextBoxColumn2.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.DisplayedCells;
             this.dataGridViewTextBoxColumn2.HeaderText = "密码";
             this.dataGridViewTextBoxColumn2.Name = "dataGridViewTextBoxColumn2";
-            this.dataGridViewTextBoxColumn2.Width = 54;
+            this.dataGridViewTextBoxColumn2.Width = 51;
             // 
             // dataGridViewTextBoxColumn3
             // 
@@ -532,7 +555,17 @@
             this.dataGridViewCheckBoxColumn1.HeaderText = "签到";
             this.dataGridViewCheckBoxColumn1.Name = "dataGridViewCheckBoxColumn1";
             this.dataGridViewCheckBoxColumn1.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.Automatic;
-            this.dataGridViewCheckBoxColumn1.Width = 54;
+            this.dataGridViewCheckBoxColumn1.Width = 51;
+            // 
+            // Column1
+            // 
+            this.Column1.HeaderText = "欢乐一线牵神器";
+            this.Column1.Name = "Column1";
+            // 
+            // Column2
+            // 
+            this.Column2.HeaderText = "欢乐一线牵积分";
+            this.Column2.Name = "Column2";
             // 
             // dataGridViewTextBoxColumn6
             // 
@@ -748,7 +781,7 @@
             // rbZone2
             // 
             this.rbZone2.AutoSize = true;
-            this.rbZone2.Location = new System.Drawing.Point(97, 15);
+            this.rbZone2.Location = new System.Drawing.Point(80, 15);
             this.rbZone2.Name = "rbZone2";
             this.rbZone2.Size = new System.Drawing.Size(41, 16);
             this.rbZone2.TabIndex = 24;
@@ -772,7 +805,7 @@
             // rdbChip
             // 
             this.rdbChip.AutoSize = true;
-            this.rdbChip.Location = new System.Drawing.Point(81, 14);
+            this.rdbChip.Location = new System.Drawing.Point(69, 14);
             this.rdbChip.Name = "rdbChip";
             this.rdbChip.Size = new System.Drawing.Size(59, 16);
             this.rdbChip.TabIndex = 26;
@@ -782,26 +815,91 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.rbZone5);
+            this.groupBox1.Controls.Add(this.rbZone4);
+            this.groupBox1.Controls.Add(this.rbZone3);
             this.groupBox1.Controls.Add(this.rbZone2);
             this.groupBox1.Controls.Add(this.rbZone1);
             this.groupBox1.Location = new System.Drawing.Point(385, 11);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(176, 37);
+            this.groupBox1.Size = new System.Drawing.Size(311, 37);
             this.groupBox1.TabIndex = 27;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "选区";
             // 
+            // rbZone5
+            // 
+            this.rbZone5.AutoSize = true;
+            this.rbZone5.Location = new System.Drawing.Point(243, 15);
+            this.rbZone5.Name = "rbZone5";
+            this.rbZone5.Size = new System.Drawing.Size(41, 16);
+            this.rbZone5.TabIndex = 27;
+            this.rbZone5.TabStop = true;
+            this.rbZone5.Text = "网2";
+            this.rbZone5.UseVisualStyleBackColor = true;
+            this.rbZone5.CheckedChanged += new System.EventHandler(this.rdbZone5_CheckedChanged);
+            // 
+            // rbZone4
+            // 
+            this.rbZone4.AutoSize = true;
+            this.rbZone4.Location = new System.Drawing.Point(196, 15);
+            this.rbZone4.Name = "rbZone4";
+            this.rbZone4.Size = new System.Drawing.Size(41, 16);
+            this.rbZone4.TabIndex = 26;
+            this.rbZone4.TabStop = true;
+            this.rbZone4.Text = "网1";
+            this.rbZone4.UseVisualStyleBackColor = true;
+            this.rbZone4.CheckedChanged += new System.EventHandler(this.rbZone4_CheckedChanged);
+            // 
+            // rbZone3
+            // 
+            this.rbZone3.AutoSize = true;
+            this.rbZone3.Location = new System.Drawing.Point(139, 15);
+            this.rbZone3.Name = "rbZone3";
+            this.rbZone3.Size = new System.Drawing.Size(41, 16);
+            this.rbZone3.TabIndex = 25;
+            this.rbZone3.TabStop = true;
+            this.rbZone3.Text = "3区";
+            this.rbZone3.UseVisualStyleBackColor = true;
+            this.rbZone3.CheckedChanged += new System.EventHandler(this.rbZone3_CheckedChanged);
+            // 
             // groupBox2
             // 
             this.groupBox2.BackColor = System.Drawing.SystemColors.Control;
+            this.groupBox2.Controls.Add(this.rdbZhouNianLihe);
+            this.groupBox2.Controls.Add(this.rdbfun);
             this.groupBox2.Controls.Add(this.rdbLogin);
             this.groupBox2.Controls.Add(this.rdbChip);
-            this.groupBox2.Location = new System.Drawing.Point(578, 12);
+            this.groupBox2.Location = new System.Drawing.Point(742, 12);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(172, 36);
+            this.groupBox2.Size = new System.Drawing.Size(314, 36);
             this.groupBox2.TabIndex = 28;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "功能";
+            // 
+            // rdbfun
+            // 
+            this.rdbfun.AutoSize = true;
+            this.rdbfun.Location = new System.Drawing.Point(134, 14);
+            this.rdbfun.Name = "rdbfun";
+            this.rdbfun.Size = new System.Drawing.Size(83, 16);
+            this.rdbfun.TabIndex = 27;
+            this.rdbfun.TabStop = true;
+            this.rdbfun.Text = "欢乐一线牵";
+            this.rdbfun.UseVisualStyleBackColor = true;
+            this.rdbfun.CheckedChanged += new System.EventHandler(this.rdbfun_CheckedChanged);
+            // 
+            // rdbZhouNianLihe
+            // 
+            this.rdbZhouNianLihe.AutoSize = true;
+            this.rdbZhouNianLihe.Location = new System.Drawing.Point(223, 14);
+            this.rdbZhouNianLihe.Name = "rdbZhouNianLihe";
+            this.rdbZhouNianLihe.Size = new System.Drawing.Size(71, 16);
+            this.rdbZhouNianLihe.TabIndex = 28;
+            this.rdbZhouNianLihe.TabStop = true;
+            this.rdbZhouNianLihe.Text = "周年礼盒";
+            this.rdbZhouNianLihe.UseVisualStyleBackColor = true;
+            this.rdbZhouNianLihe.CheckedChanged += new System.EventHandler(this.rdbZhouNianLihe_CheckedChanged);
             // 
             // Grid
             // 
@@ -907,12 +1005,22 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn sVer;
         private System.Windows.Forms.DataGridViewButtonColumn sDisconnect;
         private System.Windows.Forms.DataGridViewButtonColumn reboot;
+        private System.Windows.Forms.RadioButton rdbLogin;
+        private System.Windows.Forms.RadioButton rdbChip;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.RadioButton rdbfun;
+        private System.Windows.Forms.RadioButton rbZone5;
+        private System.Windows.Forms.RadioButton rbZone4;
+        private System.Windows.Forms.RadioButton rbZone3;
         private System.Windows.Forms.DataGridViewTextBoxColumn Account;
         private System.Windows.Forms.DataGridViewTextBoxColumn Password;
         private System.Windows.Forms.DataGridViewTextBoxColumn FailedCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn CheckTime;
         private System.Windows.Forms.DataGridViewTextBoxColumn State;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Checked;
+        private System.Windows.Forms.DataGridViewTextBoxColumn HuanLeYiXianQianShenQi;
+        private System.Windows.Forms.DataGridViewTextBoxColumn jifen;
         private System.Windows.Forms.DataGridViewTextBoxColumn Days;
         private System.Windows.Forms.DataGridViewTextBoxColumn IP;
         private System.Windows.Forms.DataGridViewTextBoxColumn Code;
@@ -922,13 +1030,12 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn5;
         private System.Windows.Forms.DataGridViewCheckBoxColumn dataGridViewCheckBoxColumn1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn6;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn7;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn8;
-        private System.Windows.Forms.RadioButton rdbLogin;
-        private System.Windows.Forms.RadioButton rdbChip;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.RadioButton rdbZhouNianLihe;
     }
 }
 

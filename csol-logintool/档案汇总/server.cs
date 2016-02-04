@@ -105,6 +105,7 @@ namespace 档案汇总
 
         public string m_mac = "";
         public string m_code = "";
+        public bool m_sp = false;
 
         private int m_lastactivetime = 0;
 
