@@ -490,6 +490,14 @@ namespace CSLogin
 
                                                     Sleep(3000, "服务器连接中断,关闭游戏");
                                                 }
+                                                else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\过于频繁.bmp", 0.97, out dx, out dy))
+                                                {
+                                                    CommonApi.CloseWindow(hwnd);
+                                                    SendLogForbidden(_curAccInfo);
+                                                    _NextState = State.JieShu;
+                                                    SendMsg("6$" + "changeip$过于频繁", true);
+                                                    Sleep(3000, "过于频繁");
+                                                }
 
                                                 yanzhengma_Lastime = System.Environment.TickCount;
                                                 xinbinbaodao_Lasttime = System.Environment.TickCount;
@@ -599,6 +607,15 @@ namespace CSLogin
 
                                                                 Sleep(3000, "服务器连接中断,关闭游戏");
                                                             }
+                                                            else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\过于频繁.bmp", 0.97, out dx, out dy))
+                                                            {
+                                                                CommonApi.CloseWindow(hwnd);
+                                                                SendLogForbidden(_curAccInfo);
+                                                                _NextState = State.JieShu;
+                                                                SendMsg("6$" + "changeip$过于频繁", true);
+                                                                Sleep(3000, "过于频繁");
+                                                            }
+
 
                                                             yanzhengma_Lastime = System.Environment.TickCount;
                                                             xinbinbaodao_Lasttime = System.Environment.TickCount;

@@ -91,33 +91,41 @@ namespace CSLogin
 
         void CheckVersion()
         {
-            string url = "http://localhost/download/ver.php";
-            HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
-            request.ServicePoint.Expect100Continue = false;
-            request.Timeout = 1000 * 60;
-            request.ContentType = "application/x-www-form-urlencoded";
-            request.CookieContainer = new CookieContainer();
-            StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream());
-            string newver = reader.ReadToEnd();
-            newver = newver.Replace(".","");
-            int newverid = int.Parse(newver);
-            int nowverid = Assembly.GetExecutingAssembly().GetName().Version.Major*100
-                 + Assembly.GetExecutingAssembly().GetName().Version.Minor*10
-                 + Assembly.GetExecutingAssembly().GetName().Version.Build;
-            if ( newverid > nowverid)
+            try
             {
-                if (_bUpdate)
+                //string url = "http://localhost/download/ver.php";
+                string url = "http://121.42.148.243/download/ver.php";
+                HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+                request.ServicePoint.Expect100Continue = false;
+                request.Timeout = 2000;
+                request.ContentType = "application/x-www-form-urlencoded";
+                request.CookieContainer = new CookieContainer();
+                StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream());
+                string newver = reader.ReadToEnd();
+                newver = newver.Replace(".", "");
+                int newverid = int.Parse(newver);
+                int nowverid = Assembly.GetExecutingAssembly().GetName().Version.Major * 100
+                     + Assembly.GetExecutingAssembly().GetName().Version.Minor * 10
+                     + Assembly.GetExecutingAssembly().GetName().Version.Build;
+                if (newverid > nowverid)
                 {
-                    if (File.Exists(update_app))
+                    if (_bUpdate)
                     {
-                        Process.Start(update_app, "-autostart -autoclose");
-                        Environment.Exit(0);
-                    }
-                    else
-                    {
-                        Global.logger.Debug("update 不存在,不执行更新");
+                        if (File.Exists(update_app))
+                        {
+                            Process.Start(update_app, "-autostart -autoclose");
+                            Environment.Exit(0);
+                        }
+                        else
+                        {
+                            Global.logger.Debug("update 不存在,不执行更新");
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Global.logger.Error(ex.ToString());
             }
         }
 
