@@ -493,7 +493,7 @@ namespace CSLogin
                                                 else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\过于频繁.bmp", 0.97, out dx, out dy))
                                                 {
                                                     CommonApi.CloseWindow(hwnd);
-                                                    SendLogForbidden(_curAccInfo);
+                                                    SendLogFailed(_curAccInfo);
                                                     _NextState = State.JieShu;
                                                     SendMsg("6$" + "changeip$过于频繁", true);
                                                     Sleep(3000, "过于频繁");
@@ -610,7 +610,7 @@ namespace CSLogin
                                                             else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\过于频繁.bmp", 0.97, out dx, out dy))
                                                             {
                                                                 CommonApi.CloseWindow(hwnd);
-                                                                SendLogForbidden(_curAccInfo);
+                                                                SendLogFailed(_curAccInfo);
                                                                 _NextState = State.JieShu;
                                                                 SendMsg("6$" + "changeip$过于频繁", true);
                                                                 Sleep(3000, "过于频繁");
