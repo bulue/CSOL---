@@ -1239,12 +1239,15 @@ namespace 档案汇总
                                 bool issend = false;
                                 if (cbRoutineIp.Checked)
                                 {
+                                    string[] sp1 = c.handle.RemoteEndPoint.ToString().Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
                                     lock (Sever.m_Clinets)
                                     {
                                         foreach (Session cc in Sever.m_Clinets)
                                         {
-                                            if (cc.m_sp && cc.handle.RemoteEndPoint.ToString() == c.handle.RemoteEndPoint.ToString())
+                                            string[] sp2 = cc.handle.RemoteEndPoint.ToString().Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+                                            if (cc.m_sp && sp1[0] == sp2[0])
                                             {
+                                                Global.logger.Debug("ip:{0} mac:{1} code:{2} send changeip!-------1", sp1[0], cc.m_mac, cc.m_mac);
                                                 cc.Send("102$changeip");
                                                 issend = true;
                                             }
@@ -1253,24 +1256,29 @@ namespace 档案汇总
                                     if (!issend)
                                     {
                                         c.Send("102$changeip");
+                                        Global.logger.Debug("ip:{0} mac:{1} code:{2} send changeip!--------0", sp1[0], c.m_mac, c.m_mac);
                                     }
                                 }
                             } break;
                         case "7":
                             {
-                                string md5 = split[1];
-                                string imgstr = split[2];
-                                byte[] img_buf = Convert.FromBase64String(imgstr);
-                                if (captcha.ContainsKey(md5))
-                                {
-                                    //MessageBox.Show("出现相同的图片:" + md5);
-                                    sameCount++;
-                                }
-                                else
-                                {
-                                    captcha.Add(md5, 1);
-                                    File.WriteAllBytes("captcha/" + md5 + ".bmp", img_buf);
-                                }
+                                //string md5 = split[1];
+                                //string imgstr = split[2];
+                                //byte[] img_buf = Convert.FromBase64String(imgstr);
+                                //if (captcha.ContainsKey(md5))
+                                //{
+                                //    //MessageBox.Show("出现相同的图片:" + md5);
+                                //    sameCount++;
+                                //}
+                                //else
+                                //{
+                                //    captcha.Add(md5, 1);
+                                //    File.WriteAllBytes("captcha/" + md5 + ".bmp", img_buf);
+                                //}
+                            }break;
+                        case "1008":
+                            {
+                                Global.logger.Debug("心跳包");
                             }break;
                         default:
                             {
