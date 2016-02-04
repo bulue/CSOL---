@@ -73,7 +73,7 @@ namespace CSLogin
                 m_isOk = true;
                 Socket socket = (Socket)ar.AsyncState;
                 socket.BeginReceive(m_recvBuffer, 0, m_recvBuffer.Length, SocketFlags.None, new AsyncCallback(OnReceive), socket);
-
+                Global.logger.Debug("成功连接，开始监听");
                 if (!spmode)
                 {
                     SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
