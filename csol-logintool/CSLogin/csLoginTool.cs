@@ -20,6 +20,7 @@ using System.Net.Sockets;
 using Emgu.CV.Structure;
 using Emgu.CV;
 using Emgu.CV.OCR;
+using System.Reflection;
 
 namespace CSLogin
 {
@@ -88,6 +89,38 @@ namespace CSLogin
         static public Dictionary<string, string> Lg = new Dictionary<string, string>();
         Thread m_RoutieThread = null;
 
+        void CheckVersion()
+        {
+            string url = "http://localhost/download/ver.php";
+            HttpWebRequest request = System.Net.WebRequest.Create(url) as HttpWebRequest;
+            request.ServicePoint.Expect100Continue = false;
+            request.Timeout = 1000 * 60;
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.CookieContainer = new CookieContainer();
+            StreamReader reader = new StreamReader(request.GetResponse().GetResponseStream());
+            string newver = reader.ReadToEnd();
+            newver = newver.Replace(".","");
+            int newverid = int.Parse(newver);
+            int nowverid = Assembly.GetExecutingAssembly().GetName().Version.Major*100
+                 + Assembly.GetExecutingAssembly().GetName().Version.Minor*10
+                 + Assembly.GetExecutingAssembly().GetName().Version.Build;
+            if ( newverid > nowverid)
+            {
+                if (_bUpdate)
+                {
+                    if (File.Exists(update_app))
+                    {
+                        Process.Start(update_app, "-autostart -autoclose");
+                        Environment.Exit(0);
+                    }
+                    else
+                    {
+                        Global.logger.Debug("update 不存在,不执行更新");
+                    }
+                }
+            }
+        }
+
         private void Init()
         {
             Text += string.Format(" {0:yy-MM-dd HH:mm:ss} Version {1}.{2}.{3}"
@@ -98,13 +131,10 @@ namespace CSLogin
 
             _loginManage = new LoginManage(this);
 
-            //System.Diagnostics.Process.Start("regsvr32", @"/s xiaoai.dll");
-
             this.gamePath.Text = _iniFile.IniReadValue("UI", "gamePath");
 
             textBox_Code.Text = _iniFile.IniReadValue("UI", "code");
             textBox_IP.Text = _iniFile.IniReadValue("UI", "manageIp");
-            cbForceReboot.Checked = _iniFile.IniReadValue("UI", "forcereboot") == "0" ? false : true;
             cbModeHangup.Checked = _iniFile.IniReadValue("UI", "hangup") == "1" ? true : false;
 
 
@@ -460,18 +490,8 @@ namespace CSLogin
 
         private void csLoginTool_Load(object sender, EventArgs e)
         {
-            if (_bUpdate)
-            {
-                if (File.Exists(update_app))
-                {
-                    Process.Start(update_app, "-autostart -autoclose");
-                    Environment.Exit(0);
-                }
-                else
-                {
-                    Global.logger.Debug("update 不存在,不执行更新");
-                }
-            }
+            CheckVersion();
+
             tbxMac.Text = CommonApi.GetMacAddress();
             if (File.Exists("conf"))
             {
