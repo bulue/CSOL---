@@ -199,6 +199,20 @@ namespace CSLogin
                         }
                     } while (true);
                 }
+                else
+                {
+                    long beat_Ticks = 0;
+                    do
+                    {
+                        if (System.Environment.TickCount - beat_Ticks > 0)
+                        {
+                            beat_Ticks = System.Environment.TickCount + 30 * 1000;
+                            m_session.SendMsg("1008&heart");
+                        }
+
+                        Thread.Sleep(50);
+                    } while (true);
+                }
 
             }
             catch (ThreadAbortException)
