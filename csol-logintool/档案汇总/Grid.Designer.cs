@@ -115,8 +115,9 @@
             this.rbZone4 = new System.Windows.Forms.RadioButton();
             this.rbZone3 = new System.Windows.Forms.RadioButton();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.rdbfun = new System.Windows.Forms.RadioButton();
             this.rdbZhouNianLihe = new System.Windows.Forms.RadioButton();
+            this.rdbfun = new System.Windows.Forms.RadioButton();
+            this.btnTest = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -877,18 +878,6 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "功能";
             // 
-            // rdbfun
-            // 
-            this.rdbfun.AutoSize = true;
-            this.rdbfun.Location = new System.Drawing.Point(134, 14);
-            this.rdbfun.Name = "rdbfun";
-            this.rdbfun.Size = new System.Drawing.Size(83, 16);
-            this.rdbfun.TabIndex = 27;
-            this.rdbfun.TabStop = true;
-            this.rdbfun.Text = "欢乐一线牵";
-            this.rdbfun.UseVisualStyleBackColor = true;
-            this.rdbfun.CheckedChanged += new System.EventHandler(this.rdbfun_CheckedChanged);
-            // 
             // rdbZhouNianLihe
             // 
             this.rdbZhouNianLihe.AutoSize = true;
@@ -901,12 +890,35 @@
             this.rdbZhouNianLihe.UseVisualStyleBackColor = true;
             this.rdbZhouNianLihe.CheckedChanged += new System.EventHandler(this.rdbZhouNianLihe_CheckedChanged);
             // 
+            // rdbfun
+            // 
+            this.rdbfun.AutoSize = true;
+            this.rdbfun.Location = new System.Drawing.Point(134, 14);
+            this.rdbfun.Name = "rdbfun";
+            this.rdbfun.Size = new System.Drawing.Size(83, 16);
+            this.rdbfun.TabIndex = 27;
+            this.rdbfun.TabStop = true;
+            this.rdbfun.Text = "欢乐一线牵";
+            this.rdbfun.UseVisualStyleBackColor = true;
+            this.rdbfun.CheckedChanged += new System.EventHandler(this.rdbfun_CheckedChanged);
+            // 
+            // btnTest
+            // 
+            this.btnTest.Location = new System.Drawing.Point(163, 691);
+            this.btnTest.Name = "btnTest";
+            this.btnTest.Size = new System.Drawing.Size(75, 23);
+            this.btnTest.TabIndex = 29;
+            this.btnTest.Text = "测试";
+            this.btnTest.UseVisualStyleBackColor = true;
+            this.btnTest.Click += new System.EventHandler(this.btnTest_Click);
+            // 
             // Grid
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1127, 741);
+            this.Controls.Add(this.btnTest);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.rlog);
@@ -1036,6 +1048,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn7;
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn8;
         private System.Windows.Forms.RadioButton rdbZhouNianLihe;
+        private System.Windows.Forms.Button btnTest;
     }
 }
 
