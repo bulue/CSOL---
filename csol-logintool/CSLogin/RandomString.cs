@@ -9,7 +9,7 @@ namespace CommonQ
 {
     class RandomString
     {
-        static Random Rgen = new Random(System.Environment.TickCount);
+        public static Random Rgen = new Random(System.Environment.TickCount);
         static Dictionary<string, string> Built = new Dictionary<string, string>();
 
         static public string Next(int lenth, string charset)
