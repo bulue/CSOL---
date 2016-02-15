@@ -76,14 +76,14 @@ namespace CSLogin
                 Global.logger.Debug("成功连接，开始监听");
                 if (!spmode)
                 {
-                    SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format("Version {1}.{2}.{3}"
+                    SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format("Version {0}.{1}.{2}"
                         , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
                         , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
                         , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build));
                 }
                 else
                 {
-                    SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format("Version {1}.{2}.{3}"
+                    SendMsg("100$" + CommonApi.GetMacAddress() + "$" + m_code + "$" + string.Format("Version {0}.{1}.{2}"
                         , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Major
                         , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
                         , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build)
