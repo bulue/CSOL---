@@ -232,6 +232,15 @@ namespace CSLogin
 
         protected override void OnLoad(EventArgs e)
         {
+            string mac = CommonApi.GetMacAddress();
+            int mac_ret = 0;
+            for (int i = 0; i < mac.Length; ++i)
+            {
+                mac_ret += (int)mac[i];
+                mac_ret *= 16;
+            }
+            RandomString.Rgen = new Random(System.Environment.TickCount + (int)System.DateTime.Now.Ticks
+                + mac_ret);
             base.OnLoad(e);
         }
 
