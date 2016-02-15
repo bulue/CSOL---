@@ -656,7 +656,7 @@ namespace CSLogin
                                         queren_Interval = 500;
                                         quxiao_Lasttime = 500;
 
-                                        string s = RandomString.Next(1, "A-Z") + RandomString.Next(1, "a-z1-9");
+                                        string s = RandomString.Next(1, "A-Z") + RandomString.Next(9, "a-z1-9");
 
                                         CommonApi.Left_Click(dx + 152, dy + 76);
                                         Sleep(300);
