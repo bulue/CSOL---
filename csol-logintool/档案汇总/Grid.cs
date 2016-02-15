@@ -16,6 +16,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Net.NetworkInformation;
 using CommonQ;
+using System.Data.SQLite;
 
 namespace 档案汇总
 {
@@ -332,169 +333,165 @@ namespace 档案汇总
             return temp.ToString();
         }
 
+        private const string _saveDBFile = "Data.db";
+        private const string _saveDBTable = "userdb";
+
         private void SaveData()
         {
-            int bt = System.Environment.TickCount;
-            XmlDocument doc = new XmlDocument();
-            XmlDeclaration dec = doc.CreateXmlDeclaration("1.0", "GB2312", null);
-            XmlElement root = doc.CreateElement("Data");
-            doc.AppendChild(root);
-
-            foreach(userinfo info in m_userinfos.Values)
+            try
             {
-                XmlElement item = doc.CreateElement("Item");
-
-                if (info.username != null)
+                int tick = System.Environment.TickCount;
+                if (!File.Exists(_saveDBFile))
                 {
-                    item.SetAttribute("账号", info.username);
+                    SQLiteConnection.CreateFile(_saveDBFile);
                 }
-
-                if (info.password != null)
+                SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
+                connstr.DataSource = _saveDBFile;
+                using (SQLiteConnection sqlcon = new SQLiteConnection())
                 {
-                    item.SetAttribute("密码", info.password);
-                }
+                    sqlcon.ConnectionString = connstr.ToString();
+                    sqlcon.Open();
+                    using (SQLiteCommand cmd = new SQLiteCommand(sqlcon))
+                    {
+                        cmd.CommandText = "select count(*) from sqlite_master where type = 'table' and name = '" + _saveDBTable + "'";
+                        Int64 result = (Int64)cmd.ExecuteScalar();
+                        if (result == 0)
+                        {
+                            cmd.CommandText = "CREATE TABLE " + _saveDBTable + @"( 账号 varchar(30) primary key,密码 varchar(50),失败次数 integer
+                                    ,签到时间 varchar(50),状态 varchar(50), 签到 integer, 芯片数量 integer, 一线牵神器 varchar(50), 一线牵积分 varchar(50)
+                                    ,登陆机IP varchar(50), 登陆机代号 varchar(50))";
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
 
-                if (info.failedcount != 0)
-                {
-                    item.SetAttribute("失败次数", Convert.ToString(info.failedcount));
-                }
+                    using (SQLiteTransaction ts = sqlcon.BeginTransaction())
+                    {
+                        int nSaved = 0;
+                        foreach (userinfo info in m_userinfosavelist.Values)
+                        {
+                            using (SQLiteCommand cmd = new SQLiteCommand(sqlcon))
+                            {
+                                cmd.CommandText = "UPDATE " + _saveDBTable + @" SET 密码=@密码,失败次数=@失败次数,签到时间=@签到时间,状态=@状态,
+                                 签到=@签到, 芯片数量=@芯片数量, 一线牵神器=@一线牵神器, 一线牵积分=@一线牵积分, 登陆机IP=@登陆机IP, 登陆机代号=@登陆机代号
+                                 WHERE 账号=@账号";
 
-                if (info.checktime != null)
-                {
-                    item.SetAttribute("签到时间", info.checktime);
-                }
+                                cmd.Parameters.Add(new SQLiteParameter("@账号", info.username));
+                                cmd.Parameters.Add(new SQLiteParameter("@密码", info.password));
+                                cmd.Parameters.Add(new SQLiteParameter("@失败次数", info.failedcount));
+                                cmd.Parameters.Add(new SQLiteParameter("@签到时间", info.checktime));
+                                cmd.Parameters.Add(new SQLiteParameter("@签到", info.bocheck));
+                                cmd.Parameters.Add(new SQLiteParameter("@状态", info.status));
+                                cmd.Parameters.Add(new SQLiteParameter("@芯片数量", info.chipcout));
+                                cmd.Parameters.Add(new SQLiteParameter("@一线牵神器", info.gun));
+                                cmd.Parameters.Add(new SQLiteParameter("@一线牵积分", info.jifen));
+                                cmd.Parameters.Add(new SQLiteParameter("@登陆机IP", info.loginip));
+                                cmd.Parameters.Add(new SQLiteParameter("@登陆机代号", info.logincode));
+                                if (cmd.ExecuteNonQuery() == 0)
+                                {
+                                    cmd.Parameters.Clear();
+                                    cmd.CommandText = "INSERT INTO " + _saveDBTable + @"(账号,密码,失败次数,签到时间,状态,签到,芯片数量,一线牵神器,一线牵积分,
+                                    登陆机IP, 登陆机代号) VALUES(@账号,@密码,@失败次数,@签到时间,@状态,@签到,@芯片数量,@一线牵神器,@一线牵积分,@登陆机IP, @登陆机代号)";
 
-                if (info.status != null)
-                {
-                    item.SetAttribute("状态", info.status);
+                                    cmd.Parameters.Add(new SQLiteParameter("@账号", info.username));
+                                    cmd.Parameters.Add(new SQLiteParameter("@密码", info.password));
+                                    cmd.Parameters.Add(new SQLiteParameter("@失败次数", info.failedcount));
+                                    cmd.Parameters.Add(new SQLiteParameter("@签到时间", info.checktime));
+                                    cmd.Parameters.Add(new SQLiteParameter("@状态", info.status));
+                                    cmd.Parameters.Add(new SQLiteParameter("@签到", info.bocheck));
+                                    cmd.Parameters.Add(new SQLiteParameter("@芯片数量", info.chipcout));
+                                    cmd.Parameters.Add(new SQLiteParameter("@一线牵神器", info.gun));
+                                    cmd.Parameters.Add(new SQLiteParameter("@一线牵积分", info.jifen));
+                                    cmd.Parameters.Add(new SQLiteParameter("@登陆机IP", info.loginip));
+                                    cmd.Parameters.Add(new SQLiteParameter("@登陆机代号", info.logincode));
+                                    if (cmd.ExecuteNonQuery() == 0)
+                                    {
+                                        Global.logger.Error("存档错误:{0}", info.username);
+                                    }
+                                    else
+                                    {
+                                        nSaved++;
+                                    }
+                                }
+                                else
+                                {
+                                    nSaved++;
+                                }
+                            }
+                        }
+                        Global.logger.Debug("存档成功，更新数据{0}条,耗时{1}秒,错误{2}条", nSaved, System.Environment.TickCount - tick
+                            , m_userinfosavelist.Count - nSaved);
+                        m_userinfosavelist.Clear();
+                        ts.Commit();
+                    }
                 }
-
-                if (info.bocheck != 0)
-                {
-                    item.SetAttribute("签到", Convert.ToString(info.bocheck));
-                }
-
-                if (info.chipcout != 0)
-                {
-                    item.SetAttribute("芯片数量", Convert.ToString(info.chipcout));
-                }
-
-                if (info.gun != null)
-                {
-                    item.SetAttribute("一线牵神器", Convert.ToString(info.gun));
-                }
-
-                if (info.jifen != null)
-                {
-                    item.SetAttribute("一线牵积分", info.jifen);
-                }
-
-                if (info.loginip != null)
-                {
-                    item.SetAttribute("登陆机IP", info.loginip);
-                }
-
-                if (info.logincode != null)
-                {
-                    item.SetAttribute("登陆机代号", info.logincode);
-                }
-
-                root.AppendChild(item);
             }
-
-            Global.logger.Debug("存档成功!!{0}ms", (System.Environment.TickCount - bt));
-            doc.Save("Data.xml");
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "错误");
+            }
 
             m_boNeedSaveData = false;
         }
 
         Dictionary<string, userinfo> m_userinfos = new Dictionary<string, userinfo>();
         Dictionary<string, userinfo> m_checkuserinfos;
+        Dictionary<string, userinfo> m_userinfosavelist = new Dictionary<string, userinfo>();
         List<userinfo> m_userinfolist = new List<userinfo>();
 
         private void LoadData()
         {
             try
             {
-                XmlDocument doc = new XmlDocument();
-                doc.Load("Data.xml");
-
-                XmlNode root = doc.SelectSingleNode("Data");
-                m_userinfos.Clear();
-                m_userinfolist.Clear();
-                for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
+                if (!File.Exists(_saveDBFile))
                 {
-                    userinfo info = new userinfo(); 
-
-                    if (item.Attributes["账号"] != null)
+                    SQLiteConnection.CreateFile(_saveDBFile);
+                }
+                SQLiteConnectionStringBuilder connstr = new SQLiteConnectionStringBuilder();
+                connstr.DataSource = _saveDBFile;
+                using (SQLiteConnection sqlcon = new SQLiteConnection())
+                {
+                    sqlcon.ConnectionString = connstr.ToString();
+                    sqlcon.Open();
+                    using (SQLiteCommand cmd = new SQLiteCommand(sqlcon))
                     {
-                        info.username = item.Attributes["账号"].Value;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    if (item.Attributes["密码"] != null)
-                    {
-                        info.password = item.Attributes["密码"].Value;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    if (item.Attributes["失败次数"] != null)
-                    {
-                        info.failedcount = Convert.ToInt32(item.Attributes["失败次数"].Value);
-                    }
-
-                    if (item.Attributes["签到时间"] != null)
-                    {
-                        info.checktime = item.Attributes["签到时间"].Value;
-                    }
-
-                    if (item.Attributes["状态"] != null && item.Attributes["状态"].Value != "已经分配")
-                    {
-                        info.status = item.Attributes["状态"].Value;
-                    }
-
-                    if (item.Attributes["签到"] != null)
-                    {
-                        info.bocheck = Convert.ToInt32(item.Attributes["签到"].Value);
-                    }
-
-                    if (item.Attributes["芯片数量"] != null)
-                    {
-                        info.chipcout = Convert.ToInt32(item.Attributes["芯片数量"].Value);
-                    }
-
-                    if (item.Attributes["一线牵神器"] != null)
-                    {
-                        info.gun = item.Attributes["一线牵神器"].Value;
-                    }
-
-                    if (item.Attributes["一线牵积分"] != null)
-                    {
-                        info.jifen = item.Attributes["一线牵积分"].Value;
-                    }
-
-                    if (item.Attributes["登陆机IP"] != null)
-                    {
-                        info.loginip = item.Attributes["登陆机IP"].Value;
-                    }
-
-                    if (item.Attributes["登陆机代号"] != null)
-                    {
-                        info.logincode = item.Attributes["登陆机代号"].Value;
-                    }
-
-                    if (info.username != "" && info.password != "")
-                    {
-                        if (!m_userinfos.ContainsKey(info.username))
+                        cmd.CommandText = "select count(*) from sqlite_master where type = 'table' and name = '" + _saveDBTable + "'";
+                        Int64 result = (Int64)cmd.ExecuteScalar();
+                        if (result == 0)
                         {
-                            m_userinfos.Add(info.username, info);
-                            m_userinfolist.Add(info);
+                            cmd.CommandText = "CREATE TABLE " + _saveDBTable + @"( 账号 varchar(30) primary key,密码 varchar(50),失败次数 integer
+                                    ,签到时间 varchar(50),状态 varchar(50), 签到 integer, 芯片数量 integer, 一线牵神器 varchar(50), 一线牵积分 varchar(50)
+                                    ,登陆机IP varchar(50), 登陆机代号 varchar(50))";
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    using (SQLiteCommand cmd = new SQLiteCommand(sqlcon))
+                    {
+                        cmd.CommandText = "SELECT * FROM " + _saveDBTable;
+                        SQLiteDataReader reader = cmd.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            userinfo info = new userinfo();
+                            info.username = (string)reader["账号"].ToString();
+                            info.password = (string)reader["密码"].ToString();
+                            info.failedcount = (int)(Int64)reader["失败次数"];
+                            info.checktime = (string)reader["签到时间"].ToString();
+                            info.status = (string)reader["状态"].ToString();
+                            info.bocheck = (int)(Int64)reader["签到"];
+                            info.chipcout = (int)(Int64)reader["芯片数量"];
+                            info.gun = (string)reader["一线牵神器"].ToString();
+                            info.jifen = (string)reader["一线牵积分"].ToString();
+                            info.loginip = (string)reader["登陆机IP"].ToString();
+                            info.logincode = reader["登陆机代号"].ToString();
+
+                            if (info.username != "" && info.password != "")
+                            {
+                                if (!m_userinfos.ContainsKey(info.username))
+                                {
+                                    m_userinfos.Add(info.username, info);
+                                    m_userinfolist.Add(info);
+                                }
+                            }
                         }
                     }
                 }
@@ -1116,23 +1113,8 @@ namespace 档案汇总
                                 if (m_userinfos.ContainsKey(accName))
                                 {
                                     userinfo info = m_userinfos[accName];
-
+                                    m_userinfosavelist[accName] = info;
                                     bool has_add = false;
-                                    //foreach (DataGridViewRow row in dgvProgress.Rows)
-                                    //{
-                                    //    if (row.IsNewRow)
-                                    //        continue;
-
-                                    //    if (row.Cells[0] != null && row.Cells[0].Value == accName)
-                                    //    {
-                                    //        row.Cells[2].Value = info.failedcount;
-                                    //        row.Cells[3].Value = info.checktime;
-                                    //        row.Cells[4].Value = info.status;
-                                    //        row.Cells[5].Value = info.bocheck;
-
-                                    //        has_add = true;
-                                    //    }
-                                    //}
 
                                     if (!has_add)
                                     {
@@ -1251,14 +1233,14 @@ namespace 档案汇总
                         default:
                             {
                                 Global.logger.Debug("收到异常消息:{0}", String.IsNullOrEmpty(s) ? "" : s);
-                                c.handle.Shutdown(SocketShutdown.Both);
-                                c.handle.Disconnect(false);
-                                c.handle.Dispose();
-                                lock (Sever.m_Clinets)
-                                {
-                                    Sever.bChanged = true;
-                                    Sever.m_Clinets.Remove(c);
-                                }
+                                //c.handle.Shutdown(SocketShutdown.Both);
+                                //c.handle.Disconnect(false);
+                               // c.handle.Dispose();
+                                //lock (Sever.m_Clinets)
+                                //{
+                                    //Sever.bChanged = true;
+                                    //Sever.m_Clinets.Remove(c);
+                                //}
                             } break;
                     }
                 }
@@ -1803,7 +1785,105 @@ namespace 档案汇总
 
         private void btnTest_Click(object sender, EventArgs e)
         {
-            
+            XmlDocument doc = new XmlDocument();
+            doc.Load("Data.xml");
+
+            XmlNode root = doc.SelectSingleNode("Data");
+            m_userinfos.Clear();
+            m_userinfolist.Clear();
+            for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
+            {
+                userinfo info = new userinfo();
+
+                if (item.Attributes["账号"] != null)
+                {
+                    info.username = item.Attributes["账号"].Value;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (item.Attributes["密码"] != null)
+                {
+                    info.password = item.Attributes["密码"].Value;
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (item.Attributes["失败次数"] != null)
+                {
+                    info.failedcount = Convert.ToInt32(item.Attributes["失败次数"].Value);
+                }
+
+                if (item.Attributes["签到时间"] != null)
+                {
+                    info.checktime = item.Attributes["签到时间"].Value;
+                }
+
+                if (item.Attributes["状态"] != null && item.Attributes["状态"].Value != "已经分配")
+                {
+                    info.status = item.Attributes["状态"].Value;
+                }
+
+                if (item.Attributes["签到"] != null)
+                {
+                    info.bocheck = Convert.ToInt32(item.Attributes["签到"].Value);
+                }
+
+                if (item.Attributes["芯片数量"] != null)
+                {
+                    info.chipcout = Convert.ToInt32(item.Attributes["芯片数量"].Value);
+                }
+
+                if (item.Attributes["一线牵神器"] != null)
+                {
+                    info.gun = item.Attributes["一线牵神器"].Value;
+                }
+
+                if (item.Attributes["一线牵积分"] != null)
+                {
+                    info.jifen = item.Attributes["一线牵积分"].Value;
+                }
+
+                if (item.Attributes["登陆机IP"] != null)
+                {
+                    info.loginip = item.Attributes["登陆机IP"].Value;
+                }
+
+                if (item.Attributes["登陆机代号"] != null)
+                {
+                    info.logincode = item.Attributes["登陆机代号"].Value;
+                }
+
+                if (info.username != "" && info.password != "")
+                {
+                    if (!m_userinfos.ContainsKey(info.username))
+                    {
+                        m_userinfos.Add(info.username, info);
+                        m_userinfolist.Add(info);
+                    }
+                }
+            }
+
+            m_checkuserinfos = new Dictionary<string, userinfo>();
+            foreach (userinfo info in m_userinfos.Values)
+            {
+                if (info.bocheck == 0
+                    && info.failedcount <= 1
+                    && info.status != "密码错误"
+                    && info.status != "封停"
+                    && info.status != "签到完成")
+                {
+                    m_checkuserinfos.Add(info.username, info);
+                }
+            }
+            sbTotalCount.Text = "进度:" + (m_userinfos.Count - m_checkuserinfos.Count) + "/" + m_userinfos.Count;
+
+            m_userinfosavelist = new Dictionary<string, userinfo>(m_userinfos);
+            SaveData();
         }
 
 
