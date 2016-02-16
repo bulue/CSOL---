@@ -841,10 +841,10 @@ namespace CSLogin
                                         {
                                             ret = "生命收割者";
                                         }
-                                        else if (CommonApi.FindPic(sX + 650, sY + 586, 125, 29, @".\BMP\爆炎蒸汽.bmp", 0.99, out dx, out dy))
-                                        {
-                                            ret = "爆炎蒸汽";
-                                        }
+                                        //else if (CommonApi.FindPic(sX + 650, sY + 586, 125, 29, @".\BMP\爆炎蒸汽.bmp", 0.99, out dx, out dy))
+                                        //{
+                                        //    ret = "爆炎蒸汽";
+                                        //}
                                         else if (CommonApi.FindPic(sX + 650, sY + 586, 125, 29, @".\BMP\雷神.bmp", 0.99, out dx, out dy))
                                         {
                                             ret = "雷神";
@@ -856,6 +856,10 @@ namespace CSLogin
                                         else if (CommonApi.FindPic(sX + 650, sY + 586, 125, 29, @".\BMP\海皇之怒.bmp", 0.99, out dx, out dy))
                                         {
                                             ret = "海皇之怒";
+                                        }
+                                        else if (CommonApi.FindPic(sX + 650, sY + 586, 125, 29, @".\BMP\盘龙血煞.bmp", 0.99, out dx, out dy))
+                                        {
+                                            ret = "盘龙血煞";
                                         }
 
                                         Bitmap screen = new Bitmap(54, 34);
