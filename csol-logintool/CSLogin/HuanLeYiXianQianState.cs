@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -465,9 +466,6 @@ namespace CSLogin
 
                                                     SendLogFailed(_curAccInfo);
                                                     SendMsg("6$" + "changeip$连续输入错误", true);
-                                                    //Global.logger.Debug("连续输入错误,执行重启操作");
-                                                    //csLoginTool.RegAutoStart(true);
-                                                    //System.Diagnostics.Process.Start("shutdown", @"/r");
 
                                                     _NextState = State.JieShu;
                                                     Sleep(3000, "连续输入错误,关闭游戏");
@@ -480,7 +478,6 @@ namespace CSLogin
                                                     _NextState = State.JieShu;
 
                                                     Sleep(3000, "服务器连接中断,关闭游戏");
-
                                                 }
                                                 else if (CommonApi.FindPic(sX + 292, sY + 292, 439, 238, @".\BMP\管理员中断.bmp", 0.97, out dx, out dy))
                                                 {
@@ -1041,6 +1038,37 @@ namespace CSLogin
                 {
                     report = "3$" + account.account + "$" + "Failed";
                 }
+
+                try
+                {
+                    int sX, sY, sW, sH;
+                    IntPtr hwnd = CommonApi.FindWindow(null, "Counter-Strike Online");
+                    CommonApi.GetWindowXYWH(hwnd, out sX, out sY, out sW, out sH);
+                    Bitmap screen = new Bitmap(sW, sH);
+                    Graphics g = Graphics.FromImage(screen);
+                    g.CopyFromScreen(sX, sY, 0, 0, screen.Size);
+                    byte[] bytes = Bitmap2Byte(screen);
+                    string base64 = Convert.ToBase64String(bytes);
+                    SendMsg("7001$" + base64);
+                    g.Dispose();
+                    screen.Dispose();
+                }
+                catch(Exception ex)
+                {
+                    SendMsg("7002$" + ex.ToString());
+                }
+            }
+        }
+
+        public static byte[] Bitmap2Byte(Bitmap bitmap)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                bitmap.Save(stream, ImageFormat.Bmp);
+                byte[] data = new byte[stream.Length];
+                stream.Seek(0, SeekOrigin.Begin);
+                stream.Read(data, 0, Convert.ToInt32(stream.Length));
+                return data;
             }
         }
 
