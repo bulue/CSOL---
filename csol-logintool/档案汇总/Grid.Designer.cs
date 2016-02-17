@@ -118,6 +118,8 @@
             this.rdbZhouNianLihe = new System.Windows.Forms.RadioButton();
             this.rdbfun = new System.Windows.Forms.RadioButton();
             this.btnTest = new System.Windows.Forms.Button();
+            this.btnShowShenQi = new System.Windows.Forms.Button();
+            this.sbShowNumber = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -355,7 +357,8 @@
             this.toolStripStatusLabel1,
             this.toolStripStatusLabel2,
             this.StatusLab_SessionNum,
-            this.sbTotalCount});
+            this.sbTotalCount,
+            this.sbShowNumber});
             this.statusStrip.Location = new System.Drawing.Point(0, 719);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(1127, 22);
@@ -912,12 +915,28 @@
             this.btnTest.UseVisualStyleBackColor = true;
             this.btnTest.Click += new System.EventHandler(this.btnTest_Click);
             // 
+            // btnShowShenQi
+            // 
+            this.btnShowShenQi.Location = new System.Drawing.Point(1040, 640);
+            this.btnShowShenQi.Name = "btnShowShenQi";
+            this.btnShowShenQi.Size = new System.Drawing.Size(75, 23);
+            this.btnShowShenQi.TabIndex = 30;
+            this.btnShowShenQi.Text = "只显示神器";
+            this.btnShowShenQi.UseVisualStyleBackColor = true;
+            this.btnShowShenQi.Click += new System.EventHandler(this.btnShowShenQi_Click);
+            // 
+            // sbShowNumber
+            // 
+            this.sbShowNumber.Name = "sbShowNumber";
+            this.sbShowNumber.Size = new System.Drawing.Size(0, 17);
+            // 
             // Grid
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1127, 741);
+            this.Controls.Add(this.btnShowShenQi);
             this.Controls.Add(this.btnTest);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -1049,6 +1068,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn8;
         private System.Windows.Forms.RadioButton rdbZhouNianLihe;
         private System.Windows.Forms.Button btnTest;
+        private System.Windows.Forms.Button btnShowShenQi;
+        private System.Windows.Forms.ToolStripStatusLabel sbShowNumber;
     }
 }
 

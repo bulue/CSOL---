@@ -526,6 +526,7 @@ namespace 档案汇总
             OK = 1,
             FAILED = 2,
             NOTCHECK = 3,
+            SHENQI = 4,
         };
 
         private void refreshGridView(ShowType showtype)
@@ -559,6 +560,12 @@ namespace 档案汇总
                             {
                                 if (info.bocheck == 1 || (info.status != null && info.status != ""))
                                     continue;
+                            }break;
+                        case ShowType.SHENQI:
+                            {
+                                if (info.bocheck == 0 || string.IsNullOrEmpty(info.gun) || info.gun == "无神器")
+                                    continue;
+
                             }break;
                     }
 
@@ -627,6 +634,8 @@ namespace 档案汇总
 
                     newidx++;
                 }
+
+                sbShowNumber.Text = "总共" + dgvUserData.Rows.Count + "条";
                 //dgvUserData.AutoResizeColumns();
             }
         }
@@ -1720,6 +1729,15 @@ namespace 档案汇总
             btnShowNotCheck.Enabled = true;
         }
 
+        private void btnShowShenQi_Click(object sender, EventArgs e)
+        {
+            btnShowShenQi.Enabled = false;
+            this.Cursor = Cursors.WaitCursor;
+            refreshGridView(ShowType.SHENQI);
+            this.Cursor = Cursors.Default;
+            btnShowShenQi.Enabled = true;
+        }
+
         private void rbZone1_CheckedChanged(object sender, EventArgs e)
         {
             IniWriteValue("UI", "zone", "1");
@@ -1885,7 +1903,6 @@ namespace 档案汇总
             m_userinfosavelist = new Dictionary<string, userinfo>(m_userinfos);
             SaveData();
         }
-
 
     }
 }
