@@ -791,9 +791,7 @@ namespace 档案汇总
         {
             try
             {
-                
                 Print("Recv:" + s);
-
                 string[] split = s.Split(new char[] { '$' }, StringSplitOptions.RemoveEmptyEntries);
                 if (split[0] == "100")
                 {
@@ -1238,6 +1236,20 @@ namespace 档案汇总
                         case "1008":
                             {
                                 Global.logger.Debug("心跳包");
+                            }break;
+                        case "7001":
+                            {
+                                string imgstr = split[1];
+                                byte[] bytes = Convert.FromBase64String(imgstr);
+                                if (!Directory.Exists("错误记录"))
+                                {
+                                    Directory.CreateDirectory("错误记录");
+                                }
+                                File.WriteAllBytes("错误记录/" + Path.GetRandomFileName() + ".bmp", bytes);
+                            }break;
+                        case "7002":
+                            {
+                                
                             }break;
                         default:
                             {
