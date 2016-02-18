@@ -1239,11 +1239,18 @@ namespace 档案汇总
                             }break;
                         case "7001":
                             {
+                                const string errDir = "错误记录";
                                 string imgstr = split[1];
                                 byte[] bytes = Convert.FromBase64String(imgstr);
-                                if (!Directory.Exists("错误记录"))
+                                if (!Directory.Exists(errDir))
                                 {
-                                    Directory.CreateDirectory("错误记录");
+                                    Directory.CreateDirectory(errDir);
+                                }
+                                DirectoryInfo di = new DirectoryInfo(errDir);
+                                FileInfo[] files = di.GetFiles();
+                                if (files.Length >= 200){
+                                    Array.Sort(files, (a, b) => a.LastWriteTime.CompareTo(b.LastWriteTime));
+                                    File.Delete(files[0].FullName);
                                 }
                                 File.WriteAllBytes("错误记录/" + Path.GetRandomFileName() + ".bmp", bytes);
                             }break;

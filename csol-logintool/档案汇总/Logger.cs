@@ -264,9 +264,9 @@ namespace CommonQ
             lock (_lineList)
             {
                 string format_msg = string.Format("{0:yy-MM-dd HH:mm:ss} {1} {2}", DateTime.Now, lvl, msg);
-                if (msg.Length > 1024)
+                if (format_msg.Length > 1024)
                 {
-                    msg = msg.Substring(0, 1024) + "...";
+                    format_msg = format_msg.Substring(0, 1024) + "...";
                 }
                 _showFunc.Invoke(lvl, format_msg);
                 _lineList.Add(new logContent(lvl, format_msg));
