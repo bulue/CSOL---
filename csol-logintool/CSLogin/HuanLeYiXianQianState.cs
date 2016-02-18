@@ -927,6 +927,7 @@ namespace CSLogin
                                 if (System.Environment.TickCount - beginCheckTime > 50 * 1000)
                                 {
                                     SendLogFailed(_curAccInfo);
+                                    SendErrorBMP();
                                     CommonApi.CloseWindow(hwnd);
 
                                     _NextState = State.JieShu;
@@ -1028,6 +1029,28 @@ namespace CSLogin
             }
         }
 
+        private void SendErrorBMP()
+        {
+            try
+            {
+                int sX, sY, sW, sH;
+                IntPtr hwnd = CommonApi.FindWindow(null, "Counter-Strike Online");
+                CommonApi.GetWindowXYWH(hwnd, out sX, out sY, out sW, out sH);
+                Bitmap screen = new Bitmap(sW, sH);
+                Graphics g = Graphics.FromImage(screen);
+                g.CopyFromScreen(sX, sY, 0, 0, screen.Size);
+                byte[] bytes = Bitmap2Byte(screen);
+                string base64 = Convert.ToBase64String(bytes);
+                SendMsg("7001$" + base64);
+                g.Dispose();
+                screen.Dispose();
+            }
+            catch (Exception ex)
+            {
+                SendMsg("7002$" + ex.ToString());
+            }
+        }
+
         private void SendLogFailed(userInfo account)
         {
             if (!bSendRet)
@@ -1037,25 +1060,6 @@ namespace CSLogin
                 if (!breportok)
                 {
                     report = "3$" + account.account + "$" + "Failed";
-                }
-
-                try
-                {
-                    int sX, sY, sW, sH;
-                    IntPtr hwnd = CommonApi.FindWindow(null, "Counter-Strike Online");
-                    CommonApi.GetWindowXYWH(hwnd, out sX, out sY, out sW, out sH);
-                    Bitmap screen = new Bitmap(sW, sH);
-                    Graphics g = Graphics.FromImage(screen);
-                    g.CopyFromScreen(sX, sY, 0, 0, screen.Size);
-                    byte[] bytes = Bitmap2Byte(screen);
-                    string base64 = Convert.ToBase64String(bytes);
-                    SendMsg("7001$" + base64);
-                    g.Dispose();
-                    screen.Dispose();
-                }
-                catch(Exception ex)
-                {
-                    SendMsg("7002$" + ex.ToString());
                 }
             }
         }
