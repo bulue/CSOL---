@@ -65,10 +65,10 @@
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.StatusLab_SessionNum = new System.Windows.Forms.ToolStripStatusLabel();
             this.sbTotalCount = new System.Windows.Forms.ToolStripStatusLabel();
+            this.sbShowNumber = new System.Windows.Forms.ToolStripStatusLabel();
             this.timer_StatusBarRefresh = new System.Windows.Forms.Timer(this.components);
             this.button5 = new System.Windows.Forms.Button();
             this.cbClearData = new System.Windows.Forms.CheckBox();
-            this.cbFailedFirst = new System.Windows.Forms.CheckBox();
             this.btnClearLoginData = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -119,7 +119,6 @@
             this.rdbfun = new System.Windows.Forms.RadioButton();
             this.btnTest = new System.Windows.Forms.Button();
             this.btnShowShenQi = new System.Windows.Forms.Button();
-            this.sbShowNumber = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dgvUserData)).BeginInit();
             this.Menu_DeleteRow.SuspendLayout();
             this.Menu_ClearCell.SuspendLayout();
@@ -387,6 +386,11 @@
             this.sbTotalCount.Size = new System.Drawing.Size(54, 17);
             this.sbTotalCount.Text = "进度:0/0";
             // 
+            // sbShowNumber
+            // 
+            this.sbShowNumber.Name = "sbShowNumber";
+            this.sbShowNumber.Size = new System.Drawing.Size(0, 17);
+            // 
             // timer_StatusBarRefresh
             // 
             this.timer_StatusBarRefresh.Interval = 3000;
@@ -413,17 +417,6 @@
             this.cbClearData.Text = "12点清零";
             this.cbClearData.UseVisualStyleBackColor = true;
             this.cbClearData.CheckedChanged += new System.EventHandler(this.cbClearData_CheckedChanged);
-            // 
-            // cbFailedFirst
-            // 
-            this.cbFailedFirst.AutoSize = true;
-            this.cbFailedFirst.Location = new System.Drawing.Point(108, 12);
-            this.cbFailedFirst.Name = "cbFailedFirst";
-            this.cbFailedFirst.Size = new System.Drawing.Size(72, 16);
-            this.cbFailedFirst.TabIndex = 13;
-            this.cbFailedFirst.Text = "失败优先";
-            this.cbFailedFirst.UseVisualStyleBackColor = true;
-            this.cbFailedFirst.CheckedChanged += new System.EventHandler(this.cbFailedFirst_CheckedChanged);
             // 
             // btnClearLoginData
             // 
@@ -679,7 +672,7 @@
             // cbRemoteReboot
             // 
             this.cbRemoteReboot.AutoSize = true;
-            this.cbRemoteReboot.Location = new System.Drawing.Point(206, 12);
+            this.cbRemoteReboot.Location = new System.Drawing.Point(90, 12);
             this.cbRemoteReboot.Name = "cbRemoteReboot";
             this.cbRemoteReboot.Size = new System.Drawing.Size(84, 16);
             this.cbRemoteReboot.TabIndex = 16;
@@ -706,7 +699,7 @@
             // cbRoutineIp
             // 
             this.cbRoutineIp.AutoSize = true;
-            this.cbRoutineIp.Location = new System.Drawing.Point(307, 12);
+            this.cbRoutineIp.Location = new System.Drawing.Point(180, 12);
             this.cbRoutineIp.Name = "cbRoutineIp";
             this.cbRoutineIp.Size = new System.Drawing.Size(72, 16);
             this.cbRoutineIp.TabIndex = 18;
@@ -925,11 +918,6 @@
             this.btnShowShenQi.UseVisualStyleBackColor = true;
             this.btnShowShenQi.Click += new System.EventHandler(this.btnShowShenQi_Click);
             // 
-            // sbShowNumber
-            // 
-            this.sbShowNumber.Name = "sbShowNumber";
-            this.sbShowNumber.Size = new System.Drawing.Size(0, 17);
-            // 
             // Grid
             // 
             this.AllowDrop = true;
@@ -950,7 +938,6 @@
             this.Controls.Add(this.cbRemoteReboot);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.btnClearLoginData);
-            this.Controls.Add(this.cbFailedFirst);
             this.Controls.Add(this.cbClearData);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.statusStrip);
@@ -1006,7 +993,6 @@
         private System.Windows.Forms.Timer timer_StatusBarRefresh;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.CheckBox cbClearData;
-        private System.Windows.Forms.CheckBox cbFailedFirst;
         private System.Windows.Forms.Button btnClearLoginData;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;

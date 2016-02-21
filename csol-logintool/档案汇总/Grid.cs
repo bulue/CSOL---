@@ -48,12 +48,10 @@ namespace 档案汇总
                 , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Minor
                 , System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.Build);
 
-            LoadData();
+            //LoadData();
+            m_server.SetMainForm(this);
+            m_server.LoadData();
 
-            if (IniReadValue("UI", "cbFailedFirst") == "1")
-            {
-                this.cbFailedFirst.Checked = true;
-            }
             if (IniReadValue("UI", "cbClearData") == "1")
             {
                 this.cbClearData.Checked = true;
@@ -438,6 +436,8 @@ namespace 档案汇总
         Dictionary<string, userinfo> m_userinfosavelist = new Dictionary<string, userinfo>();
         List<userinfo> m_userinfolist = new List<userinfo>();
 
+        AmServer m_server = new AmServer(IPAddress.Any, 723);
+
         private void LoadData()
         {
             try
@@ -529,18 +529,19 @@ namespace 档案汇总
             SHENQI = 4,
         };
 
-        private void refreshGridView(ShowType showtype)
+        private void refreshGridView(ShowType showtype, Dictionary<string, userinfo> userinfos)
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action<ShowType>(refreshGridView),showtype);
+                this.BeginInvoke(new Action<ShowType, Dictionary<string, userinfo>>(refreshGridView)
+                    , showtype, userinfos);
             }
             else
             {
                 dgvUserData.Rows.Clear();
 
                 List<userinfo> userlist = new List<userinfo>();
-                foreach(userinfo info in m_userinfos.Values)
+                foreach (userinfo info in userinfos.Values)
                 {
                     switch (showtype)
                     {
@@ -573,69 +574,73 @@ namespace 档案汇总
 
                 }
 
-                int newidx = 0;
-                dgvUserData.Rows.Add(userlist.Count);
-                foreach (userinfo info in userlist)
+                if (userlist.Count > 0)
                 {
-                    if (info.username != null)
+                    int newidx = 0;
+                    dgvUserData.Rows.Add(userlist.Count);
+                    foreach (userinfo info in userlist)
                     {
-                        dgvUserData.Rows[newidx].Cells["Account"].Value = info.username;
-                    }
+                        if (info.username != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["Account"].Value = info.username;
+                        }
 
-                    if (info.password != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["Password"].Value = info.password;
-                    }
+                        if (info.password != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["Password"].Value = info.password;
+                        }
 
-                    if (info.failedcount != 0)
-                    {
-                        dgvUserData.Rows[newidx].Cells["FailedCount"].Value = info.failedcount;
-                    }
+                        if (info.failedcount != 0)
+                        {
+                            dgvUserData.Rows[newidx].Cells["FailedCount"].Value = info.failedcount;
+                        }
 
-                    if (info.checktime != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["CheckTime"].Value = info.checktime;
-                    }
+                        if (info.checktime != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["CheckTime"].Value = info.checktime;
+                        }
 
-                    if (info.status != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["State"].Value = info.status;
-                    }
+                        if (info.status != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["State"].Value = info.status;
+                        }
 
-                    if (info.bocheck != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["Checked"].Value = info.bocheck;
-                    }
+                        if (info.bocheck != 0)
+                        {
+                            dgvUserData.Rows[newidx].Cells["Checked"].Value = info.bocheck;
+                        }
 
-                    if (info.chipcout != 0)
-                    {
-                        dgvUserData.Rows[newidx].Cells["Days"].Value = info.chipcout;
-                    }
+                        if (info.chipcout != 0)
+                        {
+                            dgvUserData.Rows[newidx].Cells["Days"].Value = info.chipcout;
+                        }
 
-                    if (info.loginip != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["IP"].Value = info.loginip;
-                    }
+                        if (info.loginip != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["IP"].Value = info.loginip;
+                        }
 
-                    if (info.logincode != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["Code"].Value = info.logincode;
-                    }
+                        if (info.logincode != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["Code"].Value = info.logincode;
+                        }
 
-                    if (info.gun != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["HuanLeYiXianQianShenQi"].Value = info.gun;
-                    }
+                        if (info.gun != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["HuanLeYiXianQianShenQi"].Value = info.gun;
+                        }
 
-                    if (info.jifen != null)
-                    {
-                        dgvUserData.Rows[newidx].Cells["jifen"].Value = info.jifen;
-                    }
+                        if (info.jifen != null)
+                        {
+                            dgvUserData.Rows[newidx].Cells["jifen"].Value = info.jifen;
+                        }
 
-                    newidx++;
+                        newidx++;
+                    }
                 }
 
-                sbShowNumber.Text = "总共" + dgvUserData.Rows.Count + "条";
+                sbShowNumber.Text = "总共" + userlist.Count + "条";
+                GC.Collect();
                 //dgvUserData.AutoResizeColumns();
             }
         }
@@ -684,11 +689,11 @@ namespace 档案汇总
                     return;
                 }
 
-
-                Sever s = new Sever();
-                s.BeginListen();
-                Session.m_msgHandle = OnMsg;
-                Session.m_logHandle = Print;
+                m_server.Start();
+                //Sever s = new Sever();
+                //s.BeginListen();
+                //Session.m_msgHandle = OnMsg;
+                //Session.m_logHandle = Print;
                 Print("开始监听...");
 
                 timer_StatusBarRefresh.Start();
@@ -787,7 +792,7 @@ namespace 档案汇总
         Dictionary<string, int> macCheck = new Dictionary<string, int>();
         int _speedCount = 0;
 
-        private void OnMsg_safe(string s,Session c)
+        private void OnMsg_safe(string s, Session c)
         {
             try
             {
@@ -1334,21 +1339,20 @@ namespace 档案汇总
             if (System.Environment.TickCount - _lastCheckSessionConnect > 3 * 1000)
             {
                 _lastCheckSessionConnect = System.Environment.TickCount;
-                if (Sever.bChanged)
+                if (m_server.IsSessionNumChanged)
                 {
-                    Sever.bChanged = false;
+                    m_server.IsSessionNumChanged = false;
                     foreach (DataGridViewRow row in dgvSession.Rows)
                     {
                         if (row.IsNewRow)
                             continue;
 
                         bool x = false;
-
-                        lock (Sever.m_Clinets)
+                        lock (m_server.m_Sessions)
                         {
                             for (int i = 0; i < Sever.m_Clinets.Count; ++i)
                             {
-                                if (Sever.m_Clinets[i].m_mac == row.Cells["sMac"].Value.ToString())
+                                if (m_server.m_Sessions[i].m_mac == row.Cells["sMac"].Value.ToString())
                                 {
                                     row.Cells["sState"].Value = "良好";
                                     x = true;
@@ -1363,37 +1367,8 @@ namespace 档案汇总
                 }
             }
 
-            if (System.Environment.TickCount - _lastCheckSessionActive > 5 * 60 * 1000)
-            {
-                _lastCheckSessionActive = System.Environment.TickCount;
-                lock (Sever.m_Clinets)
-                {
-                    Global.logger.Debug("校验连接活跃度前:{0}", Sever.m_Clinets.Count);
-                    Sever.m_Clinets.RemoveAll(delegate(Session s)
-                    {
-                        if (!s.IsActive)
-                        {
-                            Global.logger.Debug("session:{0},mac:{1},code:{2} 长时间不活动,主动断开连接"
-                                , s.handle.RemoteEndPoint.ToString(), s.m_mac, s.m_code);
-                            try
-                            {
-                                s.Send("0");
-                            }
-                            catch (System.Exception ex)
-                            {
-                                Global.logger.Debug("Terminate Error:{0}", ex.ToString());
-                            }
-                            return true;
-                        }
-                        return false;
-                    });
-                    Sever.bChanged = true;
-                    Global.logger.Debug("校验连接活跃度后:{0}", Sever.m_Clinets.Count);
-                }
-            }
-
-            StatusLab_SessionNum.Text = String.Format("实际连接:{0},macc:{1},speed:{2}/秒, captcha:{3}/{4}",
-                Sever.m_Clinets.Count, macCheck.Count, ((float)_speedCount) / 3, sameCount, captcha.Count);
+            StatusLab_SessionNum.Text = String.Format("实际连接:{0},macc:{1},speed:{2}/秒",
+                m_server.m_Sessions.Count, m_server.MacCount, ((float)_speedCount) / 3);
             _speedCount = 0;
 
             if (this.cbClearData.Checked == true)
@@ -1404,31 +1379,16 @@ namespace 档案汇总
                         || _lastClearDateTime.Hour != DateTime.Now.Hour
                         || _lastClearDateTime.Minute != DateTime.Now.Minute)
                     {
-                        Print("" + DateTime.Now + " 清空登陆数据!!");
-                        btnClearLoginData_Click(null, null);
+                        Global.logger.Debug("" + DateTime.Now + " 清空登陆数据!!");
+                        m_server.ServerClearLoginData();
                         _lastClearDateTime = DateTime.Now;
                     }
                 }
-            }
-
-            if (m_boNeedSaveData &&
-                (System.Environment.TickCount - _lastSaveDataTime) > 120*1000)
-            {
-                SaveData();
-                _lastSaveDataTime = System.Environment.TickCount;
             }
         }
 
         private int _lastSaveDataTime = System.Environment.TickCount;
         private  bool m_boNeedSaveData = false;
-
-        //private void timer_FlushTextbox_Tick(object sender, EventArgs e)
-        //{
-            //if (m_textBoxBuffer.Length > 0)
-            //{
-            //    FlushToTextBox();
-            //}
-        //}
 
         //导出数据
         private void button5_Click(object sender, EventArgs e)
@@ -1485,46 +1445,7 @@ namespace 档案汇总
 
         private void btnClearLoginData_Click(object sender, EventArgs e)
         {
-            foreach (DataGridViewRow row in dgvUserData.Rows)
-            {
-                if (row.IsNewRow) { continue; }
-                row.Cells["Checked"].Value = null;
-                row.Cells["State"].Value = null;
-                row.Cells["IP"].Value = null;
-                row.Cells["Code"].Value = null;
-                row.Cells["CheckTime"].Value = null;
-                row.Cells["FailedCount"].Value = null;
-            }
-
-            List<userinfo> userlist = new List<userinfo>();
-            foreach (userinfo info in m_userinfos.Values)
-            {
-                userinfo newInfo = new userinfo();
-                newInfo.username = info.username;
-                newInfo.password = info.password;
-                userlist.Add(newInfo);
-            }
-
-            m_userinfos.Clear();
-            foreach (userinfo info in userlist)
-            {
-                m_userinfos.Add(info.username, info);
-            }
-
-            m_checkuserinfos.Clear();
-            foreach (userinfo info in m_userinfos.Values)
-            {
-                if (info.bocheck == 0
-                    && info.failedcount <= 1
-                    && info.status != "密码错误"
-                    && info.status != "封停"
-                    && info.status != "签到完成")
-                {
-                    m_checkuserinfos.Add(info.username, info);
-                }
-            }
-
-            _working_state = working_state.normal;
+            m_server.ServerClearLoginData();
         }
 
         private void cbClearData_CheckedChanged(object sender, EventArgs e)
@@ -1536,18 +1457,6 @@ namespace 档案汇总
             else
             {
                 IniWriteValue("UI", "cbClearData", "0");
-            }
-        }
-
-        private void cbFailedFirst_CheckedChanged(object sender, EventArgs e)
-        {
-            if (this.cbFailedFirst.Checked == true)
-            {
-                IniWriteValue("UI", "cbFailedFirst", "1");
-            }
-            else
-            {
-                IniWriteValue("UI", "cbFailedFirst", "0");
             }
         }
 
@@ -1677,11 +1586,12 @@ namespace 档案汇总
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (m_boNeedSaveData)
-            {
-                SaveData();
-                Thread.Sleep(3000);
-            }
+            //if (m_boNeedSaveData)
+            //{
+            //    SaveData();
+            //    Thread.Sleep(3000);
+            //}
+            m_server.Stop();
             CLogger.StopAllLoggers();
             base.OnClosing(e);
         }
@@ -1714,7 +1624,7 @@ namespace 档案汇总
 
             btnRefreshGrid.Enabled = false;
             this.Cursor = Cursors.WaitCursor;
-            refreshGridView(ShowType.All);
+            refreshGridView(ShowType.All, m_server.UserInfos);
             this.Cursor = Cursors.Default;
             btnRefreshGrid.Enabled = true;
         }
@@ -1724,7 +1634,7 @@ namespace 档案汇总
             btnShowOk.Enabled = false;
             this.Cursor = Cursors.WaitCursor;
 
-            refreshGridView(ShowType.OK);
+            refreshGridView(ShowType.OK, m_server.UserInfos);
 
             this.Cursor = Cursors.Default;
             btnShowOk.Enabled = true;
@@ -1734,7 +1644,7 @@ namespace 档案汇总
         {
             btnShowFailed.Enabled = false;
             this.Cursor = Cursors.WaitCursor;
-            refreshGridView(ShowType.FAILED);
+            refreshGridView(ShowType.FAILED, m_server.UserInfos);
             this.Cursor = Cursors.Default;
             btnShowFailed.Enabled = true;
         }
@@ -1743,7 +1653,7 @@ namespace 档案汇总
         {
             btnShowNotCheck.Enabled = false;
             this.Cursor = Cursors.WaitCursor;
-            refreshGridView(ShowType.NOTCHECK);
+            refreshGridView(ShowType.NOTCHECK, m_server.UserInfos);
             this.Cursor = Cursors.Default;
             btnShowNotCheck.Enabled = true;
         }
@@ -1752,7 +1662,7 @@ namespace 档案汇总
         {
             btnShowShenQi.Enabled = false;
             this.Cursor = Cursors.WaitCursor;
-            refreshGridView(ShowType.SHENQI);
+            refreshGridView(ShowType.SHENQI, m_server.UserInfos);
             this.Cursor = Cursors.Default;
             btnShowShenQi.Enabled = true;
         }
@@ -1822,106 +1732,163 @@ namespace 档案汇总
 
         private void btnTest_Click(object sender, EventArgs e)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load("Data.xml");
+        }
 
-            XmlNode root = doc.SelectSingleNode("Data");
-            m_userinfos.Clear();
-            m_userinfolist.Clear();
-            for (XmlNode item = root.FirstChild; item != null; item = item.NextSibling)
+        public void UpdateSessionState(string Mac, string Code, string remoteip, string ver)
+        {
+            if (this.InvokeRequired)
             {
-                userinfo info = new userinfo();
-
-                if (item.Attributes["账号"] != null)
+                this.BeginInvoke(new Action<string, string, string, string>(UpdateSessionState), Mac, Code, remoteip, ver);
+            }
+            else
+            {
+                bool x = false;
+                foreach (DataGridViewRow row in dgvSession.Rows)
                 {
-                    info.username = item.Attributes["账号"].Value;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (item.Attributes["密码"] != null)
-                {
-                    info.password = item.Attributes["密码"].Value;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if (item.Attributes["失败次数"] != null)
-                {
-                    info.failedcount = Convert.ToInt32(item.Attributes["失败次数"].Value);
-                }
-
-                if (item.Attributes["签到时间"] != null)
-                {
-                    info.checktime = item.Attributes["签到时间"].Value;
-                }
-
-                if (item.Attributes["状态"] != null && item.Attributes["状态"].Value != "已经分配")
-                {
-                    info.status = item.Attributes["状态"].Value;
-                }
-
-                if (item.Attributes["签到"] != null)
-                {
-                    info.bocheck = Convert.ToInt32(item.Attributes["签到"].Value);
-                }
-
-                if (item.Attributes["芯片数量"] != null)
-                {
-                    info.chipcout = Convert.ToInt32(item.Attributes["芯片数量"].Value);
-                }
-
-                if (item.Attributes["一线牵神器"] != null)
-                {
-                    info.gun = item.Attributes["一线牵神器"].Value;
-                }
-
-                if (item.Attributes["一线牵积分"] != null)
-                {
-                    info.jifen = item.Attributes["一线牵积分"].Value;
-                }
-
-                if (item.Attributes["登陆机IP"] != null)
-                {
-                    info.loginip = item.Attributes["登陆机IP"].Value;
-                }
-
-                if (item.Attributes["登陆机代号"] != null)
-                {
-                    info.logincode = item.Attributes["登陆机代号"].Value;
-                }
-
-                if (info.username != "" && info.password != "")
-                {
-                    if (!m_userinfos.ContainsKey(info.username))
+                    if (row.IsNewRow) continue;
+                    string rMac = (string)row.Cells["sMac"].Value;
+                    if (rMac == Mac)
                     {
-                        m_userinfos.Add(info.username, info);
-                        m_userinfolist.Add(info);
+                        Global.logger.Debug("mac:{0}, ip({1}->{2})", rMac, remoteip, row.Cells["sIP"].Value.ToString());
+                        row.Cells["sCode"].Value = Code;
+                        row.Cells["sIP"].Value = remoteip;
+                        row.Cells["sVer"].Value = ver;
+                        x = true;
+                    }
+                }
+
+                if (x == false)
+                {
+                    dgvSession.Rows.Add(remoteip, Code, Mac, "已连接", null, null, DateTime.Now.ToLocalTime(), ver, "断开", "重启");
+                }
+            }
+        }
+
+        public int GetSelectZoneId()
+        {
+            return (int)this.Invoke(new Func<int>(() =>
+            {
+                int zone;
+                if (rbZone1.Checked)
+                {
+                    zone = 1;
+                }
+                else if (rbZone2.Checked)
+                {
+                    zone = 2;
+                }
+                else if (rbZone3.Checked)
+                {
+                    zone = 3;
+                }
+                else if (rbZone4.Checked)
+                {
+                    zone = 4;
+                }
+                else
+                    zone = 5;
+                return zone;
+            }));
+        }
+
+        public int GetSelectState()
+        {
+            return (int)this.Invoke(new Func<int>(() =>
+            {
+                return (rdbLogin.Checked ? 1 : (rdbChip.Checked ? 2 : (rdbfun.Checked ? 3 : 4)));
+            }));
+        }
+
+        public void UpdateUserInfo(userinfo info)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action<userinfo>(UpdateUserInfo), info);
+            }
+            else
+            {
+                if (dgvProgress.Rows.Count > 2000)
+                    dgvProgress.Rows.Clear();
+
+                dgvProgress.Rows.Add(info.username,
+                    info.password,
+                    info.failedcount,
+                    info.checktime,
+                    info.status,
+                    info.bocheck,
+                    info.gun,
+                    info.jifen,
+                    info.chipcout,
+                    info.loginip,
+                    info.logincode);
+                _speedCount++;
+            }
+        }
+
+        public void UpdateProcessState(string state)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action<string>(UpdateProcessState), state);
+            }
+            else
+            {
+                sbTotalCount.Text = state;
+            }
+        }
+
+        public void UpdateSessionCompleteState(string mac, string isOk)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action<string,string>(UpdateSessionCompleteState), mac,isOk);
+            }
+            else
+            {
+                foreach (DataGridViewRow row in dgvSession.Rows)
+                {
+                    if (row.IsNewRow) continue;
+                    if (row.Cells["sMac"].Value.ToString() == mac)
+                    {
+                        row.Cells["sLoginState"].Value = DateTime.Now.ToLocalTime();
+                        row.Cells["sFinishedNum"].Value = row.Cells["sFinishedNum"].Value == null ? 1 : (int)row.Cells["sFinishedNum"].Value + 1;
+
+                        if (isOk != "OK")
+                        {
+                            row.Cells["sFailedCount"].Value = row.Cells["sFailedCount"].Value == null ? 1 : (int)row.Cells["sFailedCount"].Value + 1;
+                        }
                     }
                 }
             }
-
-            m_checkuserinfos = new Dictionary<string, userinfo>();
-            foreach (userinfo info in m_userinfos.Values)
-            {
-                if (info.bocheck == 0
-                    && info.failedcount <= 1
-                    && info.status != "密码错误"
-                    && info.status != "封停"
-                    && info.status != "签到完成")
-                {
-                    m_checkuserinfos.Add(info.username, info);
-                }
-            }
-            sbTotalCount.Text = "进度:" + (m_userinfos.Count - m_checkuserinfos.Count) + "/" + m_userinfos.Count;
-
-            m_userinfosavelist = new Dictionary<string, userinfo>(m_userinfos);
-            SaveData();
         }
 
+        public bool GetRoutineIpCheckd()
+        {
+            return (bool)this.Invoke(new Func<bool>(() =>
+            {
+                return cbRoutineIp.Checked;
+            }));
+        }
+
+        public void ClearLoginData()
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new Action(ClearLoginData));
+            }
+            else
+            {
+                foreach (DataGridViewRow row in dgvUserData.Rows)
+                {
+                    if (row.IsNewRow) { continue; }
+                    row.Cells["Checked"].Value = null;
+                    row.Cells["State"].Value = null;
+                    row.Cells["IP"].Value = null;
+                    row.Cells["Code"].Value = null;
+                    row.Cells["CheckTime"].Value = null;
+                    row.Cells["FailedCount"].Value = null;
+                }
+            }
+        }
     }
 }

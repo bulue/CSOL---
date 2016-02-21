@@ -90,7 +90,10 @@ namespace 档案汇总
         {
             lock (m_Clinets)
             {
-                m_Clinets.Remove(s);
+                if (m_Clinets.Remove(s))
+                {
+                    s.Terminate();
+                }
                 bChanged = true;
             }
         }
@@ -135,9 +138,16 @@ namespace 档案汇总
 
         public void Terminate()
         {
-            handle.Shutdown(SocketShutdown.Both);
-            handle.Disconnect(false);
-            handle.Dispose();
+            try
+            {
+                handle.Shutdown(SocketShutdown.Both);
+                handle.Disconnect(false);
+                handle.Close();
+            }
+            catch
+            {
+
+            }
         }
 
         public void Start()
